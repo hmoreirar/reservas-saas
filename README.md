@@ -2,22 +2,22 @@
 
 Sistema de reservas similar a Calendly, construido con React, Node.js y PostgreSQL.
 
-## Características
+## Caracteristicas
 
-- 🔐 Autenticación de usuarios
-- 📅 Gestión de servicios y disponibilidad
-- 📆 Vista semanal del calendario
-- 🎫 Crear, cancelar y reprogramar reservas
-- 📊 Dashboard con estadísticas
-- 🌐 Booking público sin login
-- 📧 Notificaciones por email (opcional)
-- 🌍 Zonas horarias configurables
+- Autenticacion de usuarios
+- Gestion de servicios y disponibilidad
+- Vista semanal del calendario
+- Crear, cancelar y reprogramar reservas
+- Dashboard con estadisticas
+- Booking publico sin login
+- Notificaciones por email (opcional)
+- Zonas horarias configurables
 
 ## Tech Stack
 
-- **Backend**: Node.js, Express, PostgreSQL
-- **Frontend**: React, Vite
-- **Auth**: JWT
+- Backend: Node.js, Express, PostgreSQL
+- Frontend: React, Vite
+- Auth: JWT
 
 ## Quick Start
 
@@ -33,14 +33,14 @@ npm install
 npm run dev
 ```
 
-## Configuración
+## Configuracion
 
 1. Crea la base de datos PostgreSQL:
 ```sql
 CREATE DATABASE reservas_saas;
 ```
 
-2. Configura `.env` en `backend/`:
+2. Configura .env en backend/:
 ```
 DB_USER=postgres
 DB_PASSWORD=tu_password
@@ -53,11 +53,11 @@ DB_NAME=reservas_saas
 1. Ejecuta ambos proyectos
 2. Registra un usuario
 3. Crea servicios
-4. Comparte el link público (`/book/:slug`)
+4. Comparte el link publica (/book/:slug)
 
 ## API Endpoints
 
-| Método | Ruta | Descripción |
+| Metodo | Ruta | Descripcion |
 |--------|------|-------------|
 | POST | /api/auth/register | Registro |
 | POST | /api/auth/login | Login |
@@ -65,7 +65,7 @@ DB_NAME=reservas_saas
 | POST | /api/services | Crear servicio |
 | GET | /api/bookings/availability | Disponibilidad |
 | POST | /api/bookings | Crear reserva |
-| GET | /api/bookings/stats | Estadísticas |
+| GET | /api/bookings/stats | Estadisticas |
 
 ## Licencia
 
