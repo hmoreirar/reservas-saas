@@ -13,9 +13,8 @@ import {
   createBooking,
 } from "./api/api";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
 function App() {
+  const publicBaseUrl = window.location.origin;
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [view, setView] = useState("dashboard");
   const [showRegister, setShowRegister] = useState(false);
@@ -33,7 +32,6 @@ function App() {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
-  const [calendarView, setCalendarView] = useState("week");
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [clientName, setClientName] = useState("");
@@ -55,9 +53,19 @@ function App() {
 
   useEffect(() => {
     if (token) {
-      loadServices();
-      loadMyBookings();
-      loadStats();
+      const loadInitialData = async () => {
+        const [servicesData, bookingsData, statsData] = await Promise.all([
+          getServices(),
+          getMyBookings(),
+          getStats(),
+        ]);
+
+        if (Array.isArray(servicesData)) setServices(servicesData);
+        if (Array.isArray(bookingsData)) setMyBookings(bookingsData);
+        if (statsData && !statsData.error) setStats(statsData);
+      };
+
+      loadInitialData().catch(console.error);
     }
   }, [token]);
 
@@ -112,7 +120,11 @@ function App() {
 
   const handleCreateService = async (e) => {
     e.preventDefault();
-    const data = await createService(newService);
+    const payload = {
+      ...newService,
+      price: newService.price === "" || newService.price === null ? null : Number(newService.price),
+    };
+    const data = await createService(payload);
     if (data.id) {
       setShowServiceModal(false);
       setNewService({
@@ -125,6 +137,7 @@ function App() {
         end_hour: 18,
       });
       loadServices();
+      loadStats();
       setSuccess("Servicio creado");
     } else {
       setError(data.error || "Error al crear servicio");
@@ -196,6 +209,7 @@ function App() {
       setShowBookingModal(false);
       setSuccess("Reserva creada");
       loadMyBookings();
+      loadStats();
       handleSelectService(selectedService, selectedDate);
     } else {
       setError(data.error || "Error al crear reserva");
@@ -207,6 +221,7 @@ function App() {
     const data = await cancelBooking(id);
     if (data.message) {
       loadMyBookings();
+      loadStats();
       setSuccess("Reserva cancelada");
     }
   };
@@ -234,6 +249,7 @@ function App() {
       setRescheduleBookingId(null);
       setSelectedSlot(null);
       loadMyBookings();
+      loadStats();
       setSuccess("Reserva reprogramada");
     } else {
       setError(data.error || "Error al reprogramar");
@@ -398,7 +414,18 @@ function App() {
           <input
             type="date"
             value={rescheduleDate}
-            onChange={(e) => setRescheduleDate(e.target.value)}
+            onChange={async (e) => {
+              const newDate = e.target.value;
+              setRescheduleDate(newDate);
+              const booking = myBookings.find((b) => b.id === rescheduleBookingId);
+              if (!booking) return;
+
+              const data = await getAvailability(booking.service_id, newDate);
+              if (Array.isArray(data)) {
+                setRescheduleSlots(data);
+                setSelectedSlot(null);
+              }
+            }}
             style={{ padding: "10px", marginLeft: "10px" }}
           />
         </div>
@@ -671,7 +698,7 @@ function App() {
                   </div>
                   {s.booking_slug && (
                     <p style={{ marginTop: "10px", fontSize: "12px", color: "#999" }}>
-                      🔗 {API_URL}/book/{s.booking_slug}
+                      🔗 {publicBaseUrl}/book/{s.booking_slug}
                     </p>
                   )}
                 </div>
@@ -954,7 +981,7 @@ function App() {
                     type="number"
                     value={newService.price}
                     onChange={(e) =>
-                      setNewService({ ...newService, price: parseInt(e.target.value) })
+                      setNewService({ ...newService, price: e.target.value })
                     }
                     style={{
                       width: "100%",

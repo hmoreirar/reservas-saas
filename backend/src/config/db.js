@@ -5,13 +5,17 @@ dotenv.config();
 
 const { Pool } = pg;
 
-const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "reservas_saas",
-  port: process.env.DB_PORT || 5432,
-});
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? { connectionString: process.env.DATABASE_URL }
+    : {
+        host: process.env.DB_HOST || "localhost",
+        user: process.env.DB_USER || "postgres",
+        password: process.env.DB_PASSWORD || "",
+        database: process.env.DB_NAME || "reservas_saas",
+        port: process.env.DB_PORT || 5432,
+      }
+);
 
 pool.query("SELECT NOW()")
   .then((res) => {
@@ -76,6 +80,9 @@ const initDb = async () => {
         service_id INT REFERENCES services(id),
         quantity INT DEFAULT 1
       );
+
+      ALTER TABLE bookings
+      ADD COLUMN IF NOT EXISTS staff_id INT REFERENCES staff(id) ON DELETE SET NULL;
     `);
     console.log("✅ Tablas creadas/migraciones aplicadas");
   } catch (err) {

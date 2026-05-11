@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -57,7 +58,13 @@ export const createZoomMeeting = async (booking, service) => {
 };
 
 const generateZoomToken = () => {
-  return `${ZOOM_API_KEY}:${ZOOM_API_SECRET}`;
+  return jwt.sign(
+    {
+      iss: ZOOM_API_KEY,
+      exp: Math.floor(Date.now() / 1000) + 60,
+    },
+    ZOOM_API_SECRET
+  );
 };
 
 export const deleteZoomMeeting = async (meetingId) => {

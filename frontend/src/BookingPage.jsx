@@ -22,37 +22,37 @@ function BookingPage({ slug }) {
   const [weekOffset, setWeekOffset] = useState(0);
 
   useEffect(() => {
+    const loadService = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/services/${slug}`);
+        const data = await res.json();
+        if (data.id) {
+          setService(data);
+        } else {
+          setError("Servicio no encontrado");
+        }
+      } catch {
+        setError("Error al cargar servicio");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadService();
-  }, []);
+  }, [slug]);
 
   useEffect(() => {
-    if (service) {
-      handleDateChange(selectedDate);
-    }
-  }, [selectedDate, service]);
+    if (!service) return;
 
-  const loadService = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/services/${slug}`);
-      const data = await res.json();
-      if (data.id) {
-        setService(data);
-      } else {
-        setError("Servicio no encontrado");
+    const loadAvailability = async () => {
+      const data = await getPublicAvailability(service.id, selectedDate);
+      if (Array.isArray(data)) {
+        setAvailableSlots(data);
       }
-    } catch (e) {
-      setError("Error al cargar servicio");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const handleDateChange = async (date) => {
-    const data = await getPublicAvailability(service.id, date);
-    if (Array.isArray(data)) {
-      setAvailableSlots(data);
-    }
-  };
+    loadAvailability();
+  }, [selectedDate, service]);
 
   const getWeekDays = () => {
     const days = [];

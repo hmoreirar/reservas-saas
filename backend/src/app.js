@@ -6,7 +6,6 @@ import serviceRoutes from "./routes/serviceRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
 import staffRoutes from "./routes/staffRoutes.js";
 
-
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -25,23 +24,6 @@ app.get("/", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send("Error DB");
-  }
-});
-
-app.get("/debug/data", async (req, res) => {
-  try {
-    const users = await pool.query("SELECT id, name, email, created_at FROM users");
-    const services = await pool.query("SELECT id, user_id, name, description, duration, price, slug, booking_slug FROM services");
-    const bookings = await pool.query("SELECT id, service_id, client_name, client_email, start_time, end_time, status FROM bookings");
-    
-    res.json({
-      users: users.rows,
-      services: services.rows,
-      bookings: bookings.rows,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Error obteniendo datos" });
   }
 });
 

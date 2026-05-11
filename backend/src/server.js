@@ -1,7 +1,7 @@
 import app from "./app.js";
 import pool, { initDb } from "./config/db.js";
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const start = async () => {
   await initDb();

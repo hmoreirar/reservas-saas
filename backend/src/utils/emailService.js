@@ -3,15 +3,19 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp.gmail.com",
-  port: process.env.SMTP_PORT || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER || "",
-    pass: process.env.SMTP_PASS || "",
-  },
-});
+const smtpConfigured = () => process.env.SMTP_USER && process.env.SMTP_PASS;
+
+const transporter = smtpConfigured()
+  ? nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: process.env.SMTP_PORT || 587,
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    })
+  : null;
 
 const formatDate = (dateStr) => {
   try {
@@ -24,6 +28,8 @@ const formatDate = (dateStr) => {
 };
 
 export const sendBookingConfirmation = async (booking, service, clientEmail, clientName) => {
+  if (!transporter) return;
+
   const mailOptions = {
     from: process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
     to: clientEmail,
@@ -55,6 +61,8 @@ export const sendBookingConfirmation = async (booking, service, clientEmail, cli
 };
 
 export const sendBookingCancellation = async (booking, service, clientEmail, clientName) => {
+  if (!transporter) return;
+
   const mailOptions = {
     from: process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
     to: clientEmail,
@@ -83,6 +91,8 @@ export const sendBookingCancellation = async (booking, service, clientEmail, cli
 };
 
 export const sendProviderNotification = async (providerEmail, providerName, booking, service) => {
+  if (!transporter) return;
+
   const mailOptions = {
     from: process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
     to: providerEmail,

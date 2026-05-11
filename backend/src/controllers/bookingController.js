@@ -111,9 +111,13 @@ export const createPublicBooking = async (req, res) => {
     const booking = result.rows[0];
     const userResult = await pool.query("SELECT * FROM users WHERE id = $1", [service.user_id]);
     const user = userResult.rows[0];
-    
-    await sendBookingConfirmation(booking, service, client_email, client_name);
-    await sendProviderNotification(user.email, user.name, booking, service);
+
+    try {
+      await sendBookingConfirmation(booking, service, client_email, client_name);
+      await sendProviderNotification(user.email, user.name, booking, service);
+    } catch (emailErr) {
+      console.log("📧 Email no enviado ( SMTP no configurado):", emailErr.message);
+    }
 
     res.json({ booking: result.rows[0], service: service });
   } catch (error) {
@@ -127,6 +131,10 @@ export const getBookingsByDay = async (req, res) => {
     const service_id = Number(req.query.service_id);
     const date = req.query.date;
     const userId = req.user.id;
+
+    if (!service_id || isNaN(service_id) || !date) {
+      return res.status(400).json({ error: "Parámetros requeridos" });
+    }
 
     const serviceCheck = await pool.query(
       "SELECT user_id FROM services WHERE id = $1",
@@ -350,7 +358,11 @@ export const cancelBooking = async (req, res) => {
 
     await pool.query(`UPDATE bookings SET status = 'cancelled' WHERE id = $1`, [id]);
 
-    await sendBookingCancellation(booking, { name: booking.service_name }, booking.client_email, booking.client_name);
+    try {
+      await sendBookingCancellation(booking, { name: booking.service_name }, booking.client_email, booking.client_name);
+    } catch (emailErr) {
+      console.log("📧 Email de cancelación no enviado:", emailErr.message);
+    }
 
     res.json({ message: "Reserva cancelada" });
   } catch (error) {

@@ -40,13 +40,12 @@ npm run dev
 CREATE DATABASE reservas_saas;
 ```
 
-2. Configura .env en backend/:
+2. Configura `.env` en `backend/`:
+```bash
+cp backend/.env.example backend/.env
 ```
-DB_USER=postgres
-DB_PASSWORD=tu_password
-DB_HOST=localhost
-DB_NAME=reservas_saas
-```
+
+Luego ajusta los valores reales en `backend/.env`, especialmente `DB_*`, `JWT_SECRET` y SMTP si usarás correos.
 
 ## Uso
 

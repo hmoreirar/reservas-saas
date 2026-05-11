@@ -1,11 +1,7 @@
 import pool from "../config/db.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const JWT_SECRET = process.env.JWT_SECRET || "reservas_saas_secure_token_2024";
+import { JWT_SECRET } from "../config/env.js";
 
 // 🔐 REGISTER
 export const register = async (req, res) => {
