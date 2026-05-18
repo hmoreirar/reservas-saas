@@ -3,5 +3,5 @@
   startCommand = "npm start"
 
 [deploy]
-  healthcheckPath = "/"
+  healthcheckPath = "/api/health"
   healthcheckTimeout = 300

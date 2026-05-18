@@ -20,7 +20,7 @@ app.use("/api/services", serviceRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/staff", staffRoutes);
 
-app.get("/", async (req, res) => {
+app.get("/api/health", async (req, res) => {
   try {
     const result = await pool.query("SELECT NOW()");
     res.json({
