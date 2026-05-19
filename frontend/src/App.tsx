@@ -11,6 +11,7 @@ import BookingModal from "./components/BookingModal";
 import MyBookings from "./components/MyBookings";
 import RescheduleView from "./components/RescheduleView";
 import Alert from "./components/ui/Alert";
+import LoadingSpinner from "./components/ui/LoadingSpinner";
 import {
   getServices,
   getAvailability,
@@ -22,30 +23,33 @@ import {
   rescheduleBooking,
   createBooking,
 } from "./api/api";
+import type { Service, Stats, TimeSlot, Booking } from "./types";
 
-function App() {
+export default function App() {
   const { token, user, logout } = useAuth();
   const publicBaseUrl = window.location.origin;
-  const [view, setView] = useState("dashboard");
+  const [view, setView] = useState<"dashboard" | "bookings">("dashboard");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [services, setServices] = useState([]);
-  const [selectedService, setSelectedService] = useState(null);
-  const [availableSlots, setAvailableSlots] = useState([]);
-  const [myBookings, setMyBookings] = useState([]);
-  const [stats, setStats] = useState(null);
+  const [services, setServices] = useState<Service[]>([]);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [myBookings, setMyBookings] = useState<Booking[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
     return today.toISOString().split("T")[0];
   });
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [showServiceModal, setShowServiceModal] = useState(false);
-  const [rescheduleBookingId, setRescheduleBookingId] = useState(null);
+  const [rescheduleBookingId, setRescheduleBookingId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (token) {
       const loadInitialData = async () => {
+        setLoading(true);
         const [servicesData, bookingsData, statsData] = await Promise.all([
           getServices(),
           getMyBookings(),
@@ -54,10 +58,13 @@ function App() {
 
         if (Array.isArray(servicesData)) setServices(servicesData);
         if (Array.isArray(bookingsData)) setMyBookings(bookingsData);
-        if (statsData && !statsData.error) setStats(statsData);
+        if (statsData && !("error" in statsData)) setStats(statsData);
+        setLoading(false);
       };
 
-      loadInitialData().catch(console.error);
+      loadInitialData().catch(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
   }, [token]);
 
@@ -73,7 +80,7 @@ function App() {
 
   const loadStats = async () => {
     const data = await getStats();
-    if (data && !data.error) setStats(data);
+    if (data && !("error" in data)) setStats(data);
   };
 
   const handleLogout = () => {
@@ -83,7 +90,15 @@ function App() {
     setSelectedService(null);
   };
 
-  const handleCreateService = async (formData) => {
+  const handleCreateService = async (formData: {
+    name: string;
+    description: string;
+    duration: number;
+    price: string;
+    timezone: string;
+    start_hour: number;
+    end_hour: number;
+  }) => {
     const payload = {
       ...formData,
       price: formData.price === "" || formData.price === null ? null : Number(formData.price),
@@ -99,7 +114,7 @@ function App() {
     }
   };
 
-  const handleDeleteService = async (id) => {
+  const handleDeleteService = async (id: number) => {
     if (!confirm("¿Eliminar servicio?")) return;
     const data = await deleteService(id);
     if (data.message) {
@@ -108,7 +123,7 @@ function App() {
     }
   };
 
-  const handleSelectService = async (service, date = selectedDate) => {
+  const handleSelectService = async (service: Service, date = selectedDate) => {
     setSelectedService(service);
     setSuccess("");
     setError("");
@@ -118,7 +133,7 @@ function App() {
     }
   };
 
-  const handleDateChange = (newDate) => {
+  const handleDateChange = (newDate: string) => {
     setSelectedDate(newDate);
     if (selectedService) {
       handleSelectService(selectedService, newDate);
@@ -137,17 +152,18 @@ function App() {
     handleDateChange(d.toISOString().split("T")[0]);
   };
 
-  const handleOpenBookingModal = (slot) => {
+  const handleOpenBookingModal = (slot: TimeSlot) => {
     setSelectedSlot(slot);
     setShowBookingModal(true);
   };
 
-  const handleConfirmBooking = async (clientName, clientEmail) => {
+  const handleConfirmBooking = async (clientName: string, clientEmail: string) => {
+    if (!selectedService || !selectedSlot) return "Error inesperado";
     const data = await createBooking(
       selectedService.id,
       clientName,
       clientEmail,
-      selectedSlot.start
+      selectedSlot.start,
     );
     if (data.id) {
       setShowBookingModal(false);
@@ -160,7 +176,7 @@ function App() {
     return data.error || "Error al crear reserva";
   };
 
-  const handleCancelBooking = async (id) => {
+  const handleCancelBooking = async (id: number) => {
     if (!confirm("¿Cancelar reserva?")) return;
     const data = await cancelBooking(id);
     if (data.message) {
@@ -170,11 +186,12 @@ function App() {
     }
   };
 
-  const handleStartReschedule = async (bookingId) => {
+  const handleStartReschedule = (bookingId: number) => {
     setRescheduleBookingId(bookingId);
   };
 
-  const handleConfirmReschedule = async (slot) => {
+  const handleConfirmReschedule = async (slot: TimeSlot) => {
+    if (!rescheduleBookingId) return "Error inesperado";
     const data = await rescheduleBooking(rescheduleBookingId, slot.start);
     if (data.message) {
       setRescheduleBookingId(null);
@@ -189,6 +206,10 @@ function App() {
 
   if (!token) {
     return <LoginPage />;
+  }
+
+  if (loading) {
+    return <LoadingSpinner />;
   }
 
   if (rescheduleBookingId) {
@@ -229,18 +250,14 @@ function App() {
                 onDateChange={handleDateChange}
                 onPrevWeek={handlePrevWeek}
                 onNextWeek={handleNextWeek}
-              >
-                {selectedService.name}
-              </CalendarView>
-            )}
-
-            {selectedService && (
-              <div className="mt-5">
-                <AvailableSlots
-                  slots={availableSlots}
-                  onSelectSlot={handleOpenBookingModal}
-                />
-              </div>
+                serviceName={selectedService.name}
+                slots={
+                  <AvailableSlots
+                    slots={availableSlots}
+                    onSelectSlot={handleOpenBookingModal}
+                  />
+                }
+              />
             )}
           </>
         )}
@@ -266,7 +283,7 @@ function App() {
       <BookingModal
         open={showBookingModal}
         onClose={() => setShowBookingModal(false)}
-        service={selectedService}
+        service={selectedService!}
         slot={selectedSlot}
         defaultEmail={user?.email || ""}
         onConfirm={handleConfirmBooking}
@@ -274,5 +291,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

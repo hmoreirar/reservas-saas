@@ -5,7 +5,8 @@ interface CalendarViewProps {
   onDateChange: (date: string) => void;
   onPrevWeek: () => void;
   onNextWeek: () => void;
-  children?: React.ReactNode;
+  serviceName: string;
+  slots?: React.ReactNode;
 }
 
 export default function CalendarView({
@@ -13,12 +14,13 @@ export default function CalendarView({
   onDateChange,
   onPrevWeek,
   onNextWeek,
-  children,
+  serviceName,
+  slots,
 }: CalendarViewProps) {
   return (
     <div className="rounded-xl border border-gray-100 bg-white p-8 shadow-sm">
       <h3 className="m-0 mb-5 text-lg font-semibold text-gray-800">
-        Agenda - {children}
+        Agenda - {serviceName}
       </h3>
 
       <div className="mb-5 flex items-center gap-3">
@@ -73,10 +75,14 @@ export default function CalendarView({
         })}
       </div>
 
-      <h4 className="mb-3 text-base font-semibold text-gray-700">
-        Horarios disponibles para {selectedDate}
-      </h4>
-      {children}
+      {slots && (
+        <>
+          <h4 className="mb-3 text-base font-semibold text-gray-700">
+            Horarios disponibles para {selectedDate}
+          </h4>
+          {slots}
+        </>
+      )}
     </div>
   );
 }
