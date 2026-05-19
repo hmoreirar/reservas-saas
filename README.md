@@ -42,7 +42,7 @@
 | ![Login](screenshots/login.png) | ![Dashboard](screenshots/dashboard.png) |
 
 | Mis Reservas | Mobile login |
-|---|---|---|
+|---|---|
 | ![Bookings](screenshots/bookings.png) | ![Login mobile](screenshots/login-mobile.png) |
 
 | Mobile dashboard |
