@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router";
 import { getPublicAvailability, createPublicBooking } from "./api/api";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-function BookingPage({ slug }) {
+function BookingPage() {
+  const { slug } = useParams();
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

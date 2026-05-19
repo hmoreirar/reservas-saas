@@ -1,0 +1,45 @@
+export interface Service {
+  id: number;
+  user_id: number;
+  name: string;
+  description: string | null;
+  duration: number;
+  price: number | null;
+  slug: string;
+  booking_slug: string | null;
+  timezone: string;
+  start_hour: number;
+  end_hour: number;
+  service_type: string;
+  is_package: boolean;
+  allow_multiple: boolean;
+  created_at: string;
+}
+
+export interface Booking {
+  id: number;
+  service_id: number;
+  client_name: string;
+  client_email: string;
+  start_time: string;
+  end_time: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  service_name?: string;
+}
+
+export interface TimeSlot {
+  start: string;
+  end: string;
+}
+
+export interface Stats {
+  total: number;
+  confirmed: number;
+  cancelled: number;
+  revenue: number;
+  byService: { name: string; total: number; revenue: number }[];
+  upcoming: Booking[];
+  last7Days: { date: string; count: number }[];
+}
