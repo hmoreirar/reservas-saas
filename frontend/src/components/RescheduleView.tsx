@@ -47,23 +47,23 @@ export default function RescheduleView({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-10 font-sans">
+    <div className="min-h-screen bg-stone-50 p-10 font-sans">
       <button
         onClick={onBack}
-        className="mb-5 cursor-pointer rounded-lg bg-gray-200 px-5 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-300"
+        className="mb-5 cursor-pointer rounded-lg bg-stone-200 px-5 py-2.5 text-sm text-stone-700 transition-colors hover:bg-stone-300"
       >
         &larr; Volver
       </button>
 
-      <h2 className="mb-5 text-xl font-semibold text-gray-800">Reprogramar Reserva</h2>
+      <h2 className="mb-5 text-xl font-semibold text-stone-800">Reprogramar Reserva</h2>
 
       <div className="mb-5">
-        <label className="mr-3 text-sm text-gray-600">Selecciona fecha:</label>
+        <label className="mr-3 text-sm text-stone-600">Selecciona fecha:</label>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+          className="rounded-md border border-stone-300 px-3 py-2 text-sm"
         />
       </div>
 
@@ -81,8 +81,8 @@ export default function RescheduleView({
               onClick={() => setSelectedSlot(slot)}
               className={`cursor-pointer rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
                 selectedSlot?.start === slot.start
-                  ? "bg-indigo-500 text-white"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  ? "bg-amber-500 text-white"
+                  : "bg-stone-200 text-stone-700 hover:bg-stone-300"
               }`}
             >
               {new Date(slot.start).toLocaleTimeString("es-ES", {
@@ -96,7 +96,7 @@ export default function RescheduleView({
 
       <button
         onClick={handleConfirm}
-        className="cursor-pointer rounded-lg bg-indigo-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-indigo-600"
+        className="cursor-pointer rounded-lg bg-amber-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-600"
       >
         Confirmar Reprogramación
       </button>

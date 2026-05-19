@@ -8,10 +8,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<Variant, string> = {
-  primary: "bg-indigo-500 text-white hover:bg-indigo-600 disabled:bg-gray-400",
-  secondary: "bg-gray-200 text-gray-800 hover:bg-gray-300",
-  danger: "bg-red-500 text-white hover:bg-red-600",
-  ghost: "bg-transparent text-gray-600 hover:bg-gray-100",
+  primary: "bg-amber-500 text-white hover:bg-amber-600 disabled:bg-stone-400",
+  secondary: "bg-stone-200 text-stone-800 hover:bg-stone-300",
+  danger: "bg-orange-500 text-white hover:bg-orange-600",
+  ghost: "bg-transparent text-stone-600 hover:bg-stone-100",
 };
 
 export default function Button({

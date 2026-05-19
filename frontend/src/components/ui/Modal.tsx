@@ -12,14 +12,14 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/50"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-md rounded-xl bg-white p-6 shadow-2xl"
+        className="mx-4 w-[calc(100vw-32px)] max-w-md animate-scale-in rounded-xl bg-white p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">{title}</h2>
+        <h2 className="mb-4 text-lg font-semibold text-stone-900">{title}</h2>
         {children}
       </div>
     </div>

@@ -77,10 +77,10 @@ export default function BookingPage() {
 
   if (error && !service) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 font-sans">
+      <div className="flex min-h-screen items-center justify-center bg-stone-50 font-sans">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-500">{error}</h1>
-          <p className="mt-2 text-gray-500">El enlace puede haber expirado o ser inválido.</p>
+          <p className="mt-2 text-stone-500">El enlace puede haber expirado o ser inválido.</p>
         </div>
       </div>
     );
@@ -91,9 +91,9 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <div className="bg-gradient-to-br from-indigo-500 to-purple-600 px-10 py-10 text-center text-white">
-        <h1 className="m-0 text-3xl font-bold">{service?.name}</h1>
+    <div className="min-h-screen bg-stone-50 font-sans">
+      <div className="bg-gradient-to-br from-amber-500 to-orange-600 px-4 py-8 text-center text-white md:px-10 md:py-10">
+        <h1 className="m-0 text-2xl font-bold md:text-3xl">{service?.name}</h1>
         <p className="mt-2 opacity-90">
           {service?.description} &bull; ${service?.price} &bull; {service?.duration}min
         </p>
@@ -104,16 +104,16 @@ export default function BookingPage() {
         )}
       </div>
 
-      <div className="mx-auto max-w-[900px] px-5 py-10">
-        <div className="rounded-xl border border-gray-100 bg-white p-8 shadow-sm">
-          <h2 className="m-0 mb-5 text-lg font-semibold text-gray-800">
+      <div className="mx-auto w-full max-w-[900px] px-4 py-6 md:px-5 md:py-10">
+        <div className="rounded-xl border border-stone-100 bg-white p-4 shadow-sm md:p-8">
+          <h2 className="m-0 mb-5 text-lg font-semibold text-stone-800">
             Selecciona fecha y hora
           </h2>
 
           <div className="mb-5 flex items-center gap-3">
             <button
               onClick={prevWeek}
-              className="cursor-pointer rounded-md bg-gray-100 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-200"
+              className="cursor-pointer rounded-md bg-stone-100 px-4 py-2.5 text-sm text-stone-700 transition-colors hover:bg-stone-200"
             >
               &larr; Sem. anterior
             </button>
@@ -121,11 +121,11 @@ export default function BookingPage() {
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="rounded-md border border-stone-300 px-3 py-2 text-sm"
             />
             <button
               onClick={nextWeek}
-              className="cursor-pointer rounded-md bg-gray-100 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-200"
+              className="cursor-pointer rounded-md bg-stone-100 px-4 py-2.5 text-sm text-stone-700 transition-colors hover:bg-stone-200"
             >
               Sem. siguiente &rarr;
             </button>
@@ -142,18 +142,18 @@ export default function BookingPage() {
                   onClick={() => setSelectedDate(dateStr)}
                   className={`cursor-pointer rounded-lg px-3 py-4 text-center transition-all ${
                     isSelected
-                      ? "border-2 border-indigo-500 bg-indigo-50"
+                      ? "border-2 border-amber-500 bg-amber-50"
                       : isToday
                         ? "border-2 border-transparent bg-red-50"
-                        : "border-2 border-transparent bg-gray-50 hover:bg-gray-100"
+                        : "border-2 border-transparent bg-stone-50 hover:bg-stone-100"
                   }`}
                 >
-                  <div className="text-xs capitalize text-gray-500">
+                  <div className="text-xs capitalize text-stone-500">
                     {day.toLocaleDateString("es-ES", { weekday: "short" })}
                   </div>
                   <div
                     className={`text-lg ${
-                      isToday ? "font-bold text-red-500" : "text-gray-800"
+                      isToday ? "font-bold text-red-500" : "text-stone-800"
                     }`}
                   >
                     {day.getDate()}
@@ -163,9 +163,9 @@ export default function BookingPage() {
             })}
           </div>
 
-          <h3 className="mb-3 text-base font-semibold text-gray-800">Horarios disponibles</h3>
+          <h3 className="mb-3 text-base font-semibold text-stone-800">Horarios disponibles</h3>
           {availableSlots.length === 0 ? (
-            <p className="text-sm text-gray-500">No hay horarios disponibles para esta fecha</p>
+            <p className="text-sm text-stone-500">No hay horarios disponibles para esta fecha</p>
           ) : (
             <div className="flex flex-wrap gap-3">
               {availableSlots.map((slot, i) => (
@@ -175,7 +175,7 @@ export default function BookingPage() {
                     setSelectedSlot(slot);
                     setShowModal(true);
                   }}
-                  className="cursor-pointer rounded-lg bg-indigo-500 px-5 py-3 text-sm font-medium text-white transition-all hover:bg-indigo-600"
+                  className="cursor-pointer rounded-lg bg-amber-500 px-5 py-3 text-sm font-medium text-white transition-all hover:bg-amber-600"
                 >
                   {new Date(slot.start).toLocaleTimeString("es-ES", {
                     hour: "2-digit",

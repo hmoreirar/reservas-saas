@@ -224,15 +224,15 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-stone-50 font-sans">
       <Navbar view={view} onViewChange={setView} onLogout={handleLogout} />
 
-      <div className="mx-auto max-w-[1200px] px-10 py-10">
+      <div className="mx-auto max-w-[1200px] px-4 py-6 md:px-10 md:py-10">
         {error && <Alert variant="error">{error}</Alert>}
         {success && <Alert variant="success">{success}</Alert>}
 
         {view === "dashboard" && (
-          <>
+          <div key="dashboard" className="animate-fade-in">
             {stats && <StatsCards stats={stats} />}
 
             <ServicesGrid
@@ -259,18 +259,18 @@ export default function App() {
                 }
               />
             )}
-          </>
+          </div>
         )}
 
         {view === "bookings" && (
-          <>
-            <h2 className="mb-8 text-xl font-semibold text-gray-800">Mis Reservas</h2>
+          <div key="bookings" className="animate-fade-in">
+            <h2 className="mb-8 text-xl font-semibold text-stone-800">Mis Reservas</h2>
             <MyBookings
               bookings={myBookings}
               onReschedule={handleStartReschedule}
               onCancel={handleCancelBooking}
             />
-          </>
+          </div>
         )}
       </div>
 

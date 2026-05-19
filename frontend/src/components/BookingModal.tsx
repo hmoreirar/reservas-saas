@@ -43,7 +43,7 @@ export default function BookingModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Crear Reserva">
-      <p className="mb-5 text-sm text-gray-500">
+      <p className="mb-5 text-sm text-stone-500">
         {slot &&
           new Date(slot.start).toLocaleString("es-CL", {
             year: "numeric",
@@ -61,33 +61,33 @@ export default function BookingModal({
       )}
 
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-gray-700">
+        <label className="mb-1 block text-sm font-medium text-stone-700">
           Nombre del cliente *
         </label>
         <input
           type="text"
           value={clientName}
           onChange={(e) => setClientName(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
         />
       </div>
 
       <div className="mb-6">
-        <label className="mb-1 block text-sm font-medium text-gray-700">
+        <label className="mb-1 block text-sm font-medium text-stone-700">
           Email del cliente
         </label>
         <input
           type="email"
           value={clientEmail}
           onChange={(e) => setClientEmail(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+          className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
         />
       </div>
 
       <div className="flex gap-3">
         <button
           onClick={onClose}
-          className="flex-1 cursor-pointer rounded-lg bg-gray-200 px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-300"
+          className="flex-1 cursor-pointer rounded-lg bg-stone-200 px-4 py-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-300"
         >
           Cancelar
         </button>
@@ -96,8 +96,8 @@ export default function BookingModal({
           disabled={isBooking}
           className={`flex-1 cursor-pointer rounded-lg px-4 py-3 text-sm font-medium text-white transition-colors ${
             isBooking
-              ? "cursor-not-allowed bg-gray-400"
-              : "bg-indigo-500 hover:bg-indigo-600"
+              ? "cursor-not-allowed bg-stone-400"
+              : "bg-amber-500 hover:bg-amber-600"
           }`}
         >
           {isBooking ? "Creando..." : "Confirmar Reserva"}
