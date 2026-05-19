@@ -12,7 +12,7 @@ export default function AvailableSlots({ slots, onSelectSlot }: AvailableSlotsPr
       <EmptyState
         variant="slots"
         title="Sin horarios disponibles"
-        description="No hay horarios libres para esta fecha. Probá con otro día."
+        description="No hay horarios libres para esta fecha. Prueba con otro día."
       />
     );
   }

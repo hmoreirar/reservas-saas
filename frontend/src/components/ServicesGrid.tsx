@@ -33,7 +33,7 @@ export default function ServicesGrid({
       {services.length === 0 ? (
         <EmptyState
           variant="services"
-          title="Creá tu primer servicio"
+          title="Crea tu primer servicio"
           description="Los servicios son los tipos de turno que ofrecés. Duración, precio y horarios."
           action={{ label: "+ Nuevo Servicio", onClick: onNewService }}
         />
