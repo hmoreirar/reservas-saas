@@ -41,13 +41,15 @@
 |---|---|
 | ![Login](screenshots/login.png) | ![Dashboard](screenshots/dashboard.png) |
 
-| Mis Reservas | Booking público |
-|---|---|
-| ![Bookings](screenshots/bookings.png) | *(creá un servicio para generar el link público)* |
+| Mis Reservas | Mobile login |
+|---|---|---|
+| ![Bookings](screenshots/bookings.png) | ![Login mobile](screenshots/login-mobile.png) |
 
-| Mobile login | Mobile dashboard |
-|---|---|
-| ![Login mobile](screenshots/login-mobile.png) | ![Dashboard mobile](screenshots/dashboard-mobile.png) |
+| Mobile dashboard |
+|---|
+| ![Dashboard mobile](screenshots/dashboard-mobile.png) |
+
+> 💡 Las capturas del dashboard muestran el panel con estadísticas, servicios y calendario. La vista pública de booking se genera automáticamente al crear un servicio.
 
 ## Inicio rápido
 
