@@ -1,8 +1,13 @@
 #!/bin/bash
 
-TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NCwiZW1haWwiOiJ0ZXN0QHRlc3QuY29tIiwiaWF0IjoxNzc3MzQyMjQ0LCJleHAiOjE3NzczNDU4NDR9.toPMjjju0D--vBoLcbFjoDatFjMti9X0AkIdyxNYPAE"
-SERVICE_ID="2"
-DATE="2026-04-28"
+# Load test credentials from .env.test (not tracked in git)
+if [ -f .env.test ]; then
+  set -a; source .env.test; set +a
+fi
+
+TOKEN="${TEST_JWT:-your-test-jwt-token-here}"
+SERVICE_ID="${TEST_SERVICE_ID:-2}"
+DATE="${TEST_DATE:-2026-04-28}"
 
 echo "🔍 Probando getAvailability..."
 echo "Token: $TOKEN"
