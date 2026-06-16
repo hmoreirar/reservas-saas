@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build",
+    "build": "cd backend && npm install && npx tsc && cd ../frontend && npm install && npm run build",
     "start": "cd backend && node dist/server.js",
     "dev": "cd backend && npx tsx watch src/server.ts",
     "dev:frontend": "cd frontend && npm run dev",
