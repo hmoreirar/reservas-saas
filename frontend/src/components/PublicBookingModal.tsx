@@ -52,7 +52,8 @@ export default function PublicBookingModal({
             })}
         </p>
         <p className="m-0 mt-2 text-sm text-stone-500">
-          {service?.duration} min &bull; ${service?.price}
+          {service?.duration} min
+          {service?.price != null ? ` \u2022 $${service.price}` : " \u2022 Precio a convenir"}
         </p>
       </div>
 

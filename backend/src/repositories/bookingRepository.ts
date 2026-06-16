@@ -10,12 +10,13 @@ export const bookingRepository = {
     start_time: Date;
     end_time: Date;
     notes: string | null;
+    price?: number | null;
   }): Promise<Booking> {
     const result = await pool.query(
-      `INSERT INTO bookings (service_id, client_name, client_email, start_time, end_time, notes)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO bookings (service_id, client_name, client_email, start_time, end_time, notes, price)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [data.service_id, data.client_name, data.client_email, data.start_time, data.end_time, data.notes]
+      [data.service_id, data.client_name, data.client_email, data.start_time, data.end_time, data.notes, data.price ?? null]
     );
     return result.rows[0];
   },
@@ -81,7 +82,7 @@ export const bookingRepository = {
 
   async findUpcomingByUser(userId: number): Promise<Booking[]> {
     const result = await pool.query(
-      `SELECT b.*, s.name as service_name, s.duration, s.price 
+      `SELECT b.*, s.name as service_name, s.duration, COALESCE(b.price, s.price) as price 
        FROM bookings b 
        JOIN services s ON b.service_id = s.id 
        WHERE s.user_id = $1 
@@ -137,7 +138,7 @@ export const bookingRepository = {
         [userId]
       ),
       pool.query(
-        `SELECT COALESCE(SUM(s.price), 0) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'confirmed'`,
+        `SELECT COALESCE(SUM(COALESCE(b.price, s.price)), 0) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'confirmed'`,
         [userId]
       ),
     ]);
@@ -152,7 +153,7 @@ export const bookingRepository = {
 
   async getByServiceStats(userId: number): Promise<{ name: string; total: number; revenue: number }[]> {
     const result = await pool.query(
-      `SELECT s.name, COUNT(b.id) as total, COALESCE(SUM(s.price), 0) as revenue
+      `SELECT s.name, COUNT(b.id) as total, COALESCE(SUM(COALESCE(b.price, s.price)), 0) as revenue
        FROM bookings b 
        JOIN services s ON b.service_id = s.id 
        WHERE s.user_id = $1 AND b.status = 'confirmed'

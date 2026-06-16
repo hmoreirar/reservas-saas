@@ -46,6 +46,7 @@ export interface Booking {
   status: string;
   notes: string | null;
   created_at: string;
+  price?: number | null;
   service_name?: string;
 }
 

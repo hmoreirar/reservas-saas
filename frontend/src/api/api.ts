@@ -109,18 +109,21 @@ export const createBooking = async (
   clientName: string,
   clientEmail: string,
   startTime: string,
-  notes = ""
+  notes = "",
+  price?: number | null,
 ): Promise<IdResponse> => {
+  const body: Record<string, unknown> = {
+    service_id: serviceId,
+    client_name: clientName,
+    client_email: clientEmail,
+    start_time: startTime,
+    notes,
+  };
+  if (price !== undefined) body.price = price;
   const res = await fetch(`${API_URL}/api/bookings`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({
-      service_id: serviceId,
-      client_name: clientName,
-      client_email: clientEmail,
-      start_time: startTime,
-      notes,
-    }),
+    body: JSON.stringify(body),
   });
   return res.json();
 };

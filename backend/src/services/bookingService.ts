@@ -18,6 +18,7 @@ export const bookingService = {
       client_email: string;
       start_time: string;
       notes?: string;
+      price?: number | null;
     }
   ) {
     const owner = await serviceRepository.findUserByServiceId(data.service_id);
@@ -37,6 +38,8 @@ export const bookingService = {
       throw new ConflictError('Horario no disponible');
     }
 
+    const bookingPrice = data.price ?? service.price;
+
     const booking = await bookingRepository.create({
       service_id: data.service_id,
       client_name: data.client_name,
@@ -44,6 +47,7 @@ export const bookingService = {
       start_time: start,
       end_time: end,
       notes: data.notes ?? null,
+      price: bookingPrice,
     });
 
     const user = await serviceRepository.findUserByServiceId(data.service_id);
@@ -86,6 +90,7 @@ export const bookingService = {
     client_email: string;
     start_time: string;
     notes?: string;
+    price?: number | null;
   }) {
     const service = await serviceRepository.findById(
       typeof data.service_id === 'string' ? 0 : data.service_id
@@ -113,6 +118,8 @@ export const bookingService = {
       throw new ConflictError('Horario no disponible');
     }
 
+    const bookingPrice = data.price ?? serviceRecord.price;
+
     const booking = await bookingRepository.create({
       service_id: serviceRecord.id,
       client_name: data.client_name,
@@ -120,6 +127,7 @@ export const bookingService = {
       start_time: start,
       end_time: end,
       notes: data.notes ?? null,
+      price: bookingPrice,
     });
 
     const userResult = await import('../repositories/userRepository.js').then((m) =>

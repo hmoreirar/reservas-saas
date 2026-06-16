@@ -160,13 +160,15 @@ export default function App() {
     setShowBookingModal(true);
   };
 
-  const handleConfirmBooking = async (clientName: string, clientEmail: string) => {
+  const handleConfirmBooking = async (clientName: string, clientEmail: string, price?: number | null) => {
     if (!selectedService || !selectedSlot) return "Error inesperado";
     const data = await createBooking(
       selectedService.id,
       clientName,
       clientEmail,
       selectedSlot.start,
+      "",
+      price,
     );
     if (data.id) {
       setShowBookingModal(false);

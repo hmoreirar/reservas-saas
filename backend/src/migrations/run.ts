@@ -75,6 +75,7 @@ const migrations = [
     is_recurring BOOLEAN DEFAULT false
   )`,
   `ALTER TABLE services ADD COLUMN IF NOT EXISTS max_capacity INT DEFAULT 1`,
+  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS price DECIMAL(10,2)`,
 ];
 
 export async function runMigrations(): Promise<void> {

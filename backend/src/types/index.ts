@@ -37,9 +37,9 @@ export interface Booking {
   notes: string | null;
   created_at: Date;
   staff_id: number | null;
+  price: number | null;
   service_name?: string;
   duration?: number;
-  price?: number;
 }
 
 export interface Staff {

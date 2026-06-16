@@ -8,7 +8,7 @@ interface BookingModalProps {
   service: Service;
   slot: TimeSlot | null;
   defaultEmail: string;
-  onConfirm: (name: string, email: string) => Promise<string | null>;
+  onConfirm: (name: string, email: string, price?: number | null) => Promise<string | null>;
 }
 
 export default function BookingModal({
@@ -21,6 +21,7 @@ export default function BookingModal({
 }: BookingModalProps) {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState(defaultEmail);
+  const [manualPrice, setManualPrice] = useState(service.price ? String(service.price) : "");
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState("");
 
@@ -31,13 +32,15 @@ export default function BookingModal({
     }
     setError("");
     setIsBooking(true);
-    const err = await onConfirm(clientName, clientEmail);
+    const price = manualPrice ? Number(manualPrice) : null;
+    const err = await onConfirm(clientName, clientEmail, price);
     setIsBooking(false);
     if (err) {
       setError(err);
     } else {
       setClientName("");
       setClientEmail(defaultEmail);
+      setManualPrice(service.price ? String(service.price) : "");
     }
   };
 
@@ -72,7 +75,7 @@ export default function BookingModal({
         />
       </div>
 
-      <div className="mb-6">
+      <div className="mb-4">
         <label className="mb-1 block text-sm font-medium text-stone-700">
           Email del cliente
         </label>
@@ -80,6 +83,19 @@ export default function BookingModal({
           type="email"
           value={clientEmail}
           onChange={(e) => setClientEmail(e.target.value)}
+          className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+        />
+      </div>
+
+      <div className="mb-6">
+        <label className="mb-1 block text-sm font-medium text-stone-700">
+          Precio ($)
+        </label>
+        <input
+          type="number"
+          value={manualPrice}
+          onChange={(e) => setManualPrice(e.target.value)}
+          placeholder={service.price ? String(service.price) : "Precio variable"}
           className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
         />
       </div>

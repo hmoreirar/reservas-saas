@@ -48,6 +48,7 @@ export const createBookingSchema = z.object({
   client_email: z.string().email('Email del cliente invalido'),
   start_time: z.string().min(1, 'Fecha y hora requerida'),
   notes: z.string().optional(),
+  price: z.number().min(0).optional().nullable(),
 });
 
 export const createPublicBookingSchema = z.object({
@@ -56,6 +57,7 @@ export const createPublicBookingSchema = z.object({
   client_email: z.string().email('Email invalido'),
   start_time: z.string().min(1, 'Fecha y hora requerida'),
   notes: z.string().optional(),
+  price: z.number().min(0).optional().nullable(),
 });
 
 export const staffSchema = z.object({
