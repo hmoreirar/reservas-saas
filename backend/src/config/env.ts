@@ -1,8 +1,8 @@
-import dotenv from "dotenv";
+import dotenv from 'dotenv';
 
 dotenv.config();
 
-const requiredEnv = ["JWT_SECRET"];
+const requiredEnv = ['JWT_SECRET'] as const;
 
 for (const key of requiredEnv) {
   if (!process.env[key]) {
@@ -10,4 +10,4 @@ for (const key of requiredEnv) {
   }
 }
 
-export const JWT_SECRET = process.env.JWT_SECRET;
+export const JWT_SECRET = process.env.JWT_SECRET as string;

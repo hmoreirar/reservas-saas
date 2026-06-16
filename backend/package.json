@@ -2,28 +2,44 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/server.js"
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-rate-limit": "^7.5.0",
     "googleapis": "^128.0.0",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^6.9.8",
     "pg": "^8.20.0",
-    "uuid": "^9.0.1"
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.24.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/node": "^22.15.17",
+    "@types/nodemailer": "^6.4.17",
+    "@types/pg": "^8.11.14",
+    "@types/uuid": "^9.0.8",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.3"
   }
 }
