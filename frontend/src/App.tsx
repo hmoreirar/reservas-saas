@@ -289,7 +289,7 @@ export default function App() {
       <BookingModal
         open={showBookingModal}
         onClose={() => setShowBookingModal(false)}
-        service={selectedService!}
+        service={selectedService}
         slot={selectedSlot}
         defaultEmail={user?.email || ""}
         onConfirm={handleConfirmBooking}

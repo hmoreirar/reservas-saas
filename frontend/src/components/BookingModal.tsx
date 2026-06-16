@@ -5,7 +5,7 @@ import type { TimeSlot, Service } from "../types";
 interface BookingModalProps {
   open: boolean;
   onClose: () => void;
-  service: Service;
+  service: Service | null;
   slot: TimeSlot | null;
   defaultEmail: string;
   onConfirm: (name: string, email: string, price?: number | null) => Promise<string | null>;
@@ -21,7 +21,7 @@ export default function BookingModal({
 }: BookingModalProps) {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState(defaultEmail);
-  const [manualPrice, setManualPrice] = useState(service.price ? String(service.price) : "");
+  const [manualPrice, setManualPrice] = useState(service?.price ? String(service.price) : "");
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,7 +40,7 @@ export default function BookingModal({
     } else {
       setClientName("");
       setClientEmail(defaultEmail);
-      setManualPrice(service.price ? String(service.price) : "");
+      setManualPrice(service?.price ? String(service.price) : "");
     }
   };
 
@@ -95,7 +95,7 @@ export default function BookingModal({
           type="number"
           value={manualPrice}
           onChange={(e) => setManualPrice(e.target.value)}
-          placeholder={service.price ? String(service.price) : "Precio variable"}
+          placeholder={service?.price ? String(service.price) : "Precio variable"}
           className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
         />
       </div>
