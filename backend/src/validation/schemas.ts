@@ -69,3 +69,22 @@ export const updateStaffSchema = z.object({
   email: z.string().email().optional(),
   role: z.string().optional(),
 });
+
+export const serviceHoursSchema = z.object({
+  hours: z.array(
+    z.object({
+      day_of_week: z.number().int().min(0).max(6),
+      start_hour: z.number().int().min(0).max(23),
+      end_hour: z.number().int().min(0).max(23),
+      is_active: z.boolean().default(true),
+    })
+  ),
+});
+
+export const serviceBreakSchema = z.object({
+  name: z.string().max(100).default(''),
+  date: z.string().min(1, 'Fecha requerida'),
+  start_time: z.string().min(1, 'Hora inicio requerida'),
+  end_time: z.string().min(1, 'Hora fin requerida'),
+  is_recurring: z.boolean().default(false),
+});

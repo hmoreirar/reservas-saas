@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import pool from '../config/db.js';
 import { runMigrations } from '../migrations/run.js';
 import { bookingService } from '../services/bookingService.js';

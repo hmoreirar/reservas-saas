@@ -200,3 +200,43 @@ export const deleteStaff = async (id: number): Promise<MessageResponse> => {
   });
   return res.json();
 };
+
+export const getServiceHours = async (serviceId: number): Promise<import("../types").ServiceHour[]> => {
+  const res = await fetch(`${API_URL}/api/services/${serviceId}/hours`, {
+    headers: authHeaders(),
+  });
+  return res.json();
+};
+
+export const updateServiceHours = async (serviceId: number, hours: { day_of_week: number; start_hour: number; end_hour: number; is_active: boolean }[]): Promise<import("../types").ServiceHour[]> => {
+  const res = await fetch(`${API_URL}/api/services/${serviceId}/hours`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ hours }),
+  });
+  return res.json();
+};
+
+export const getServiceBreaks = async (serviceId: number): Promise<import("../types").ServiceBreak[]> => {
+  const res = await fetch(`${API_URL}/api/services/${serviceId}/breaks`, {
+    headers: authHeaders(),
+  });
+  return res.json();
+};
+
+export const createServiceBreak = async (serviceId: number, data: { name?: string; date: string; start_time: string; end_time: string; is_recurring?: boolean }): Promise<import("../types").ServiceBreak> => {
+  const res = await fetch(`${API_URL}/api/services/${serviceId}/breaks`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  return res.json();
+};
+
+export const deleteServiceBreak = async (serviceId: number, breakId: number): Promise<MessageResponse> => {
+  const res = await fetch(`${API_URL}/api/services/${serviceId}/breaks/${breakId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  });
+  return res.json();
+};

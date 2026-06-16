@@ -56,6 +56,25 @@ const migrations = [
     quantity INT DEFAULT 1
   )`,
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS staff_id INT REFERENCES staff(id) ON DELETE SET NULL`,
+  `CREATE TABLE IF NOT EXISTS service_hours (
+    id SERIAL PRIMARY KEY,
+    service_id INT REFERENCES services(id) ON DELETE CASCADE,
+    day_of_week INT NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+    start_hour INT NOT NULL CHECK (start_hour BETWEEN 0 AND 23),
+    end_hour INT NOT NULL CHECK (end_hour BETWEEN 0 AND 23),
+    is_active BOOLEAN DEFAULT true,
+    UNIQUE(service_id, day_of_week)
+  )`,
+  `CREATE TABLE IF NOT EXISTS service_breaks (
+    id SERIAL PRIMARY KEY,
+    service_id INT REFERENCES services(id) ON DELETE CASCADE,
+    name VARCHAR(100) DEFAULT '',
+    date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    is_recurring BOOLEAN DEFAULT false
+  )`,
+  `ALTER TABLE services ADD COLUMN IF NOT EXISTS max_capacity INT DEFAULT 1`,
 ];
 
 export async function runMigrations(): Promise<void> {

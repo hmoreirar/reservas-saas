@@ -157,9 +157,31 @@ export const bookingService = {
     const service = await serviceRepository.findById(serviceId);
     if (!service) throw new NotFoundError('Servicio no encontrado');
 
+    const dayOfWeek = new Date(date).getDay();
     const duration = service.duration || 30;
-    const startHour = service.start_hour || 9;
-    const endHour = service.end_hour || 18;
+
+    let startHour = service.start_hour ?? 9;
+    let endHour = service.end_hour ?? 18;
+
+    const [customHours, breaks, bookings] = await Promise.all([
+      import('../repositories/serviceHoursRepository.js').then((m) =>
+        m.serviceHoursRepository.findByService(serviceId)
+      ),
+      import('../repositories/serviceBreaksRepository.js').then((m) =>
+        m.serviceBreaksRepository.findByServiceAndDate(serviceId, date)
+      ),
+      bookingRepository.findBookingsForDate(serviceId, date),
+    ]);
+
+    const dayHours = customHours.find((h: { day_of_week: number }) => h.day_of_week === dayOfWeek);
+
+    if (dayHours) {
+      if (!dayHours.is_active) return [];
+      startHour = dayHours.start_hour;
+      endHour = dayHours.end_hour;
+    }
+
+    const maxCapacity = (service as any).max_capacity ?? 1;
 
     const slots: TimeSlot[] = [];
     const current = new Date(`${date}T${String(startHour).padStart(2, '0')}:00:00`);
@@ -168,14 +190,38 @@ export const bookingService = {
     while (current < endDay) {
       const slotStart = new Date(current);
       const slotEnd = new Date(current.getTime() + duration * 60000);
-      slots.push({
-        start: slotStart.toISOString(),
-        end: slotEnd.toISOString(),
+
+      if (slotEnd > endDay) break;
+
+      const isInBreak = breaks.some((b: { start_time: string; end_time: string }) => {
+        const breakStart = new Date(`${date}T${b.start_time}`);
+        const breakEnd = new Date(`${date}T${b.end_time}`);
+        return slotStart < breakEnd && slotEnd > breakStart;
       });
+
+      if (!isInBreak) {
+        slots.push({
+          start: slotStart.toISOString(),
+          end: slotEnd.toISOString(),
+        });
+      }
+
       current.setMinutes(current.getMinutes() + duration);
     }
 
-    const bookings = await bookingRepository.findBookingsForDate(serviceId, date);
+    if (maxCapacity > 1) {
+      return slots.filter((slot) => {
+        const slotStart = new Date(slot.start);
+        const slotEnd = new Date(slot.end);
+        const count = bookings.filter((b) => {
+          const bStart = new Date(b.start_time);
+          const bEnd = new Date(b.end_time);
+          return slotStart < bEnd && slotEnd > bStart;
+        }).length;
+        return count < maxCapacity;
+      });
+    }
+
     return slots.filter((slot) => {
       const slotStart = new Date(slot.start);
       const slotEnd = new Date(slot.end);

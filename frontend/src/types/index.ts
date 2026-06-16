@@ -13,7 +13,27 @@ export interface Service {
   service_type: string;
   is_package: boolean;
   allow_multiple: boolean;
+  max_capacity?: number;
   created_at: string;
+}
+
+export interface ServiceHour {
+  id: number;
+  service_id: number;
+  day_of_week: number;
+  start_hour: number;
+  end_hour: number;
+  is_active: boolean;
+}
+
+export interface ServiceBreak {
+  id: number;
+  service_id: number;
+  name: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  is_recurring: boolean;
 }
 
 export interface Booking {

@@ -43,6 +43,7 @@ export default function App() {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [showServiceModal, setShowServiceModal] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
   const [rescheduleBookingId, setRescheduleBookingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -98,6 +99,7 @@ export default function App() {
     timezone: string;
     start_hour: number;
     end_hour: number;
+    max_capacity: number;
   }) => {
     const payload = {
       ...formData,
@@ -108,6 +110,7 @@ export default function App() {
       setShowServiceModal(false);
       loadServices();
       loadStats();
+      setEditingServiceId(data.id);
       setSuccess("Servicio creado");
     } else {
       setError(data.error || "Error al crear servicio");
@@ -276,8 +279,9 @@ export default function App() {
 
       <ServiceFormModal
         open={showServiceModal}
-        onClose={() => setShowServiceModal(false)}
+        onClose={() => { setShowServiceModal(false); setEditingServiceId(null); }}
         onSubmit={handleCreateService}
+        editingService={editingServiceId ? { id: editingServiceId } : null}
       />
 
       <BookingModal
