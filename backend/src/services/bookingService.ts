@@ -5,6 +5,8 @@ import { TimeSlot, BookingStats } from '../types/index.js';
 import {
   sendBookingConfirmation,
   sendBookingCancellation,
+  sendBookingConfirmed,
+  sendBookingDeclined,
   sendProviderNotification,
 } from '../utils/emailService.js';
 import { integrationService } from './integrationService.js';
@@ -128,6 +130,7 @@ export const bookingService = {
       end_time: end,
       notes: data.notes ?? null,
       price: bookingPrice,
+      status: 'pending',
     });
 
     const userResult = await import('../repositories/userRepository.js').then((m) =>
@@ -144,7 +147,7 @@ export const bookingService = {
         await sendProviderNotification(
           userResult.email,
           userResult.name,
-          booking,
+          { ...booking, status: 'pending' },
           serviceRecord
         );
       } catch (_emailErr) {
@@ -159,6 +162,81 @@ export const bookingService = {
     }
 
     return { booking, service: serviceRecord };
+  },
+
+  async confirm(id: number, userId: number) {
+    const booking = await bookingRepository.findWithService(id);
+    if (!booking) throw new NotFoundError('Reserva no encontrada');
+    if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
+    if (booking.status !== 'pending') throw new ConflictError('La reserva no esta pendiente');
+
+    await bookingRepository.updateStatus(id, 'confirmed');
+
+    const service = await serviceRepository.findById(booking.service_id);
+    if (service) {
+      try {
+        await sendBookingConfirmed(
+          booking,
+          { name: service.name, duration: service.duration, price: service.price },
+          booking.client_email,
+          booking.client_name
+        );
+      } catch (_emailErr) {
+        // email es opcional
+      }
+    }
+
+    return { message: 'Reserva confirmada' };
+  },
+
+  async decline(id: number, userId: number, reason?: string) {
+    const booking = await bookingRepository.findWithService(id);
+    if (!booking) throw new NotFoundError('Reserva no encontrada');
+    if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
+    if (booking.status !== 'pending') throw new ConflictError('La reserva no esta pendiente');
+
+    if (reason) {
+      await bookingRepository.updateStatusWithReason(id, 'cancelled', reason);
+    } else {
+      await bookingRepository.updateStatus(id, 'cancelled');
+    }
+
+    const service = await serviceRepository.findById(booking.service_id);
+    if (service) {
+      try {
+        await sendBookingDeclined(
+          booking,
+          { name: service.name },
+          booking.client_email,
+          booking.client_name,
+          reason
+        );
+      } catch (_emailErr) {
+        // email es opcional
+      }
+    }
+
+    return { message: 'Reserva rechazada' };
+  },
+
+  async complete(id: number, userId: number) {
+    const booking = await bookingRepository.findWithService(id);
+    if (!booking) throw new NotFoundError('Reserva no encontrada');
+    if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
+    if (booking.status !== 'confirmed') throw new ConflictError('La reserva debe estar confirmada');
+
+    await bookingRepository.updateStatus(id, 'completed');
+    return { message: 'Reserva completada' };
+  },
+
+  async markNoShow(id: number, userId: number) {
+    const booking = await bookingRepository.findWithService(id);
+    if (!booking) throw new NotFoundError('Reserva no encontrada');
+    if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
+    if (booking.status !== 'confirmed') throw new ConflictError('La reserva debe estar confirmada');
+
+    await bookingRepository.updateStatus(id, 'no-show');
+    return { message: 'Cliente no asistio' };
   },
 
   async getAvailability(serviceId: number, date: string) {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getAvailability } from "../api/api";
+import Button from "../components/ui/Button";
 import type { Booking, TimeSlot } from "../types";
 
 interface RescheduleViewProps {
@@ -47,28 +48,25 @@ export default function RescheduleView({
   };
 
   return (
-    <div className="min-h-screen bg-stone-50 p-10 font-sans">
-      <button
-        onClick={onBack}
-        className="mb-5 cursor-pointer rounded-lg bg-stone-200 px-5 py-2.5 text-sm text-stone-700 transition-colors hover:bg-stone-300"
-      >
+    <div className="min-h-screen bg-bg p-10 font-sans">
+      <Button variant="secondary" onClick={onBack} className="mb-5">
         &larr; Volver
-      </button>
+      </Button>
 
-      <h2 className="mb-5 text-xl font-semibold text-stone-800">Reprogramar Reserva</h2>
+      <h2 className="mb-5 text-xl font-semibold text-text">Reprogramar Reserva</h2>
 
       <div className="mb-5">
-        <label className="mr-3 text-sm text-stone-600">Selecciona fecha:</label>
+        <label className="mr-3 text-sm text-text-secondary">Selecciona fecha:</label>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="rounded-md border border-stone-300 px-3 py-2 text-sm"
+          className="rounded-md border border-border px-3 py-2 text-sm text-text focus:border-accent focus:outline-none"
         />
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 border-l-4 border-l-danger px-4 py-3 text-sm text-danger">
           {error}
         </div>
       )}
@@ -81,8 +79,8 @@ export default function RescheduleView({
               onClick={() => setSelectedSlot(slot)}
               className={`cursor-pointer rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
                 selectedSlot?.start === slot.start
-                  ? "bg-amber-500 text-white"
-                  : "bg-stone-200 text-stone-700 hover:bg-stone-300"
+                  ? "bg-accent text-accent-text"
+                  : "bg-surface text-text-secondary hover:bg-accent-bg hover:text-text"
               }`}
             >
               {new Date(slot.start).toLocaleTimeString("es-ES", {
@@ -94,12 +92,9 @@ export default function RescheduleView({
         </div>
       )}
 
-      <button
-        onClick={handleConfirm}
-        className="cursor-pointer rounded-lg bg-amber-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-600"
-      >
-        Confirmar Reprogramación
-      </button>
+      <Button onClick={handleConfirm}>
+        Confirmar Reprogramacion
+      </Button>
     </div>
   );
 }

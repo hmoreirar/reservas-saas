@@ -33,11 +33,13 @@ export interface Booking {
   client_email: string;
   start_time: Date;
   end_time: Date;
-  status: 'confirmed' | 'pending' | 'cancelled';
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
   notes: string | null;
   created_at: Date;
   staff_id: number | null;
   price: number | null;
+  cancellation_reason?: string | null;
+  status_changed_at?: Date | null;
   service_name?: string;
   duration?: number;
 }
@@ -64,8 +66,10 @@ export interface TimeSlot {
 
 export interface BookingStats {
   total: number;
+  pending: number;
   confirmed: number;
   cancelled: number;
+  completed: number;
   revenue: number;
   byService: { name: string; total: number; revenue: number }[];
   last7Days: { date: string; total: number }[];

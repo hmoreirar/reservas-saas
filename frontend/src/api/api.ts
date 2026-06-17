@@ -243,3 +243,36 @@ export const deleteServiceBreak = async (serviceId: number, breakId: number): Pr
   });
   return res.json();
 };
+
+export const confirmBooking = async (id: number): Promise<MessageResponse> => {
+  const res = await fetch(`${API_URL}/api/bookings/${id}/confirm`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  });
+  return res.json();
+};
+
+export const declineBooking = async (id: number, reason?: string): Promise<MessageResponse> => {
+  const res = await fetch(`${API_URL}/api/bookings/${id}/decline`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify({ reason }),
+  });
+  return res.json();
+};
+
+export const completeBooking = async (id: number): Promise<MessageResponse> => {
+  const res = await fetch(`${API_URL}/api/bookings/${id}/complete`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  });
+  return res.json();
+};
+
+export const noShowBooking = async (id: number): Promise<MessageResponse> => {
+  const res = await fetch(`${API_URL}/api/bookings/${id}/no-show`, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  });
+  return res.json();
+};

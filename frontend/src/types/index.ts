@@ -43,10 +43,11 @@ export interface Booking {
   client_email: string;
   start_time: string;
   end_time: string;
-  status: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';
   notes: string | null;
   created_at: string;
   price?: number | null;
+  cancellation_reason?: string | null;
   service_name?: string;
 }
 
@@ -57,8 +58,10 @@ export interface TimeSlot {
 
 export interface Stats {
   total: number;
+  pending: number;
   confirmed: number;
   cancelled: number;
+  completed: number;
   revenue: number;
   byService: { name: string; total: number; revenue: number }[];
   upcoming: Booking[];

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Alert from "../components/ui/Alert";
+import Button from "../components/ui/Button";
 import Logo from "../components/ui/Logo";
 
 export default function LoginPage() {
@@ -26,18 +27,18 @@ export default function LoginPage() {
     if (err) {
       setError(err);
     } else {
-      setSuccess("Cuenta creada. Inicia sesión.");
+      setSuccess("Cuenta creada. Inicia sesion.");
       setShowRegister(false);
       setName("");
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-amber-500 to-orange-600 font-sans">
-      <div className="w-full max-w-[400px] rounded-2xl bg-white p-8 shadow-2xl md:p-10 mx-4">
+    <div className="flex min-h-screen items-center justify-center bg-bg font-sans">
+      <div className="mx-4 w-full max-w-[400px] rounded-2xl border border-border bg-surface p-8 md:p-10">
         <div className="mb-8 flex flex-col items-center gap-3">
           <Logo />
-          <h1 className="text-center text-2xl font-bold text-stone-800">
+          <h1 className="text-center text-2xl font-bold text-text">
             {showRegister ? "Crear Cuenta" : "Reservas SaaS"}
           </h1>
         </div>
@@ -48,49 +49,46 @@ export default function LoginPage() {
         <form onSubmit={showRegister ? handleRegister : handleLogin}>
           {showRegister && (
             <div className="mb-4">
-              <label className="mb-1 block text-sm text-stone-600">Nombre</label>
+              <label className="mb-1 block text-sm text-text-secondary">Nombre</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-stone-300 px-3 py-3 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+                className="w-full rounded-lg border border-border px-3 py-3 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
               />
             </div>
           )}
 
           <div className="mb-4">
-            <label className="mb-1 block text-sm text-stone-600">Email</label>
+            <label className="mb-1 block text-sm text-text-secondary">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-stone-300 px-3 py-3 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              className="w-full rounded-lg border border-border px-3 py-3 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
             />
           </div>
 
           <div className="mb-5">
-            <label className="mb-1 block text-sm text-stone-600">Contraseña</label>
+            <label className="mb-1 block text-sm text-text-secondary">Contrasena</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-stone-300 px-3 py-3 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+              className="w-full rounded-lg border border-border px-3 py-3 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full cursor-pointer rounded-lg bg-amber-500 px-4 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-amber-600"
-          >
+          <Button type="submit" className="w-full">
             {showRegister ? "Crear Cuenta" : "Ingresar"}
-          </button>
+          </Button>
 
-          <p className="mt-4 text-center text-sm text-stone-500">
+          <p className="mt-4 text-center text-sm text-text-secondary">
             {showRegister ? (
               <>
-                ¿Ya tienes cuenta?{" "}
+                Ya tienes cuenta?{" "}
                 <span
-                  className="cursor-pointer text-amber-500 hover:underline"
+                  className="cursor-pointer text-accent hover:underline"
                   onClick={() => { setShowRegister(false); setError(""); }}
                 >
                   Ingresar
@@ -98,9 +96,9 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                ¿No tienes cuenta?{" "}
+                No tienes cuenta?{" "}
                 <span
-                  className="cursor-pointer text-amber-500 hover:underline"
+                  className="cursor-pointer text-accent hover:underline"
                   onClick={() => { setShowRegister(true); setError(""); }}
                 >
                   Crear cuenta

@@ -10,8 +10,9 @@ import ServiceFormModal from "./components/ServiceFormModal";
 import BookingModal from "./components/BookingModal";
 import MyBookings from "./components/MyBookings";
 import RescheduleView from "./components/RescheduleView";
-import Alert from "./components/ui/Alert";
+import ToastContainer, { showToast } from "./components/ui/Toast";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
+import { SkeletonStatCard, SkeletonCard, SkeletonBookingCard } from "./components/ui/Skeleton";
 import {
   getServices,
   getAvailability,
@@ -22,6 +23,10 @@ import {
   cancelBooking,
   rescheduleBooking,
   createBooking,
+  confirmBooking,
+  declineBooking,
+  completeBooking,
+  noShowBooking,
 } from "./api/api";
 import type { Service, Stats, TimeSlot, Booking } from "./types";
 
@@ -29,8 +34,6 @@ export default function App() {
   const { token, user, logout } = useAuth();
   const publicBaseUrl = window.location.origin;
   const [view, setView] = useState<"dashboard" | "bookings">("dashboard");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [services, setServices] = useState<Service[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
@@ -46,6 +49,8 @@ export default function App() {
   const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
   const [rescheduleBookingId, setRescheduleBookingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const pendingCount = stats?.pending ?? 0;
 
   useEffect(() => {
     if (token) {
@@ -103,17 +108,16 @@ export default function App() {
   }) => {
     const payload = {
       ...formData,
-      price: formData.price === "" || formData.price === null ? null : Number(formData.price),
+      price: formData.price === "" || formData.price === null ? undefined : Number(formData.price),
     };
     const data = await createService(payload);
     if (data.id) {
-      setShowServiceModal(false);
       loadServices();
       loadStats();
       setEditingServiceId(data.id);
-      setSuccess("Servicio creado");
+      showToast("Servicio creado", "success");
     } else {
-      setError(data.error || "Error al crear servicio");
+      showToast(data.error || "Error al crear servicio", "error");
     }
   };
 
@@ -128,12 +132,12 @@ export default function App() {
 
   const handleSelectService = async (service: Service, date = selectedDate) => {
     setSelectedService(service);
-    setSuccess("");
-    setError("");
+    setLoadingSlots(true);
     const data = await getAvailability(service.id, date);
     if (Array.isArray(data)) {
       setAvailableSlots(data);
     }
+    setLoadingSlots(false);
   };
 
   const handleDateChange = (newDate: string) => {
@@ -172,7 +176,7 @@ export default function App() {
     );
     if (data.id) {
       setShowBookingModal(false);
-      setSuccess("Reserva creada");
+      showToast("Reserva creada", "success");
       loadMyBookings();
       loadStats();
       handleSelectService(selectedService, selectedDate);
@@ -181,13 +185,58 @@ export default function App() {
     return data.error || "Error al crear reserva";
   };
 
+  const handleConfirmBookingAction = async (id: number) => {
+    const data = await confirmBooking(id);
+    if (data.message) {
+      loadMyBookings();
+      loadStats();
+      showToast("Reserva confirmada", "success");
+    } else {
+      showToast(data.error || "Error al confirmar", "error");
+    }
+  };
+
+  const handleDeclineBooking = async (id: number) => {
+    const reason = prompt("Motivo de rechazo (opcional):");
+    const data = await declineBooking(id, reason || undefined);
+    if (data.message) {
+      loadMyBookings();
+      loadStats();
+      showToast("Reserva rechazada", "success");
+    } else {
+      showToast(data.error || "Error al rechazar", "error");
+    }
+  };
+
+  const handleCompleteBooking = async (id: number) => {
+    const data = await completeBooking(id);
+    if (data.message) {
+      loadMyBookings();
+      loadStats();
+      showToast("Reserva completada", "success");
+    } else {
+      showToast(data.error || "Error al completar", "error");
+    }
+  };
+
+  const handleNoShowBooking = async (id: number) => {
+    const data = await noShowBooking(id);
+    if (data.message) {
+      loadMyBookings();
+      loadStats();
+      showToast("Cliente no asistio", "success");
+    } else {
+      showToast(data.error || "Error al marcar no-show", "error");
+    }
+  };
+
   const handleCancelBooking = async (id: number) => {
     if (!confirm("¿Cancelar reserva?")) return;
     const data = await cancelBooking(id);
     if (data.message) {
       loadMyBookings();
       loadStats();
-      setSuccess("Reserva cancelada");
+      showToast("Reserva cancelada", "success");
     }
   };
 
@@ -203,7 +252,7 @@ export default function App() {
       setSelectedSlot(null);
       loadMyBookings();
       loadStats();
-      setSuccess("Reserva reprogramada");
+      showToast("Reserva reprogramada", "success");
       return null;
     }
     return data.error || "Error al reprogramar";
@@ -229,25 +278,34 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 font-sans">
-      <Navbar view={view} onViewChange={setView} onLogout={handleLogout} />
+    <div className="min-h-screen bg-bg font-sans">
+      <Navbar view={view} onViewChange={setView} onLogout={handleLogout} pendingCount={pendingCount} />
+      <ToastContainer />
 
       <div className="mx-auto max-w-[1200px] px-4 py-6 md:px-10 md:py-10">
-        {error && <Alert variant="error">{error}</Alert>}
-        {success && <Alert variant="success">{success}</Alert>}
-
         {view === "dashboard" && (
-          <div key="dashboard" className="animate-fade-in">
-            {stats && <StatsCards stats={stats} />}
+          <div key="dashboard">
+            {stats ? (
+              <StatsCards stats={stats} />
+            ) : (
+              <div className="mb-8">
+                <h2 className="mb-5 text-xl font-semibold text-text">Estadisticas</h2>
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-6">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <SkeletonStatCard key={i} />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <ServicesGrid
-              services={services}
-              selectedService={selectedService}
-              onSelectService={handleSelectService}
-              onDeleteService={handleDeleteService}
-              onNewService={() => setShowServiceModal(true)}
-              publicBaseUrl={publicBaseUrl}
-            />
+                services={services}
+                selectedService={selectedService}
+                onSelectService={handleSelectService}
+                onDeleteService={handleDeleteService}
+                onNewService={() => setShowServiceModal(true)}
+                publicBaseUrl={publicBaseUrl}
+              />
 
             {selectedService && (
               <CalendarView
@@ -257,10 +315,18 @@ export default function App() {
                 onNextWeek={handleNextWeek}
                 serviceName={selectedService.name}
                 slots={
-                  <AvailableSlots
-                    slots={availableSlots}
-                    onSelectSlot={handleOpenBookingModal}
-                  />
+                  loadingSlots ? (
+                    <div className="flex flex-wrap gap-2 md:gap-3">
+                      {Array.from({ length: 8 }).map((_, i) => (
+                        <div key={i} className="h-11 w-24 animate-pulse rounded-lg bg-border" />
+                      ))}
+                    </div>
+                  ) : (
+                    <AvailableSlots
+                      slots={availableSlots}
+                      onSelectSlot={handleOpenBookingModal}
+                    />
+                  )
                 }
               />
             )}
@@ -268,12 +334,16 @@ export default function App() {
         )}
 
         {view === "bookings" && (
-          <div key="bookings" className="animate-fade-in">
-            <h2 className="mb-8 text-xl font-semibold text-stone-800">Mis Reservas</h2>
+          <div key="bookings">
+            <h2 className="mb-8 text-xl font-semibold text-text">Mis Reservas</h2>
             <MyBookings
               bookings={myBookings}
               onReschedule={handleStartReschedule}
               onCancel={handleCancelBooking}
+              onConfirm={handleConfirmBookingAction}
+              onDecline={handleDeclineBooking}
+              onComplete={handleCompleteBooking}
+              onNoShow={handleNoShowBooking}
             />
           </div>
         )}

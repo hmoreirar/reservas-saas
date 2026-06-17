@@ -76,6 +76,8 @@ const migrations = [
   )`,
   `ALTER TABLE services ADD COLUMN IF NOT EXISTS max_capacity INT DEFAULT 1`,
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS price DECIMAL(10,2)`,
+  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status_changed_at TIMESTAMP`,
+  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancellation_reason VARCHAR(255)`,
 ];
 
 export async function runMigrations(): Promise<void> {

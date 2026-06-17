@@ -15,10 +15,11 @@ export const createServiceSchema = z.object({
   name: z.string().min(1, 'Nombre requerido').max(100),
   description: z.string().optional(),
   duration: z.number().int().positive('Duracion debe ser positiva').default(30),
-  price: z.number().min(0).optional(),
+  price: z.number().min(0).nullable().optional(),
   timezone: z.string().default('America/Santiago'),
   start_hour: z.number().int().min(0).max(23).default(9),
   end_hour: z.number().int().min(0).max(23).default(18),
+  max_capacity: z.number().int().positive().default(1),
   service_type: z.string().default('standard'),
   is_package: z.boolean().default(false),
   package_services: z

@@ -1,6 +1,9 @@
 import { useState } from "react";
 import Modal from "./ui/Modal";
+import Button from "./ui/Button";
 import type { TimeSlot, Service } from "../types";
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface BookingModalProps {
   open: boolean;
@@ -30,6 +33,10 @@ export default function BookingModal({
       setError("Por favor ingresa el nombre del cliente");
       return;
     }
+    if (!EMAIL_RE.test(clientEmail)) {
+      setError("Ingresa un email valido");
+      return;
+    }
     setError("");
     setIsBooking(true);
     const price = manualPrice ? Number(manualPrice) : null;
@@ -46,7 +53,7 @@ export default function BookingModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Crear Reserva">
-      <p className="mb-5 text-sm text-stone-500">
+      <p className="mb-5 text-sm text-text-secondary">
         {slot &&
           new Date(slot.start).toLocaleString("es-CL", {
             year: "numeric",
@@ -58,37 +65,37 @@ export default function BookingModal({
       </p>
 
       {error && (
-        <div className="mb-4 rounded-lg bg-red-100 px-4 py-3 text-sm text-red-700">
+        <div className="mb-4 border-l-4 border-l-danger px-4 py-3 text-sm text-danger">
           {error}
         </div>
       )}
 
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-stone-700">
+        <label className="mb-1 block text-sm font-medium text-text">
           Nombre del cliente *
         </label>
         <input
           type="text"
           value={clientName}
           onChange={(e) => setClientName(e.target.value)}
-          className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+          className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
         />
       </div>
 
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-stone-700">
-          Email del cliente
+        <label className="mb-1 block text-sm font-medium text-text">
+          Email del cliente *
         </label>
         <input
           type="email"
           value={clientEmail}
           onChange={(e) => setClientEmail(e.target.value)}
-          className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+          className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
         />
       </div>
 
       <div className="mb-6">
-        <label className="mb-1 block text-sm font-medium text-stone-700">
+        <label className="mb-1 block text-sm font-medium text-text">
           Precio ($)
         </label>
         <input
@@ -96,28 +103,17 @@ export default function BookingModal({
           value={manualPrice}
           onChange={(e) => setManualPrice(e.target.value)}
           placeholder={service?.price ? String(service.price) : "Precio variable"}
-          className="w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-200"
+          className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
         />
       </div>
 
       <div className="flex gap-3">
-        <button
-          onClick={onClose}
-          className="flex-1 cursor-pointer rounded-lg bg-stone-200 px-4 py-3 text-sm font-medium text-stone-700 transition-colors hover:bg-stone-300"
-        >
+        <Button variant="secondary" onClick={onClose} className="flex-1">
           Cancelar
-        </button>
-        <button
-          onClick={handleConfirm}
-          disabled={isBooking}
-          className={`flex-1 cursor-pointer rounded-lg px-4 py-3 text-sm font-medium text-white transition-colors ${
-            isBooking
-              ? "cursor-not-allowed bg-stone-400"
-              : "bg-amber-500 hover:bg-amber-600"
-          }`}
-        >
+        </Button>
+        <Button onClick={handleConfirm} disabled={isBooking} className="flex-1">
           {isBooking ? "Creando..." : "Confirmar Reserva"}
-        </button>
+        </Button>
       </div>
     </Modal>
   );

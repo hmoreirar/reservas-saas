@@ -37,6 +37,7 @@ interface EmailBooking {
   client_name?: string;
   client_email?: string;
   notes?: string | null;
+  status?: string;
 }
 
 interface EmailService {
@@ -116,16 +117,17 @@ export const sendProviderNotification = async (
 ): Promise<void> => {
   if (!transporter) return;
 
+  const statusLabel = booking?.status === 'pending' ? ' (pendiente de confirmacion)' : '';
   await transporter.sendMail({
     from:
       process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
     to: providerEmail,
-    subject: `Nueva reserva: ${service?.name || 'Servicio'}`,
+    subject: `Nueva reserva${statusLabel}: ${service?.name || 'Servicio'}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: #667eea;">Nueva Reserva</h1>
+        <h1 style="color: #667eea;">Nueva Reserva${statusLabel}</h1>
         <p>Hola ${providerName},</p>
-        <p>Tienes una nueva reserva.</p>
+        <p>Tienes una nueva reserva${statusLabel ? ' pendiente de confirmacion' : ''}.</p>
         
         <div style="background: #f5f7fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
           <p><strong>Cliente:</strong> ${booking?.client_name}</p>
@@ -134,6 +136,64 @@ export const sendProviderNotification = async (
           <p><strong>Fecha:</strong> ${formatDate(String(booking?.start_time))}</p>
           ${booking?.notes ? `<p><strong>Notas:</strong> ${booking.notes}</p>` : ''}
         </div>
+      </div>
+    `,
+  });
+};
+
+export const sendBookingConfirmed = async (
+  booking: EmailBooking,
+  service: EmailService,
+  clientEmail: string,
+  clientName: string
+): Promise<void> => {
+  if (!transporter) return;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
+    to: clientEmail,
+    subject: `Reserva confirmada: ${service?.name || 'Servicio'}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #48bb78;">Reserva Confirmada</h1>
+        <p>Hola ${clientName},</p>
+        <p>Tu reserva ha sido confirmada por el proveedor.</p>
+        <div style="background: #f5f7fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h2 style="margin-top: 0;">${service?.name || 'Servicio'}</h2>
+          <p><strong>Fecha:</strong> ${formatDate(String(booking?.start_time))}</p>
+          <p><strong>Duracion:</strong> ${service?.duration || 30} minutos</p>
+          ${service?.price ? `<p><strong>Precio:</strong> $${service.price}</p>` : ''}
+        </div>
+        <p>Te esperamos. Gracias!</p>
+      </div>
+    `,
+  });
+};
+
+export const sendBookingDeclined = async (
+  booking: EmailBooking,
+  service: EmailService,
+  clientEmail: string,
+  clientName: string,
+  reason?: string
+): Promise<void> => {
+  if (!transporter) return;
+
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
+    to: clientEmail,
+    subject: `Reserva rechazada: ${service?.name || 'Servicio'}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1 style="color: #e53e3e;">Reserva Rechazada</h1>
+        <p>Hola ${clientName},</p>
+        <p>Lamentablemente tu reserva ha sido rechazada por el proveedor.</p>
+        <div style="background: #f5f7fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p><strong>Servicio:</strong> ${service?.name || 'Servicio'}</p>
+          <p><strong>Fecha:</strong> ${formatDate(String(booking?.start_time))}</p>
+          ${reason ? `<p><strong>Motivo:</strong> ${reason}</p>` : ''}
+        </div>
+        <p>Puedes intentar reservar otro horario.</p>
       </div>
     `,
   });

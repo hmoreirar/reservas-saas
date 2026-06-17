@@ -17,10 +17,11 @@ export const serviceService = {
     name: string;
     description?: string;
     duration?: number;
-    price?: number;
+    price?: number | null;
     timezone?: string;
     start_hour?: number;
     end_hour?: number;
+    max_capacity?: number;
     service_type?: string;
     is_package?: boolean;
     package_services?: { service_id: number; quantity?: number }[];
@@ -40,6 +41,7 @@ export const serviceService = {
       timezone: data.timezone ?? 'America/Santiago',
       start_hour: data.start_hour ?? 9,
       end_hour: data.end_hour ?? 18,
+      max_capacity: data.max_capacity ?? 1,
       service_type: data.service_type ?? 'standard',
       is_package: data.is_package ?? false,
       allow_multiple: data.allow_multiple ?? false,

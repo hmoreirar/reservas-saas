@@ -7,14 +7,15 @@ interface AlertProps {
   children: ReactNode;
 }
 
-const styles: Record<AlertVariant, string> = {
-  error: "bg-red-100 text-red-700 border-red-200 border-l-4 border-l-red-500",
-  success: "bg-green-100 text-green-700 border-green-200 border-l-4 border-l-green-500",
-};
-
 export default function Alert({ variant = "error", children }: AlertProps) {
   return (
-    <div className={`animate-slide-up mb-4 rounded-lg border px-4 py-3 text-sm ${styles[variant]}`}>
+    <div
+      className={`border-l-4 px-4 py-3 text-sm ${
+        variant === "error"
+          ? "border-l-danger text-danger"
+          : "border-l-accent text-accent-text"
+      }`}
+    >
       {children}
     </div>
   );

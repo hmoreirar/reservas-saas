@@ -9,11 +9,8 @@ interface AvailableSlotsProps {
 export default function AvailableSlots({ slots, onSelectSlot }: AvailableSlotsProps) {
   if (slots.length === 0) {
     return (
-      <EmptyState
-        variant="slots"
-        title="Sin horarios disponibles"
-        description="No hay horarios libres para esta fecha. Prueba con otro día."
-      />
+      <EmptyState variant="slots" title="Sin horarios disponibles"
+        description="No hay horarios libres para esta fecha. Prueba con otro dia." />
     );
   }
 
@@ -23,12 +20,9 @@ export default function AvailableSlots({ slots, onSelectSlot }: AvailableSlotsPr
         <button
           key={i}
           onClick={() => onSelectSlot(slot)}
-          className="cursor-pointer rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-amber-600 md:px-5 md:py-3"
+          className="cursor-pointer rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover md:px-5 md:py-3"
         >
-          {new Date(slot.start).toLocaleTimeString("es-ES", {
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          {new Date(slot.start).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
         </button>
       ))}
     </div>

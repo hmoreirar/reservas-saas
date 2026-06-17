@@ -96,3 +96,44 @@ export const rescheduleBooking = async (req: Request, res: Response, next: NextF
     next(error);
   }
 };
+
+export const confirmBooking = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const result = await bookingService.confirm(Number(id), req.user!.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const declineBooking = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const result = await bookingService.decline(Number(id), req.user!.id, reason);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const completeBooking = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const result = await bookingService.complete(Number(id), req.user!.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const noShowBooking = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const result = await bookingService.markNoShow(Number(id), req.user!.id);
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+};

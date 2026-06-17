@@ -39,13 +39,14 @@ export const serviceRepository = {
     timezone: string;
     start_hour: number;
     end_hour: number;
+    max_capacity: number;
     service_type: string;
     is_package: boolean;
     allow_multiple: boolean;
   }): Promise<Service> {
     const result = await pool.query(
-      `INSERT INTO services (user_id, name, description, duration, price, slug, booking_slug, timezone, start_hour, end_hour, service_type, is_package, allow_multiple) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+      `INSERT INTO services (user_id, name, description, duration, price, slug, booking_slug, timezone, start_hour, end_hour, max_capacity, service_type, is_package, allow_multiple) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING *`,
       [
         data.user_id,
         data.name,
@@ -57,6 +58,7 @@ export const serviceRepository = {
         data.timezone,
         data.start_hour,
         data.end_hour,
+        data.max_capacity,
         data.service_type,
         data.is_package,
         data.allow_multiple,

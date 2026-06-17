@@ -9,6 +9,10 @@ import {
   getStats,
   cancelBooking,
   rescheduleBooking,
+  confirmBooking,
+  declineBooking,
+  completeBooking,
+  noShowBooking,
 } from '../controllers/bookingController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { validate } from '../validation/validate.js';
@@ -32,5 +36,9 @@ router.get('/my', authMiddleware, getMyBookings);
 router.get('/stats', authMiddleware, getStats);
 router.put('/:id/cancel', authMiddleware, cancelBooking);
 router.put('/:id/reschedule', authMiddleware, rescheduleBooking);
+router.put('/:id/confirm', authMiddleware, confirmBooking);
+router.put('/:id/decline', authMiddleware, declineBooking);
+router.put('/:id/complete', authMiddleware, completeBooking);
+router.put('/:id/no-show', authMiddleware, noShowBooking);
 
 export default router;

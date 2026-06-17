@@ -1,48 +1,58 @@
 import type { Stats } from "../types";
+import StatusBadge from "./ui/StatusBadge";
 
 interface StatsCardsProps {
   stats: Stats;
 }
 
 export default function StatsCards({ stats }: StatsCardsProps) {
+  const cards = [
+    { label: "Total Reservas", value: stats.total },
+    { label: "Pendientes", value: stats.pending },
+    { label: "Confirmadas", value: stats.confirmed },
+    { label: "Completadas", value: stats.completed },
+    { label: "Canceladas", value: stats.cancelled },
+    { label: "Ingresos", value: `$${stats.revenue?.toLocaleString()}` },
+  ];
+
   return (
-    <div className="mb-8">
-      <h2 className="mb-5 text-xl font-semibold text-stone-800">Estadísticas</h2>
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-5">
-        {[
-          { label: "Total Reservas", value: stats.total, color: "text-amber-500" },
-          { label: "Confirmadas", value: stats.confirmed, color: "text-green-600" },
-          { label: "Canceladas", value: stats.cancelled, color: "text-red-500" },
-          { label: "Ingresos", value: `$${stats.revenue?.toLocaleString()}`, color: "text-teal-500" },
-        ].map((card, i) => (
+    <div className="mb-10">
+      <h2 className="mb-6 text-xl font-semibold text-text">Estadisticas</h2>
+      <div className="grid grid-cols-2 gap-0 md:grid-cols-3 lg:grid-cols-6">
+        {cards.map((card, i) => (
           <div
             key={card.label}
-            style={{ animationDelay: `${i * 100}ms` }}
-            className="animate-slide-down rounded-xl border border-stone-100 bg-white p-5 text-center shadow-sm"
+            className={`px-5 py-4 ${i < 2 ? "border-b border-border" : ""} ${
+              i % 2 === 0 ? "" : "border-l border-border"
+            } md:border-b-0 md:border-l md:border-border md:${
+              i % 3 === 0 ? "border-l-0" : ""
+            } lg:${
+              i % 6 === 0 ? "border-l-0" : "border-l border-border"
+            }`}
           >
-            <div className={`text-3xl font-bold ${card.color}`}>{card.value}</div>
-            <div className="mt-1 text-sm text-stone-500">{card.label}</div>
+            <div className="text-2xl font-semibold text-text">{card.value}</div>
+            <div className="mt-0.5 text-sm text-text-secondary">{card.label}</div>
           </div>
         ))}
       </div>
 
       {stats.byService && stats.byService.length > 0 && (
-        <div className="mt-5 rounded-xl border border-stone-100 bg-white p-5 shadow-sm">
-          <h3 className="mt-0 mb-3 text-base font-semibold text-stone-800">Por Servicio</h3>
+        <div className="mt-8 border-t border-border pt-6">
+          <h3 className="mb-4 text-base font-semibold text-text">Por Servicio</h3>
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b-2 border-stone-200">
-                <th className="px-3 py-2 text-left text-sm text-stone-500">Servicio</th>
-                <th className="px-3 py-2 text-center text-sm text-stone-500">Reservas</th>
-                <th className="px-3 py-2 text-right text-sm text-stone-500">Ingresos</th>
+              <tr className="border-b border-border">
+                <th className="px-3 py-2 text-left text-sm font-medium text-text-secondary">Servicio</th>
+                <th className="px-3 py-2 text-center text-sm font-medium text-text-secondary">Reservas</th>
+                <th className="px-3 py-2 text-right text-sm font-medium text-text-secondary">Ingresos</th>
               </tr>
             </thead>
             <tbody>
               {stats.byService.map((s, i) => (
-                <tr key={i} className="border-b border-stone-100">
-                  <td className="px-3 py-2.5 text-sm">{s.name}</td>
-                  <td className="px-3 py-2.5 text-center text-sm">{s.total}</td>
-                  <td className="px-3 py-2.5 text-right text-sm">
+                <tr key={i} className="border-b border-border hover:bg-bg">
+                  <td className="px-3 py-2.5 text-sm text-text">{s.name}</td>
+                  <td className="px-3 py-2.5 text-center text-sm text-text-secondary">{s.total}</td>
+                  <td className="px-3 py-2.5 text-right text-sm text-text-secondary">
                     ${s.revenue?.toLocaleString()}
                   </td>
                 </tr>
@@ -53,28 +63,32 @@ export default function StatsCards({ stats }: StatsCardsProps) {
       )}
 
       {stats.upcoming && stats.upcoming.length > 0 && (
-        <div className="mt-5 rounded-xl border border-stone-100 bg-white p-5 shadow-sm">
-          <h3 className="mt-0 mb-3 text-base font-semibold text-stone-800">Próximas Citas</h3>
-          {stats.upcoming.map((b, i) => (
-            <div
-              key={i}
-              className={`py-2.5 text-sm ${
-                i < stats.upcoming.length - 1 ? "border-b border-stone-100" : ""
-              }`}
-            >
-              <strong>{b.client_name}</strong> - {b.service_name}
-              <br />
-              <span className="text-stone-500">
-                {new Date(b.start_time).toLocaleString("es-CL", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </span>
-            </div>
-          ))}
+        <div className="mt-8 border-t border-border pt-6">
+          <h3 className="mb-4 text-base font-semibold text-text">Proximas Citas</h3>
+          <div className="space-y-4">
+            {stats.upcoming.map((b, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-sm text-text">
+                    <strong>{b.client_name}</strong> &middot; {b.service_name}
+                  </p>
+                  <p className="text-sm text-text-secondary">
+                    {new Date(b.start_time).toLocaleString("es-CL", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
+                </div>
+                <StatusBadge status={b.status} />
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

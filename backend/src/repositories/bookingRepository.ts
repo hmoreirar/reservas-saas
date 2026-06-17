@@ -11,12 +11,13 @@ export const bookingRepository = {
     end_time: Date;
     notes: string | null;
     price?: number | null;
+    status?: string;
   }): Promise<Booking> {
     const result = await pool.query(
-      `INSERT INTO bookings (service_id, client_name, client_email, start_time, end_time, notes, price)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO bookings (service_id, client_name, client_email, start_time, end_time, notes, price, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [data.service_id, data.client_name, data.client_email, data.start_time, data.end_time, data.notes, data.price ?? null]
+      [data.service_id, data.client_name, data.client_email, data.start_time, data.end_time, data.notes, data.price ?? null, data.status ?? 'confirmed']
     );
     return result.rows[0];
   },
@@ -104,7 +105,17 @@ export const bookingRepository = {
   },
 
   async updateStatus(id: number, status: string): Promise<void> {
-    await pool.query('UPDATE bookings SET status = $1 WHERE id = $2', [status, id]);
+    await pool.query(
+      'UPDATE bookings SET status = $1, status_changed_at = NOW() WHERE id = $2',
+      [status, id]
+    );
+  },
+
+  async updateStatusWithReason(id: number, status: string, reason: string): Promise<void> {
+    await pool.query(
+      'UPDATE bookings SET status = $1, cancellation_reason = $2, status_changed_at = NOW() WHERE id = $3',
+      [status, reason, id]
+    );
   },
 
   async updateTime(id: number, start_time: Date, end_time: Date): Promise<void> {
@@ -120,13 +131,19 @@ export const bookingRepository = {
 
   async getStatsByUser(userId: number): Promise<{
     total: number;
+    pending: number;
     confirmed: number;
     cancelled: number;
+    completed: number;
     revenue: number;
   }> {
-    const [totalResult, confirmedResult, cancelledResult, revenueResult] = await Promise.all([
+    const [totalResult, pendingResult, confirmedResult, cancelledResult, completedResult, revenueResult] = await Promise.all([
       pool.query(
         `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1`,
+        [userId]
+      ),
+      pool.query(
+        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'pending'`,
         [userId]
       ),
       pool.query(
@@ -138,6 +155,10 @@ export const bookingRepository = {
         [userId]
       ),
       pool.query(
+        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'completed'`,
+        [userId]
+      ),
+      pool.query(
         `SELECT COALESCE(SUM(COALESCE(b.price, s.price)), 0) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'confirmed'`,
         [userId]
       ),
@@ -145,8 +166,10 @@ export const bookingRepository = {
 
     return {
       total: parseInt(totalResult.rows[0]?.total || '0'),
+      pending: parseInt(pendingResult.rows[0]?.total || '0'),
       confirmed: parseInt(confirmedResult.rows[0]?.total || '0'),
       cancelled: parseInt(cancelledResult.rows[0]?.total || '0'),
+      completed: parseInt(completedResult.rows[0]?.total || '0'),
       revenue: parseInt(revenueResult.rows[0]?.total || '0'),
     };
   },
@@ -177,16 +200,28 @@ export const bookingRepository = {
     return result.rows;
   },
 
-  async getUpcoming(userId: number, limit = 5): Promise<Booking[]> {
+  async getUpcoming(userId: number, limit = 10): Promise<Booking[]> {
     const result = await pool.query(
       `SELECT b.*, s.name as service_name
        FROM bookings b 
        JOIN services s ON b.service_id = s.id 
-       WHERE s.user_id = $1 AND b.start_time >= NOW() AND b.status = 'confirmed'
-       ORDER BY b.start_time
+       WHERE s.user_id = $1 AND b.start_time >= NOW() AND b.status IN ('pending', 'confirmed', 'completed')
+       ORDER BY 
+         CASE b.status WHEN 'pending' THEN 0 WHEN 'confirmed' THEN 1 ELSE 2 END,
+         b.start_time
        LIMIT $2`,
       [userId, limit]
     );
     return result.rows;
+  },
+
+  async getPendingCount(userId: number): Promise<number> {
+    const result = await pool.query(
+      `SELECT COUNT(*) as total FROM bookings b
+       JOIN services s ON b.service_id = s.id
+       WHERE s.user_id = $1 AND b.status = 'pending'`,
+      [userId]
+    );
+    return parseInt(result.rows[0]?.total || '0');
   },
 };

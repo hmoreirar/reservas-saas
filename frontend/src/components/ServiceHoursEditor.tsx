@@ -65,7 +65,7 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
 
   return (
     <div>
-      <h4 className="mb-3 text-sm font-semibold text-stone-700">
+      <h4 className="mb-3 text-sm font-semibold text-text">
         Horarios por dia
       </h4>
       <div className="space-y-2">
@@ -76,9 +76,9 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
                 type="checkbox"
                 checked={h.is_active}
                 onChange={(e) => update(h.day_of_week, "is_active", e.target.checked)}
-                className="h-4 w-4 accent-amber-500"
+                className="h-4 w-4 accent-accent"
               />
-              <span className={h.is_active ? "" : "text-stone-400"}>
+              <span className={h.is_active ? "text-text" : "text-text-muted"}>
                 {DAY_NAMES[h.day_of_week]}
               </span>
             </label>
@@ -90,21 +90,21 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
                   max={23}
                   value={h.start_hour}
                   onChange={(e) => update(h.day_of_week, "start_hour", parseInt(e.target.value) || 9)}
-                  className="w-16 rounded border border-stone-300 px-2 py-1 text-center text-sm"
+                  className="w-16 rounded border border-border px-2 py-1 text-center text-sm text-text"
                 />
-                <span className="text-xs text-stone-500">a</span>
+                <span className="text-xs text-text-muted">a</span>
                 <input
                   type="number"
                   min={0}
                   max={23}
                   value={h.end_hour}
                   onChange={(e) => update(h.day_of_week, "end_hour", parseInt(e.target.value) || 18)}
-                  className="w-16 rounded border border-stone-300 px-2 py-1 text-center text-sm"
+                  className="w-16 rounded border border-border px-2 py-1 text-center text-sm text-text"
                 />
               </>
             )}
             {!h.is_active && (
-              <span className="text-xs text-stone-400">Cerrado</span>
+              <span className="text-xs text-text-muted">Cerrado</span>
             )}
           </div>
         ))}
@@ -113,17 +113,17 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
         <button
           onClick={save}
           disabled={saving}
-          className="cursor-pointer rounded bg-amber-500 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-amber-600 disabled:opacity-50"
+          className="cursor-pointer rounded bg-accent px-3 py-1.5 text-xs font-medium text-accent-text transition-colors hover:bg-accent-hover disabled:opacity-50"
         >
           {saving ? "Guardando..." : "Guardar Horarios"}
         </button>
         {message && (
-          <span className={`text-xs ${message.includes("Error") ? "text-red-500" : "text-emerald-600"}`}>
+          <span className={`text-xs ${message.includes("Error") ? "text-danger" : "text-accent"}`}>
             {message}
           </span>
         )}
       </div>
-      <p className="mt-2 text-[11px] text-stone-400">
+      <p className="mt-2 text-[11px] text-text-muted">
         Si no configuras horarios, se usara el horario general del servicio.
       </p>
     </div>

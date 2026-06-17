@@ -8,10 +8,10 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<Variant, string> = {
-  primary: "bg-amber-500 text-white hover:bg-amber-600 disabled:bg-stone-400",
-  secondary: "bg-stone-200 text-stone-800 hover:bg-stone-300",
-  danger: "bg-orange-500 text-white hover:bg-orange-600",
-  ghost: "bg-transparent text-stone-600 hover:bg-stone-100",
+  primary: "bg-accent text-white hover:bg-accent-hover disabled:bg-border",
+  secondary: "text-text-secondary hover:text-text",
+  danger: "text-danger hover:text-danger-hover",
+  ghost: "text-text-muted hover:text-text",
 };
 
 export default function Button({
@@ -23,13 +23,7 @@ export default function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`
-        inline-flex items-center justify-center rounded-lg px-4 py-2.5
-        text-sm font-medium transition-all duration-200
-        disabled:cursor-not-allowed cursor-pointer
-        ${variantStyles[variant]}
-        ${className}
-      `}
+      className={`inline-flex items-center justify-center rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-150 disabled:cursor-not-allowed cursor-pointer ${variantStyles[variant]} ${className}`}
       disabled={disabled}
       {...props}
     >

@@ -7,7 +7,7 @@ export default function Logo({ showText = true, className = "" }: LogoProps) {
   return (
     <div className={`inline-flex items-center gap-2 ${className}`}>
       <svg
-        className="h-8 w-8 text-amber-500"
+        className="h-7 w-7 text-text"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -18,9 +18,9 @@ export default function Logo({ showText = true, className = "" }: LogoProps) {
         <circle cx="12" cy="15" r="2" />
       </svg>
       {showText && (
-        <span className="text-xl font-semibold tracking-tight">
-          <span className="text-amber-500">Rsv</span>
-          <span className="text-stone-500 font-light">SaaS</span>
+        <span className="text-lg font-semibold tracking-tight">
+          <span className="text-text">Rsv</span>
+          <span className="text-text-muted font-light">SaaS</span>
         </span>
       )}
     </div>
