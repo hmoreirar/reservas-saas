@@ -50,6 +50,7 @@ export default function App() {
   const [rescheduleBookingId, setRescheduleBookingId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [periodFilter, setPeriodFilter] = useState("all");
   const pendingCount = stats?.pending ?? 0;
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export default function App() {
         const [servicesData, bookingsData, statsData] = await Promise.all([
           getServices(),
           getMyBookings(),
-          getStats(),
+          getStats(periodFilter),
         ]);
 
         if (Array.isArray(servicesData)) setServices(servicesData);
@@ -74,6 +75,12 @@ export default function App() {
     }
   }, [token]);
 
+  useEffect(() => {
+    if (token) {
+      loadStats(periodFilter);
+    }
+  }, [periodFilter, token]);
+
   const loadServices = async () => {
     const data = await getServices();
     if (Array.isArray(data)) setServices(data);
@@ -84,8 +91,8 @@ export default function App() {
     if (Array.isArray(data)) setMyBookings(data);
   };
 
-  const loadStats = async () => {
-    const data = await getStats();
+  const loadStats = async (period?: string) => {
+    const data = await getStats(period);
     if (data && !("error" in data)) setStats(data);
   };
 
@@ -286,7 +293,7 @@ export default function App() {
         {view === "dashboard" && (
           <div key="dashboard">
             {stats ? (
-              <StatsCards stats={stats} />
+              <StatsCards stats={stats} period={periodFilter} onPeriodChange={setPeriodFilter} />
             ) : (
               <div className="mb-8">
                 <h2 className="mb-5 text-xl font-semibold text-text">Estadisticas</h2>

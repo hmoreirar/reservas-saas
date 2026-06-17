@@ -65,5 +65,5 @@ export interface Stats {
   revenue: number;
   byService: { name: string; total: number; revenue: number }[];
   upcoming: Booking[];
-  last7Days: { date: string; count: number }[];
+  last7Days: { date: string; total: number }[];
 }

@@ -331,10 +331,10 @@ export const bookingService = {
     return bookingRepository.findUpcomingByUser(userId);
   },
 
-  async getStats(userId: number): Promise<BookingStats> {
+  async getStats(userId: number, period?: string): Promise<BookingStats> {
     const [counts, byService, last7Days, upcoming] = await Promise.all([
-      bookingRepository.getStatsByUser(userId),
-      bookingRepository.getByServiceStats(userId),
+      bookingRepository.getStatsByUser(userId, period),
+      bookingRepository.getByServiceStats(userId, period),
       bookingRepository.getLast7Days(userId),
       bookingRepository.getUpcoming(userId),
     ]);

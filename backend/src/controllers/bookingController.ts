@@ -69,7 +69,8 @@ export const getMyBookings = async (req: Request, res: Response, next: NextFunct
 
 export const getStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const stats = await bookingService.getStats(req.user!.id);
+    const period = req.query.period as string | undefined;
+    const stats = await bookingService.getStats(req.user!.id, period);
     res.json(stats);
   } catch (error) {
     next(error);

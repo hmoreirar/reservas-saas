@@ -156,8 +156,9 @@ export const getMyBookings = async (): Promise<Booking[]> => {
   return res.json();
 };
 
-export const getStats = async (): Promise<Stats | { error: string }> => {
-  const res = await fetch(`${API_URL}/api/bookings/stats`, {
+export const getStats = async (period?: string): Promise<Stats | { error: string }> => {
+  const params = period ? `?period=${period}` : "";
+  const res = await fetch(`${API_URL}/api/bookings/stats${params}`, {
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
   });
   return res.json();

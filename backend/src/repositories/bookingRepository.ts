@@ -129,7 +129,7 @@ export const bookingRepository = {
     await pool.query('UPDATE bookings SET staff_id = $1 WHERE id = $2', [staffId, bookingId]);
   },
 
-  async getStatsByUser(userId: number): Promise<{
+  async getStatsByUser(userId: number, period?: string): Promise<{
     total: number;
     pending: number;
     confirmed: number;
@@ -137,29 +137,30 @@ export const bookingRepository = {
     completed: number;
     revenue: number;
   }> {
+    const periodClause = period === 'month' ? `AND b.start_time >= date_trunc('month', NOW())` : '';
     const [totalResult, pendingResult, confirmedResult, cancelledResult, completedResult, revenueResult] = await Promise.all([
       pool.query(
-        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1`,
+        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 ${periodClause}`,
         [userId]
       ),
       pool.query(
-        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'pending'`,
+        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'pending' ${periodClause}`,
         [userId]
       ),
       pool.query(
-        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'confirmed'`,
+        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'confirmed' ${periodClause}`,
         [userId]
       ),
       pool.query(
-        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'cancelled'`,
+        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'cancelled' ${periodClause}`,
         [userId]
       ),
       pool.query(
-        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'completed'`,
+        `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'completed' ${periodClause}`,
         [userId]
       ),
       pool.query(
-        `SELECT COALESCE(SUM(COALESCE(b.price, s.price)), 0) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'confirmed'`,
+        `SELECT COALESCE(SUM(COALESCE(b.price, s.price)), 0) as revenue FROM bookings b JOIN services s ON b.service_id = s.id WHERE s.user_id = $1 AND b.status = 'confirmed' ${periodClause}`,
         [userId]
       ),
     ]);
@@ -170,16 +171,17 @@ export const bookingRepository = {
       confirmed: parseInt(confirmedResult.rows[0]?.total || '0'),
       cancelled: parseInt(cancelledResult.rows[0]?.total || '0'),
       completed: parseInt(completedResult.rows[0]?.total || '0'),
-      revenue: parseInt(revenueResult.rows[0]?.total || '0'),
+      revenue: parseInt(revenueResult.rows[0]?.revenue || '0'),
     };
   },
 
-  async getByServiceStats(userId: number): Promise<{ name: string; total: number; revenue: number }[]> {
+  async getByServiceStats(userId: number, period?: string): Promise<{ name: string; total: number; revenue: number }[]> {
+    const periodClause = period === 'month' ? `AND b.start_time >= date_trunc('month', NOW())` : '';
     const result = await pool.query(
       `SELECT s.name, COUNT(b.id) as total, COALESCE(SUM(COALESCE(b.price, s.price)), 0) as revenue
        FROM bookings b 
        JOIN services s ON b.service_id = s.id 
-       WHERE s.user_id = $1 AND b.status = 'confirmed'
+       WHERE s.user_id = $1 AND b.status = 'confirmed' ${periodClause}
        GROUP BY s.id, s.name
        ORDER BY total DESC`,
       [userId]
