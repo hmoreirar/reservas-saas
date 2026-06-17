@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router";
 import { getServiceBySlug, getPublicAvailability, createPublicBooking } from "./api/api";
-import { getWeekDays } from "./hooks/useWeekDays";
 import { useWeekOffset } from "./hooks/useWeekOffset";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import BookingSuccess from "./components/BookingSuccess";
 import PublicBookingModal from "./components/PublicBookingModal";
+import DatePicker from "./components/DatePicker";
+import Button from "./components/ui/Button";
 import type { Service, TimeSlot } from "./types";
 
 export default function BookingPage() {
@@ -45,6 +46,7 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (!service) return;
+    setSelectedSlot(null);
     const load = async () => {
       const data = await getPublicAvailability(service.id, selectedDate);
       if (Array.isArray(data)) {
@@ -69,9 +71,11 @@ export default function BookingPage() {
     [service, selectedSlot]
   );
 
-  const weekDays = getWeekDays(selectedDate, weekOffset);
-
-  const todayStr = new Date().toISOString().split("T")[0];
+  const isFutureOrToday = (dateStr: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return new Date(dateStr + "T12:00:00") >= today;
+  };
 
   if (loading) return <LoadingSpinner />;
 
@@ -90,6 +94,12 @@ export default function BookingPage() {
     return <BookingSuccess service={service} clientEmail={clientEmail} isPending />;
   }
 
+  const formattedDate = new Date(selectedDate + "T12:00:00").toLocaleDateString("es-CL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+
   return (
     <div className="min-h-screen bg-bg font-sans">
       <div className="bg-accent px-4 py-8 text-center text-accent-text md:px-10 md:py-10">
@@ -104,86 +114,77 @@ export default function BookingPage() {
         )}
       </div>
 
-      <div className="mx-auto w-full max-w-[900px] px-4 py-6 md:px-5 md:py-10">
-        <div className="rounded-xl border border-border bg-surface p-4 md:p-8">
-          <h2 className="m-0 mb-5 text-lg font-semibold text-text">
-            Selecciona fecha y hora
-          </h2>
-          {service?.timezone && (
-            <p className="mb-4 text-xs text-text-muted">
-              Los horarios se muestran en zona horaria: {service.timezone}
+      <div className="mx-auto w-full max-w-[1100px] px-4 py-6 md:px-6 md:py-10">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr] md:gap-8">
+          <div>
+            <DatePicker
+              selectedDate={selectedDate}
+              onSelect={setSelectedDate}
+              weekOffset={weekOffset}
+              onPrevWeek={prevWeek}
+              onNextWeek={nextWeek}
+            />
+          </div>
+
+          <div className="rounded-xl border border-border bg-surface p-4 md:p-6">
+            <h2 className="m-0 mb-1 text-lg font-semibold text-text">
+              Horarios disponibles
+            </h2>
+            <p className="mb-4 text-sm capitalize text-text-secondary">
+              {formattedDate}
             </p>
-          )}
 
-          <div className="mb-5 flex items-center gap-3">
-            <button
-              onClick={prevWeek}
-              className="cursor-pointer rounded-md bg-surface px-4 py-2.5 text-sm text-text-secondary transition-colors hover:bg-border"
-            >
-              &larr; Sem. anterior
-            </button>
-            <button
-              onClick={nextWeek}
-              className="cursor-pointer rounded-md bg-surface px-4 py-2.5 text-sm text-text-secondary transition-colors hover:bg-border"
-            >
-              Sem. siguiente &rarr;
-            </button>
-          </div>
+            {service?.timezone && (
+              <p className="mb-4 text-xs text-text-muted">
+                Zona horaria: {service.timezone}
+              </p>
+            )}
 
-          <div className="mb-8 grid grid-cols-7 gap-3">
-            {weekDays.map((day, i) => {
-              const dateStr = day.toISOString().split("T")[0];
-              const isToday = dateStr === todayStr;
-              const isSelected = dateStr === selectedDate;
-              return (
-                <div
-                  key={i}
-                  onClick={() => setSelectedDate(dateStr)}
-                  className={`cursor-pointer rounded-lg px-3 py-4 text-center transition-all ${
-                    isSelected
-                      ? "border-2 border-accent bg-accent-bg"
-                      : isToday
-                        ? "border-2 border-transparent bg-accent-bg"
-                        : "border-2 border-transparent bg-surface hover:bg-accent-bg"
-                  }`}
-                >
-                  <div className="text-xs capitalize text-text-secondary">
-                    {day.toLocaleDateString("es-ES", { weekday: "short" })}
-                  </div>
-                  <div
-                    className={`text-lg ${
-                      isToday ? "font-bold text-accent" : "text-text"
-                    }`}
-                  >
-                    {day.getDate()}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          <h3 className="mb-3 text-base font-semibold text-text">Horarios disponibles</h3>
-          {availableSlots.length === 0 ? (
-            <p className="text-sm text-text-secondary">No hay horarios disponibles para esta fecha</p>
-          ) : (
-            <div className="flex flex-wrap gap-3">
-              {availableSlots.map((slot, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setSelectedSlot(slot);
-                    setShowModal(true);
-                  }}
-                  className="cursor-pointer rounded-lg bg-accent px-5 py-3 text-sm font-medium text-accent-text transition-all hover:bg-accent-hover"
-                >
-                  {new Date(slot.start).toLocaleTimeString("es-ES", {
-                    hour: "2-digit",
-                    minute: "2-digit",
+            {availableSlots.length === 0 ? (
+              <div className="py-12 text-center">
+                <p className="text-sm text-text-muted">
+                  No hay horarios disponibles para esta fecha.
+                </p>
+                <p className="mt-1 text-xs text-text-muted">
+                  Prueba seleccionar otro dia en el calendario.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="flex max-h-[400px] flex-col gap-2 overflow-y-auto pr-1">
+                  {availableSlots.map((slot) => {
+                    const key = typeof slot.start === "string" ? slot.start : new Date(slot.start).toISOString();
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedSlot(slot)}
+                        disabled={!isFutureOrToday(selectedDate)}
+                        className={`cursor-pointer rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition-all ${
+                          selectedSlot?.start === slot.start
+                            ? "border-accent bg-accent text-accent-text"
+                            : "border-border text-text hover:border-accent hover:text-accent"
+                        } disabled:cursor-not-allowed disabled:opacity-40`}
+                      >
+                        {new Date(slot.start).toLocaleTimeString("es-ES", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </button>
+                    );
                   })}
-                </button>
-              ))}
-            </div>
-          )}
+                </div>
+
+                {selectedSlot && (
+                  <Button
+                    onClick={() => setShowModal(true)}
+                    className="mt-6 w-full"
+                  >
+                    Reservar
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
 
