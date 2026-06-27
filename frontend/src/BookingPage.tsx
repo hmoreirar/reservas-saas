@@ -4,7 +4,7 @@ import { getServiceBySlug, getPublicAvailability, createPublicBooking } from "./
 import { useWeekOffset } from "./hooks/useWeekOffset";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import BookingSuccess from "./components/BookingSuccess";
-import PublicBookingModal from "./components/PublicBookingModal";
+import BookingWizard from "./components/BookingWizard";
 import DatePicker from "./components/DatePicker";
 import Button from "./components/ui/Button";
 import type { Service, TimeSlot } from "./types";
@@ -20,7 +20,7 @@ export default function BookingPage() {
   });
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [wizardActive, setWizardActive] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [clientEmail, setClientEmail] = useState("");
   const { weekOffset, prevWeek, nextWeek } = useWeekOffset();
@@ -62,7 +62,7 @@ export default function BookingPage() {
       const data = await createPublicBooking(service.id, name, email, selectedSlot.start, notes);
       if (data.booking?.id) {
         setBookingSuccess(true);
-        setShowModal(false);
+        setWizardActive(false);
         setClientEmail(email);
         return null;
       }
@@ -115,86 +115,88 @@ export default function BookingPage() {
       </div>
 
       <div className="mx-auto w-full max-w-[1100px] px-4 py-6 md:px-6 md:py-10">
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr] md:gap-8">
-          <div>
-            <DatePicker
-              selectedDate={selectedDate}
-              onSelect={setSelectedDate}
-              weekOffset={weekOffset}
-              onPrevWeek={prevWeek}
-              onNextWeek={nextWeek}
-            />
-          </div>
+        {wizardActive ? (
+          <BookingWizard
+            service={service}
+            slot={selectedSlot}
+            date={selectedDate}
+            onBack={() => setWizardActive(false)}
+            onConfirm={handleConfirmBooking}
+          />
+        ) : (
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-[280px_1fr] md:gap-8">
+            <div>
+              <DatePicker
+                selectedDate={selectedDate}
+                onSelect={setSelectedDate}
+                weekOffset={weekOffset}
+                onPrevWeek={prevWeek}
+                onNextWeek={nextWeek}
+              />
+            </div>
 
-          <div className="rounded-xl border border-border bg-surface p-4 md:p-6">
-            <h2 className="m-0 mb-1 text-lg font-semibold text-text">
-              Horarios disponibles
-            </h2>
-            <p className="mb-4 text-sm capitalize text-text-secondary">
-              {formattedDate}
-            </p>
-
-            {service?.timezone && (
-              <p className="mb-4 text-xs text-text-muted">
-                Zona horaria: {service.timezone}
+            <div className="rounded-xl border border-border bg-surface p-4 md:p-6">
+              <h2 className="m-0 mb-1 text-lg font-semibold text-text">
+                Horarios disponibles
+              </h2>
+              <p className="mb-4 text-sm capitalize text-text-secondary">
+                {formattedDate}
               </p>
-            )}
 
-            {availableSlots.length === 0 ? (
-              <div className="py-12 text-center">
-                <p className="text-sm text-text-muted">
-                  No hay horarios disponibles para esta fecha.
+              {service?.timezone && (
+                <p className="mb-4 text-xs text-text-muted">
+                  Zona horaria: {service.timezone}
                 </p>
-                <p className="mt-1 text-xs text-text-muted">
-                  Prueba seleccionar otro dia en el calendario.
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="flex max-h-[400px] flex-col gap-2 overflow-y-auto pr-1">
-                  {availableSlots.map((slot) => {
-                    const key = typeof slot.start === "string" ? slot.start : new Date(slot.start).toISOString();
-                    return (
-                      <button
-                        key={key}
-                        onClick={() => setSelectedSlot(slot)}
-                        disabled={!isFutureOrToday(selectedDate)}
-                        className={`cursor-pointer rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition-all ${
-                          selectedSlot?.start === slot.start
-                            ? "border-accent bg-accent text-accent-text"
-                            : "border-border text-text hover:border-accent hover:text-accent"
-                        } disabled:cursor-not-allowed disabled:opacity-40`}
-                      >
-                        {new Date(slot.start).toLocaleTimeString("es-ES", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </button>
-                    );
-                  })}
+              )}
+
+              {availableSlots.length === 0 ? (
+                <div className="py-12 text-center">
+                  <p className="text-sm text-text-muted">
+                    No hay horarios disponibles para esta fecha.
+                  </p>
+                  <p className="mt-1 text-xs text-text-muted">
+                    Prueba seleccionar otro dia en el calendario.
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <div className="flex max-h-[400px] flex-col gap-2 overflow-y-auto pr-1">
+                    {availableSlots.map((slot) => {
+                      const key = typeof slot.start === "string" ? slot.start : new Date(slot.start).toISOString();
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => setSelectedSlot(slot)}
+                          disabled={!isFutureOrToday(selectedDate)}
+                          className={`cursor-pointer rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition-all ${
+                            selectedSlot?.start === slot.start
+                              ? "border-accent bg-accent text-accent-text"
+                              : "border-border text-text hover:border-accent hover:text-accent"
+                          } disabled:cursor-not-allowed disabled:opacity-40`}
+                        >
+                          {new Date(slot.start).toLocaleTimeString("es-ES", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                {selectedSlot && (
-                  <Button
-                    onClick={() => setShowModal(true)}
-                    className="mt-6 w-full"
-                  >
-                    Reservar
-                  </Button>
-                )}
-              </>
-            )}
+                  {selectedSlot && (
+                    <Button
+                      onClick={() => setWizardActive(true)}
+                      className="mt-6 w-full"
+                    >
+                      Reservar
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
-
-      <PublicBookingModal
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        service={service}
-        slot={selectedSlot}
-        onConfirm={handleConfirmBooking}
-      />
     </div>
   );
 }

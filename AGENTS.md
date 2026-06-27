@@ -27,9 +27,9 @@ JWT con bcrypt para auth, validacion con Zod, manejo de errores con AppError
 - Navbar con 4 tabs + bottom navigation fija en mobile
 - Eliminados componentes viejos: CalendarView, AvailableSlots, BookingModal, RescheduleView
 
-### Pendiente — Fase 3 (booking publico)
-- BookingWizard (paso a paso con progress bar)
-- Reemplazar PublicBookingModal por wizard inline
+### Fase 3 — Completada (commit pendiente)
+- BookingWizard: componente paso a paso con progress bar (3 pasos: Horario, Tus datos, Confirmar)
+- Reemplazado PublicBookingModal por BookingWizard inline en BookingPage
 
 ### Pendiente — Deuda tecnica
 - Migrar googleCalendar.js y zoom.js a TypeScript con logger Pino
