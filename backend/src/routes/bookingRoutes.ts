@@ -9,14 +9,11 @@ import {
   getStats,
   cancelBooking,
   rescheduleBooking,
-  confirmBooking,
-  declineBooking,
-  completeBooking,
-  noShowBooking,
+  updateBookingStatus,
 } from '../controllers/bookingController.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { validate } from '../validation/validate.js';
-import { createBookingSchema, createPublicBookingSchema } from '../validation/schemas.js';
+import { createBookingSchema, createPublicBookingSchema, updateBookingStatusSchema } from '../validation/schemas.js';
 import rateLimit from 'express-rate-limit';
 
 const router = Router();
@@ -36,9 +33,6 @@ router.get('/my', authMiddleware, getMyBookings);
 router.get('/stats', authMiddleware, getStats);
 router.put('/:id/cancel', authMiddleware, cancelBooking);
 router.put('/:id/reschedule', authMiddleware, rescheduleBooking);
-router.put('/:id/confirm', authMiddleware, confirmBooking);
-router.put('/:id/decline', authMiddleware, declineBooking);
-router.put('/:id/complete', authMiddleware, completeBooking);
-router.put('/:id/no-show', authMiddleware, noShowBooking);
+router.put('/:id/status', authMiddleware, validate(updateBookingStatusSchema), updateBookingStatus);
 
 export default router;

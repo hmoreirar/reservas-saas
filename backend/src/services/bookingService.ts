@@ -1,7 +1,8 @@
 import { bookingRepository } from '../repositories/bookingRepository.js';
 import { serviceRepository } from '../repositories/serviceRepository.js';
 import { NotFoundError, ForbiddenError, ConflictError } from '../errors/AppError.js';
-import { TimeSlot, BookingStats } from '../types/index.js';
+import type { Booking, BookingStats, BookingStatusAction } from '../types/index.js';
+import type { Service } from '../types/index.js';
 import {
   sendBookingConfirmation,
   sendBookingCancellation,
@@ -10,6 +11,90 @@ import {
   sendProviderNotification,
 } from '../utils/emailService.js';
 import { integrationService } from './integrationService.js';
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  pending: ['confirmed', 'cancelled'],
+  confirmed: ['completed', 'cancelled', 'no-show'],
+};
+
+async function findServiceByIdOrSlug(serviceId: number | string): Promise<Service> {
+  if (typeof serviceId === 'number' || !isNaN(Number(serviceId))) {
+    const service = await serviceRepository.findById(Number(serviceId));
+    if (service) return service;
+  }
+  const service = await serviceRepository.findBySlug(String(serviceId));
+  if (!service) throw new NotFoundError('Servicio no encontrado');
+  return service;
+}
+
+async function createBookingRecord(data: {
+  service: Service;
+  client_name: string;
+  client_email: string;
+  start_time: string;
+  notes?: string;
+  price?: number | null;
+  status?: string;
+}) {
+  const start = new Date(data.start_time);
+  const duration = data.service.duration || 30;
+  const end = new Date(start.getTime() + duration * 60000);
+
+  const hasConflict = await bookingRepository.findConflicts(data.service.id, start, end);
+  if (hasConflict) {
+    throw new ConflictError('Horario no disponible');
+  }
+
+  const bookingPrice = data.price ?? data.service.price;
+
+  const booking = await bookingRepository.create({
+    service_id: data.service.id,
+    client_name: data.client_name,
+    client_email: data.client_email,
+    start_time: start,
+    end_time: end,
+    notes: data.notes ?? null,
+    price: bookingPrice,
+    status: data.status ?? 'confirmed',
+  });
+
+  return { booking, service: data.service, start, end };
+}
+
+async function sendBookingNotifications(
+  booking: Booking,
+  service: Service,
+  clientEmail: string,
+  clientName: string
+) {
+  const userResult = await import('../repositories/userRepository.js').then(
+    (m) => m.userRepository.findById(service.user_id)
+  );
+  if (userResult) {
+    try {
+      await sendBookingConfirmation(
+        booking,
+        { name: service.name, duration: service.duration, price: service.price },
+        clientEmail,
+        clientName
+      );
+      await sendProviderNotification(
+        userResult.email,
+        userResult.name,
+        booking,
+        service
+      );
+    } catch (_emailErr) {
+      // email es opcional
+    }
+  }
+
+  try {
+    await integrationService.onBookingCreated(booking, service);
+  } catch (_integrationErr) {
+    // integraciones son opcionales
+  }
+}
 
 export const bookingService = {
   async create(
@@ -31,57 +116,17 @@ export const bookingService = {
     const service = await serviceRepository.findById(data.service_id);
     if (!service) throw new NotFoundError('Servicio no encontrado');
 
-    const start = new Date(data.start_time);
-    const duration = service.duration || 30;
-    const end = new Date(start.getTime() + duration * 60000);
-
-    const hasConflict = await bookingRepository.findConflicts(data.service_id, start, end);
-    if (hasConflict) {
-      throw new ConflictError('Horario no disponible');
-    }
-
-    const bookingPrice = data.price ?? service.price;
-
-    const booking = await bookingRepository.create({
-      service_id: data.service_id,
+    const { booking } = await createBookingRecord({
+      service,
       client_name: data.client_name,
       client_email: data.client_email,
-      start_time: start,
-      end_time: end,
-      notes: data.notes ?? null,
-      price: bookingPrice,
+      start_time: data.start_time,
+      notes: data.notes,
+      price: data.price,
+      status: 'confirmed',
     });
 
-    const user = await serviceRepository.findUserByServiceId(data.service_id);
-    if (user) {
-      const userResult = await import('../repositories/userRepository.js').then(
-        (m) => m.userRepository.findById(user.user_id)
-      );
-      if (userResult) {
-        try {
-          await sendBookingConfirmation(
-            booking,
-            { name: service.name, duration: service.duration, price: service.price },
-            data.client_email,
-            data.client_name
-          );
-          await sendProviderNotification(
-            userResult.email,
-            userResult.name,
-            booking,
-            service
-          );
-        } catch (_emailErr) {
-          // email es opcional
-        }
-      }
-    }
-
-    try {
-      await integrationService.onBookingCreated(booking, service);
-    } catch (_integrationErr) {
-      // integraciones son opcionales
-    }
+    await sendBookingNotifications(booking, service, data.client_email, data.client_name);
 
     return booking;
   },
@@ -94,86 +139,44 @@ export const bookingService = {
     notes?: string;
     price?: number | null;
   }) {
-    const service = await serviceRepository.findById(
-      typeof data.service_id === 'string' ? 0 : data.service_id
-    );
+    const service = await findServiceByIdOrSlug(data.service_id);
 
-    let serviceRecord;
-    if (!service) {
-      serviceRecord = await serviceRepository.findBySlug(String(data.service_id));
-    } else {
-      serviceRecord = service;
-    }
-
-    if (!serviceRecord) throw new NotFoundError('Servicio no encontrado');
-
-    const start = new Date(data.start_time);
-    const duration = serviceRecord.duration || 30;
-    const end = new Date(start.getTime() + duration * 60000);
-
-    const hasConflict = await bookingRepository.findConflicts(
-      serviceRecord.id,
-      start,
-      end
-    );
-    if (hasConflict) {
-      throw new ConflictError('Horario no disponible');
-    }
-
-    const bookingPrice = data.price ?? serviceRecord.price;
-
-    const booking = await bookingRepository.create({
-      service_id: serviceRecord.id,
+    const { booking } = await createBookingRecord({
+      service,
       client_name: data.client_name,
       client_email: data.client_email,
-      start_time: start,
-      end_time: end,
-      notes: data.notes ?? null,
-      price: bookingPrice,
+      start_time: data.start_time,
+      notes: data.notes,
+      price: data.price,
       status: 'pending',
     });
 
-    const userResult = await import('../repositories/userRepository.js').then((m) =>
-      m.userRepository.findById(serviceRecord.user_id)
-    );
-    if (userResult) {
-      try {
-        await sendBookingConfirmation(
-          booking,
-          { name: serviceRecord.name, duration: serviceRecord.duration, price: serviceRecord.price },
-          data.client_email,
-          data.client_name
-        );
-        await sendProviderNotification(
-          userResult.email,
-          userResult.name,
-          { ...booking, status: 'pending' },
-          serviceRecord
-        );
-      } catch (_emailErr) {
-        // email es opcional
-      }
-    }
+    await sendBookingNotifications(booking, service, data.client_email, data.client_name);
 
-    try {
-      await integrationService.onBookingCreated(booking, serviceRecord);
-    } catch (_integrationErr) {
-      // integraciones son opcionales
-    }
-
-    return { booking, service: serviceRecord };
+    return { booking, service };
   },
 
-  async confirm(id: number, userId: number) {
+  async updateStatus(id: number, userId: number, action: BookingStatusAction, reason?: string) {
     const booking = await bookingRepository.findWithService(id);
     if (!booking) throw new NotFoundError('Reserva no encontrada');
     if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
-    if (booking.status !== 'pending') throw new ConflictError('La reserva no esta pendiente');
 
-    await bookingRepository.updateStatus(id, 'confirmed');
+    const validNext = VALID_TRANSITIONS[booking.status];
+    if (!validNext || !validNext.includes(action === 'declined' ? 'cancelled' : action)) {
+      throw new ConflictError(`No se puede cambiar el estado de ${booking.status} a ${action}`);
+    }
+
+    const targetStatus = action === 'declined' ? 'cancelled' : action;
+
+    if (reason) {
+      await bookingRepository.updateStatusWithReason(id, targetStatus, reason);
+    } else {
+      await bookingRepository.updateStatus(id, targetStatus);
+    }
 
     const service = await serviceRepository.findById(booking.service_id);
-    if (service) {
+
+    if (action === 'confirmed' && service) {
       try {
         await sendBookingConfirmed(
           booking,
@@ -181,28 +184,10 @@ export const bookingService = {
           booking.client_email,
           booking.client_name
         );
-      } catch (_emailErr) {
-        // email es opcional
-      }
+      } catch (_emailErr) {}
     }
 
-    return { message: 'Reserva confirmada' };
-  },
-
-  async decline(id: number, userId: number, reason?: string) {
-    const booking = await bookingRepository.findWithService(id);
-    if (!booking) throw new NotFoundError('Reserva no encontrada');
-    if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
-    if (booking.status !== 'pending') throw new ConflictError('La reserva no esta pendiente');
-
-    if (reason) {
-      await bookingRepository.updateStatusWithReason(id, 'cancelled', reason);
-    } else {
-      await bookingRepository.updateStatus(id, 'cancelled');
-    }
-
-    const service = await serviceRepository.findById(booking.service_id);
-    if (service) {
+    if (action === 'declined' && service) {
       try {
         await sendBookingDeclined(
           booking,
@@ -211,32 +196,16 @@ export const bookingService = {
           booking.client_name,
           reason
         );
-      } catch (_emailErr) {
-        // email es opcional
-      }
+      } catch (_emailErr) {}
     }
 
-    return { message: 'Reserva rechazada' };
-  },
+    if (action === 'cancelled' || action === 'declined') {
+      try {
+        await integrationService.onBookingCancelled(booking);
+      } catch (_integrationErr) {}
+    }
 
-  async complete(id: number, userId: number) {
-    const booking = await bookingRepository.findWithService(id);
-    if (!booking) throw new NotFoundError('Reserva no encontrada');
-    if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
-    if (booking.status !== 'confirmed') throw new ConflictError('La reserva debe estar confirmada');
-
-    await bookingRepository.updateStatus(id, 'completed');
-    return { message: 'Reserva completada' };
-  },
-
-  async markNoShow(id: number, userId: number) {
-    const booking = await bookingRepository.findWithService(id);
-    if (!booking) throw new NotFoundError('Reserva no encontrada');
-    if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
-    if (booking.status !== 'confirmed') throw new ConflictError('La reserva debe estar confirmada');
-
-    await bookingRepository.updateStatus(id, 'no-show');
-    return { message: 'Cliente no asistio' };
+    return { message: `Reserva ${action === 'declined' ? 'rechazada' : action === 'confirmed' ? 'confirmada' : action === 'cancelled' ? 'cancelada' : action === 'completed' ? 'completada' : 'marcada como no show'}` };
   },
 
   async getAvailability(serviceId: number, date: string) {
@@ -269,7 +238,7 @@ export const bookingService = {
 
     const maxCapacity = (service as any).max_capacity ?? 1;
 
-    const slots: TimeSlot[] = [];
+    const slots: { start: string; end: string }[] = [];
     const current = new Date(`${date}T${String(startHour).padStart(2, '0')}:00:00`);
     const endDay = new Date(`${date}T${String(endHour).padStart(2, '0')}:00:00`);
 
@@ -299,7 +268,7 @@ export const bookingService = {
       return slots.filter((slot) => {
         const slotStart = new Date(slot.start);
         const slotEnd = new Date(slot.end);
-        const count = bookings.filter((b) => {
+        const count = bookings.filter((b: { start_time: Date; end_time: Date }) => {
           const bStart = new Date(b.start_time);
           const bEnd = new Date(b.end_time);
           return slotStart < bEnd && slotEnd > bStart;
@@ -311,7 +280,7 @@ export const bookingService = {
     return slots.filter((slot) => {
       const slotStart = new Date(slot.start);
       const slotEnd = new Date(slot.end);
-      return !bookings.some((b) => {
+      return !bookings.some((b: { start_time: Date; end_time: Date }) => {
         const bookingStart = new Date(b.start_time);
         const bookingEnd = new Date(b.end_time);
         return slotStart < bookingEnd && slotEnd > bookingStart;
@@ -362,15 +331,11 @@ export const bookingService = {
         booking.client_email,
         booking.client_name
       );
-    } catch (_emailErr) {
-      // email es opcional
-    }
+    } catch (_emailErr) {}
 
     try {
       await integrationService.onBookingCancelled(booking);
-    } catch (_integrationErr) {
-      // integraciones son opcionales
-    }
+    } catch (_integrationErr) {}
 
     return { message: 'Reserva cancelada' };
   },

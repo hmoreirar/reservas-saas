@@ -11,10 +11,7 @@ interface MyBookingsProps {
   bookings: Booking[];
   onReschedule: (id: number) => void;
   onCancel: (id: number) => void;
-  onConfirm?: (id: number) => void;
-  onDecline?: (id: number, reason?: string) => void;
-  onComplete?: (id: number) => void;
-  onNoShow?: (id: number) => void;
+  onStatusChange: (id: number, status: string, reason?: string) => void;
 }
 
 const FILTERS = [
@@ -30,10 +27,7 @@ export default function MyBookings({
   bookings,
   onReschedule,
   onCancel,
-  onConfirm,
-  onDecline,
-  onComplete,
-  onNoShow,
+  onStatusChange,
 }: MyBookingsProps) {
   const [declineModal, setDeclineModal] = useState<{ open: boolean; bookingId: number }>({ open: false, bookingId: 0 });
   const [declineReason, setDeclineReason] = useState("");
@@ -54,7 +48,7 @@ export default function MyBookings({
   const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const handleDecline = () => {
-    onDecline?.(declineModal.bookingId, declineReason || undefined);
+    onStatusChange(declineModal.bookingId, "declined", declineReason || undefined);
     setDeclineModal({ open: false, bookingId: 0 });
     setDeclineReason("");
   };
@@ -137,34 +131,26 @@ export default function MyBookings({
                 <div className="flex flex-wrap gap-2">
                   {booking.status === "pending" && (
                     <>
-                      {onConfirm && (
-                        <Button onClick={() => onConfirm(booking.id)}>
-                          Confirmar
-                        </Button>
-                      )}
-                      {onDecline && (
-                        <Button
-                          variant="danger"
-                          onClick={() => setDeclineModal({ open: true, bookingId: booking.id })}
-                        >
-                          Rechazar
-                        </Button>
-                      )}
+                      <Button onClick={() => onStatusChange(booking.id, "confirmed")}>
+                        Confirmar
+                      </Button>
+                      <Button
+                        variant="danger"
+                        onClick={() => setDeclineModal({ open: true, bookingId: booking.id })}
+                      >
+                        Rechazar
+                      </Button>
                     </>
                   )}
 
                   {booking.status === "confirmed" && (
                     <>
-                      {onComplete && (
-                        <Button onClick={() => onComplete(booking.id)}>
-                          Completar
-                        </Button>
-                      )}
-                      {onNoShow && (
-                        <Button variant="ghost" onClick={() => onNoShow(booking.id)}>
-                          No show
-                        </Button>
-                      )}
+                      <Button onClick={() => onStatusChange(booking.id, "completed")}>
+                        Completar
+                      </Button>
+                      <Button variant="ghost" onClick={() => onStatusChange(booking.id, "no-show")}>
+                        No show
+                      </Button>
                       <Button variant="secondary" onClick={() => onReschedule(booking.id)}>
                         Reprogramar
                       </Button>

@@ -91,3 +91,8 @@ export const serviceBreakSchema = z.object({
   end_time: z.string().min(1, 'Hora fin requerida'),
   is_recurring: z.boolean().default(false),
 });
+
+export const updateBookingStatusSchema = z.object({
+  status: z.enum(['confirmed', 'declined', 'cancelled', 'completed', 'no-show']),
+  reason: z.string().optional(),
+});

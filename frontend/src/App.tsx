@@ -23,10 +23,7 @@ import {
   cancelBooking,
   rescheduleBooking,
   createBooking,
-  confirmBooking,
-  declineBooking,
-  completeBooking,
-  noShowBooking,
+  updateBookingStatus,
 } from "./api/api";
 import type { Service, Stats, TimeSlot, Booking } from "./types";
 
@@ -192,48 +189,21 @@ export default function App() {
     return data.error || "Error al crear reserva";
   };
 
-  const handleConfirmBookingAction = async (id: number) => {
-    const data = await confirmBooking(id);
+  const handleUpdateStatus = async (id: number, status: string, reason?: string) => {
+    const data = await updateBookingStatus(id, status, reason);
     if (data.message) {
       loadMyBookings();
       loadStats();
-      showToast("Reserva confirmada", "success");
+      const labels: Record<string, string> = {
+        confirmed: "Reserva confirmada",
+        declined: "Reserva rechazada",
+        completed: "Reserva completada",
+        "no-show": "Cliente no asistio",
+        cancelled: "Reserva cancelada",
+      };
+      showToast(labels[status] || "Estado actualizado", "success");
     } else {
-      showToast(data.error || "Error al confirmar", "error");
-    }
-  };
-
-  const handleDeclineBooking = async (id: number) => {
-    const reason = prompt("Motivo de rechazo (opcional):");
-    const data = await declineBooking(id, reason || undefined);
-    if (data.message) {
-      loadMyBookings();
-      loadStats();
-      showToast("Reserva rechazada", "success");
-    } else {
-      showToast(data.error || "Error al rechazar", "error");
-    }
-  };
-
-  const handleCompleteBooking = async (id: number) => {
-    const data = await completeBooking(id);
-    if (data.message) {
-      loadMyBookings();
-      loadStats();
-      showToast("Reserva completada", "success");
-    } else {
-      showToast(data.error || "Error al completar", "error");
-    }
-  };
-
-  const handleNoShowBooking = async (id: number) => {
-    const data = await noShowBooking(id);
-    if (data.message) {
-      loadMyBookings();
-      loadStats();
-      showToast("Cliente no asistio", "success");
-    } else {
-      showToast(data.error || "Error al marcar no-show", "error");
+      showToast(data.error || "Error al actualizar estado", "error");
     }
   };
 
@@ -347,10 +317,7 @@ export default function App() {
               bookings={myBookings}
               onReschedule={handleStartReschedule}
               onCancel={handleCancelBooking}
-              onConfirm={handleConfirmBookingAction}
-              onDecline={handleDeclineBooking}
-              onComplete={handleCompleteBooking}
-              onNoShow={handleNoShowBooking}
+              onStatusChange={handleUpdateStatus}
             />
           </div>
         )}

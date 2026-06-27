@@ -64,6 +64,50 @@ export interface TimeSlot {
   end: string;
 }
 
+export type TimelineSlotType = 'available' | 'booked' | 'blocked' | 'past';
+
+export interface TimelineSlot {
+  time: string;
+  start: string;
+  end: string;
+  type: TimelineSlotType;
+  booking?: Booking;
+  break?: {
+    name: string;
+    start_time: string;
+    end_time: string;
+  };
+  capacity_used: number;
+  capacity_max: number;
+}
+
+export interface DayAgenda {
+  date: string;
+  service_id: number;
+  service_name: string;
+  slots: TimelineSlot[];
+}
+
+export interface WeekDayOverview {
+  date: string;
+  day_of_week: number;
+  label: string;
+  total_slots: number;
+  booked: number;
+  available: number;
+  blocked: number;
+  past: number;
+}
+
+export interface WeekAgenda {
+  start_date: string;
+  service_id: number;
+  service_name: string;
+  days: WeekDayOverview[];
+}
+
+export type BookingStatusAction = 'confirmed' | 'declined' | 'cancelled' | 'completed' | 'no-show';
+
 export interface BookingStats {
   total: number;
   pending: number;
