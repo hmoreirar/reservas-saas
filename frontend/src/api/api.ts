@@ -31,6 +31,12 @@ interface PublicBookingResponse {
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, options);
   if (!res.ok) {
+    if (res.status === 401 && !url.includes("/auth/login")) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.reload();
+      return { error: "Sesion expirada" } as T;
+    }
     try {
       const body = await res.json();
       return { error: body.error || `Error ${res.status}` } as T;
