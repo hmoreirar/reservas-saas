@@ -57,7 +57,7 @@ export default function ServiciosPage() {
   };
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <ServicesGrid
         services={services}
         selectedService={null}

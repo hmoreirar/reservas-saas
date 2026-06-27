@@ -4,7 +4,7 @@ export default function ConfiguracionPage() {
   const { user } = useAuth();
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <h2 className="mb-8 text-xl font-semibold text-text">Configuracion</h2>
 
       <div className="rounded-xl border border-border bg-surface p-6 md:p-8">

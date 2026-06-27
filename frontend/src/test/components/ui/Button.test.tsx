@@ -18,26 +18,49 @@ describe("Button", () => {
 
   it("applies primary variant by default", () => {
     render(<Button>Primary</Button>);
-    const btn = screen.getByRole("button");
-    expect(btn.className).toContain("bg-accent");
+    expect(screen.getByRole("button").className).toContain("bg-accent");
   });
 
   it("applies secondary variant", () => {
     render(<Button variant="secondary">Secondary</Button>);
-    const btn = screen.getByRole("button");
-    expect(btn.className).toContain("text-text-secondary");
+    expect(screen.getByRole("button").className).toContain("text-text-secondary");
   });
 
   it("applies danger variant", () => {
     render(<Button variant="danger">Danger</Button>);
-    const btn = screen.getByRole("button");
-    expect(btn.className).toContain("text-danger");
+    expect(screen.getByRole("button").className).toContain("text-danger");
   });
 
   it("applies ghost variant", () => {
     render(<Button variant="ghost">Ghost</Button>);
+    expect(screen.getByRole("button").className).toContain("text-text-muted");
+  });
+
+  it("applies outline variant", () => {
+    render(<Button variant="outline">Outline</Button>);
+    expect(screen.getByRole("button").className).toContain("border-border");
+  });
+
+  it("applies size sm", () => {
+    render(<Button size="sm">Small</Button>);
+    expect(screen.getByRole("button").className).toContain("text-xs");
+  });
+
+  it("applies size md by default", () => {
+    render(<Button>Medium</Button>);
+    expect(screen.getByRole("button").className).toContain("text-sm");
+  });
+
+  it("applies size lg", () => {
+    render(<Button size="lg">Large</Button>);
+    expect(screen.getByRole("button").className).toContain("text-base");
+  });
+
+  it("shows loading spinner and disables button", () => {
+    render(<Button loading>Loading</Button>);
     const btn = screen.getByRole("button");
-    expect(btn.className).toContain("text-text-muted");
+    expect(btn).toBeDisabled();
+    expect(btn.querySelector("svg")).toBeInTheDocument();
   });
 
   it("disables button", () => {
@@ -48,6 +71,13 @@ describe("Button", () => {
   it("does not fire onClick when disabled", async () => {
     const onClick = vi.fn();
     render(<Button disabled onClick={onClick}>Disabled</Button>);
+    await userEvent.click(screen.getByRole("button"));
+    expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("does not fire onClick when loading", async () => {
+    const onClick = vi.fn();
+    render(<Button loading onClick={onClick}>Loading</Button>);
     await userEvent.click(screen.getByRole("button"));
     expect(onClick).not.toHaveBeenCalled();
   });

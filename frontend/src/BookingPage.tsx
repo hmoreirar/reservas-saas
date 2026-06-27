@@ -19,6 +19,7 @@ export default function BookingPage() {
     return today.toISOString().split("T")[0];
   });
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [wizardActive, setWizardActive] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
@@ -47,11 +48,13 @@ export default function BookingPage() {
   useEffect(() => {
     if (!service) return;
     setSelectedSlot(null);
+    setSlotsLoading(true);
     const load = async () => {
       const data = await getPublicAvailability(service.id, selectedDate);
       if (Array.isArray(data)) {
         setAvailableSlots(data);
       }
+      setSlotsLoading(false);
     };
     load();
   }, [selectedDate, service]);
@@ -149,7 +152,13 @@ export default function BookingPage() {
                 </p>
               )}
 
-              {availableSlots.length === 0 ? (
+              {slotsLoading ? (
+                <div className="flex max-h-[400px] flex-col gap-2 overflow-y-auto pr-1">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div key={i} className="h-11 animate-pulse rounded-lg bg-border" />
+                  ))}
+                </div>
+              ) : availableSlots.length === 0 ? (
                 <div className="py-12 text-center">
                   <p className="text-sm text-text-muted">
                     No hay horarios disponibles para esta fecha.

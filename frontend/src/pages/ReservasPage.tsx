@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import MyBookings from "../components/MyBookings";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { showToast } from "../components/ui/Toast";
@@ -17,10 +18,11 @@ export default function ReservasPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [loading, setLoading] = useState(true);
-  const [rescheduleBookingId, setRescheduleBookingId] = useState<number | null>(null);
+  const [fetching, setFetching] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
 
   const loadMyBookings = useCallback(async (p: number, s: string, f: string) => {
-    setLoading(true);
+    setFetching(true);
     const data: PaginatedBookings = await getMyBookings(p, 20, s || undefined, f || undefined);
     if ("data" in data) {
       setMyBookings(data.data);
@@ -29,6 +31,7 @@ export default function ReservasPage() {
       setTotalPages(data.totalPages);
     }
     setLoading(false);
+    setFetching(false);
   }, []);
 
   useEffect(() => {
@@ -49,6 +52,20 @@ export default function ReservasPage() {
     loadMyBookings(p, search, statusFilter);
   };
 
+  const handleCancelClick = (id: number) => {
+    setCancelConfirm(id);
+  };
+
+  const confirmCancel = async () => {
+    if (cancelConfirm === null) return;
+    const data = await cancelBooking(cancelConfirm);
+    if (data.message) {
+      loadMyBookings(page, search, statusFilter);
+      showToast("Reserva cancelada", "success");
+    }
+    setCancelConfirm(null);
+  };
+
   const handleUpdateStatus = async (id: number, status: string, reason?: string) => {
     const data = await updateBookingStatus(id, status, reason);
     if (data.message) {
@@ -66,20 +83,18 @@ export default function ReservasPage() {
     }
   };
 
-  const handleCancelBooking = async (id: number) => {
-    if (!confirm("¿Cancelar reserva?")) return;
-    const data = await cancelBooking(id);
-    if (data.message) {
-      loadMyBookings(page, search, statusFilter);
-      showToast("Reserva cancelada", "success");
-    }
-  };
-
   if (loading && myBookings.length === 0) return <LoadingSpinner />;
 
   return (
-    <div>
+    <div className="relative animate-fade-in">
       <h2 className="mb-8 text-xl font-semibold text-text">Mis Reservas</h2>
+
+      {fetching && myBookings.length > 0 && (
+        <div className="absolute inset-0 z-10 flex items-start justify-center rounded-xl bg-bg/60 pt-20">
+          <LoadingSpinner size="sm" />
+        </div>
+      )}
+
       <MyBookings
         bookings={myBookings}
         total={total}
@@ -90,9 +105,19 @@ export default function ReservasPage() {
         onSearchChange={handleSearchChange}
         onFilterChange={handleFilterChange}
         onPageChange={handlePageChange}
-        onReschedule={(id) => setRescheduleBookingId(id)}
-        onCancel={handleCancelBooking}
+        onReschedule={() => {}}
+        onCancel={handleCancelClick}
         onStatusChange={handleUpdateStatus}
+      />
+
+      <ConfirmDialog
+        open={cancelConfirm !== null}
+        onClose={() => setCancelConfirm(null)}
+        onConfirm={confirmCancel}
+        title="Cancelar reserva"
+        message="Esta accion no se puede deshacer. Se notificara al cliente."
+        confirmLabel="Cancelar reserva"
+        variant="danger"
       />
     </div>
   );

@@ -4,6 +4,7 @@ import WeekBar from "../components/WeekBar";
 import DayTimeline from "../components/DayTimeline";
 import InlineBookingForm from "../components/InlineBookingForm";
 import BookingPopover from "../components/BookingPopover";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
 import { SkeletonStatCard } from "../components/ui/Skeleton";
 import { showToast } from "../components/ui/Toast";
 import {
@@ -17,6 +18,7 @@ import type { Stats, DayAgenda, TimelineSlot } from "../types";
 
 export default function AgendaPage() {
   const [agendas, setAgendas] = useState<DayAgenda[]>([]);
+  const [agendaLoading, setAgendaLoading] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
@@ -34,10 +36,24 @@ export default function AgendaPage() {
     booking: import("../types").Booking;
     serviceName: string;
   } | null>(null);
+  const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
 
   const loadAgenda = useCallback(async (date: string) => {
-    const data = await getDayAgenda(date);
-    if (Array.isArray(data)) setAgendas(data);
+    setAgendaLoading(true);
+    try {
+      const data = await getDayAgenda(date);
+      if (Array.isArray(data)) {
+        setAgendas(data);
+      } else {
+        setAgendas([]);
+        showToast("Error al cargar agenda", "error");
+      }
+    } catch {
+      setAgendas([]);
+      showToast("Error al cargar agenda", "error");
+    } finally {
+      setAgendaLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -114,20 +130,21 @@ export default function AgendaPage() {
   };
 
   const handleCancelBooking = async (id: number) => {
-    if (!confirm("¿Cancelar reserva?")) return;
-    const data = await cancelBooking(id);
+    setCancelConfirm(id);
+  };
+
+  const confirmCancel = async () => {
+    if (cancelConfirm === null) return;
+    const data = await cancelBooking(cancelConfirm);
     if (data.message) {
       loadAgenda(selectedDate);
       showToast("Reserva cancelada", "success");
     }
-  };
-
-  const handleReschedule = (id: number) => {
-    showToast("Funcionalidad de reprogramacion proximamente", "success");
+    setCancelConfirm(null);
   };
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {stats ? (
         <StatsCards stats={stats} period={periodFilter} onPeriodChange={setPeriodFilter} />
       ) : (
@@ -148,13 +165,17 @@ export default function AgendaPage() {
         />
       </div>
 
-      <DayTimeline
-        agendas={agendas}
-        onSlotClick={handleSlotClick}
-      />
+      {agendaLoading ? (
+        <DayTimelineSkeleton />
+      ) : (
+        <DayTimeline
+          agendas={agendas}
+          onSlotClick={handleSlotClick}
+        />
+      )}
 
       {showBookingForm && selectedSlot && (
-        <div className="mt-4">
+        <div className="mt-4 animate-slide-up">
           <InlineBookingForm
             slot={selectedSlot.slot}
             serviceName={selectedSlot.serviceName}
@@ -166,17 +187,48 @@ export default function AgendaPage() {
       )}
 
       {showPopover && selectedBooking && (
-        <div className="mt-4">
+        <div className="mt-4 animate-slide-up">
           <BookingPopover
             booking={selectedBooking.booking}
             serviceName={selectedBooking.serviceName}
             onStatusChange={handleStatusChange}
-            onReschedule={handleReschedule}
+            onReschedule={() => {}}
             onCancel={handleCancelBooking}
             onClose={() => { setShowPopover(false); setSelectedBooking(null); }}
           />
         </div>
       )}
+
+      <ConfirmDialog
+        open={cancelConfirm !== null}
+        onClose={() => setCancelConfirm(null)}
+        onConfirm={confirmCancel}
+        title="Cancelar reserva"
+        message="Esta accion no se puede deshacer. Se notificara al cliente."
+        confirmLabel="Cancelar reserva"
+        variant="danger"
+      />
+    </div>
+  );
+}
+
+function DayTimelineSkeleton() {
+  return (
+    <div className="space-y-6">
+      {[1, 2].map((i) => (
+        <div key={i}>
+          <div className="mb-3 h-5 w-40 animate-pulse rounded bg-border" />
+          <div className="rounded-xl border border-border bg-surface">
+            {Array.from({ length: 4 }).map((_, j) => (
+              <div key={j} className="flex items-center gap-4 px-4 py-3 md:px-6">
+                <div className="h-4 w-16 animate-pulse rounded bg-border" />
+                <div className="h-px flex-1 bg-border" />
+                <div className="h-4 w-20 animate-pulse rounded bg-border" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

@@ -49,7 +49,7 @@ export default function WizardProgressBar({ steps, currentStep }: WizardProgress
               <span className={`text-xs ${styles.label}`}>{step.label}</span>
             </div>
             {!isLast && (
-              <div className={`mx-2 mb-5 h-0.5 w-12 sm:w-20 ${styles.line}`} />
+              <div className={`mx-2 mb-5 h-0.5 w-12 transition-colors duration-500 sm:w-20 ${styles.line}`} />
             )}
           </div>
         );
