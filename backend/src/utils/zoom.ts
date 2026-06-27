@@ -1,21 +1,40 @@
-import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import { logger } from "./logger.js";
+import type { Booking, Service } from "../types/index.js";
 
-dotenv.config();
+const ZOOM_API_KEY = process.env.ZOOM_API_KEY ?? "";
+const ZOOM_API_SECRET = process.env.ZOOM_API_SECRET ?? "";
 
-const ZOOM_API_KEY = process.env.ZOOM_API_KEY;
-const ZOOM_API_SECRET = process.env.ZOOM_API_SECRET;
+interface ZoomMeeting {
+  join_url: string;
+  start_url: string;
+  meeting_id: number;
+  password: string;
+}
 
-export const createZoomMeeting = async (booking, service) => {
+const generateZoomToken = (): string => {
+  return jwt.sign(
+    {
+      iss: ZOOM_API_KEY,
+      exp: Math.floor(Date.now() / 1000) + 60,
+    },
+    ZOOM_API_SECRET
+  );
+};
+
+export const createZoomMeeting = async (
+  booking: Booking,
+  service: Service
+): Promise<ZoomMeeting | null> => {
   try {
     if (!ZOOM_API_KEY || !ZOOM_API_SECRET) {
-      console.log("⚠️ Zoom credentials not configured");
+      logger.warn("Zoom credentials not configured");
       return null;
     }
 
     const startTime = new Date(booking.start_time);
     const endTime = new Date(booking.end_time);
-    const duration = Math.round((endTime - startTime) / 60000);
+    const duration = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
 
     const response = await fetch(`https://api.zoom.us/v2/users/me/meetings`, {
       method: "POST",
@@ -27,7 +46,7 @@ export const createZoomMeeting = async (booking, service) => {
         topic: `${service.name} - ${booking.client_name}`,
         type: 2,
         start_time: startTime.toISOString(),
-        duration: duration,
+        duration,
         timezone: service.timezone || "America/Santiago",
         agenda: `Cliente: ${booking.client_name}\nEmail: ${booking.client_email}`,
         settings: {
@@ -44,7 +63,7 @@ export const createZoomMeeting = async (booking, service) => {
     }
 
     const meeting = await response.json();
-    console.log("📹 Meeting Zoom creado:", meeting.join_url);
+    logger.info({ joinUrl: meeting.join_url }, "Meeting Zoom creado");
     return {
       join_url: meeting.join_url,
       start_url: meeting.start_url,
@@ -52,22 +71,12 @@ export const createZoomMeeting = async (booking, service) => {
       password: meeting.password,
     };
   } catch (error) {
-    console.error("❌ Error creating Zoom meeting:", error.message);
+    logger.error({ err: error }, "Error creating Zoom meeting");
     return null;
   }
 };
 
-const generateZoomToken = () => {
-  return jwt.sign(
-    {
-      iss: ZOOM_API_KEY,
-      exp: Math.floor(Date.now() / 1000) + 60,
-    },
-    ZOOM_API_SECRET
-  );
-};
-
-export const deleteZoomMeeting = async (meetingId) => {
+export const deleteZoomMeeting = async (meetingId: number): Promise<boolean | null> => {
   try {
     if (!ZOOM_API_KEY || !meetingId) return null;
 
@@ -78,10 +87,10 @@ export const deleteZoomMeeting = async (meetingId) => {
       },
     });
 
-    console.log("📹 Meeting Zoom eliminado");
+    logger.info("Meeting Zoom eliminado");
     return true;
   } catch (error) {
-    console.error("❌ Error deleting Zoom meeting:", error.message);
+    logger.error({ err: error }, "Error deleting Zoom meeting");
     return false;
   }
 };

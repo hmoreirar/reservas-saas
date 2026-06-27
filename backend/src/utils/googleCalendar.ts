@@ -1,17 +1,17 @@
 import { google } from "googleapis";
-import dotenv from "dotenv";
-
-dotenv.config();
+import type { Credentials, OAuth2Client } from "google-auth-library";
+import { logger } from "./logger.js";
+import type { Booking, Service } from "../types/index.js";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 
-export const createOAuth2Client = () => {
+export const createOAuth2Client = (): OAuth2Client => {
   return new google.auth.OAuth2(GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI);
 };
 
-export const getAuthUrl = async (oauth2Client) => {
+export const getAuthUrl = async (oauth2Client: OAuth2Client): Promise<string> => {
   const scopes = [
     "https://www.googleapis.com/auth/calendar",
   ];
@@ -21,12 +21,16 @@ export const getAuthUrl = async (oauth2Client) => {
   });
 };
 
-export const getTokens = async (oauth2Client, code) => {
+export const getTokens = async (oauth2Client: OAuth2Client, code: string): Promise<Credentials> => {
   const { tokens } = await oauth2Client.getToken(code);
   return tokens;
 };
 
-export const addToGoogleCalendar = async (tokens, booking, service) => {
+export const addToGoogleCalendar = async (
+  tokens: Credentials,
+  booking: Booking,
+  service: Service
+): Promise<unknown> => {
   try {
     const oauth2Client = createOAuth2Client();
     oauth2Client.setCredentials(tokens);
@@ -56,19 +60,22 @@ ${booking.notes ? `Notas: ${booking.notes}` : ""}
 
     const result = await calendar.events.insert({
       calendarId: "primary",
-      resource: event,
+      requestBody: event,
       sendUpdates: "all",
     });
 
-    console.log("📅 Evento creado en Google Calendar:", result.data.htmlLink);
+    logger.info({ htmlLink: result.data.htmlLink }, "Evento creado en Google Calendar");
     return result.data;
   } catch (error) {
-    console.error("❌ Error adding to Google Calendar:", error.message);
+    logger.error({ err: error }, "Error adding to Google Calendar");
     return null;
   }
 };
 
-export const removeFromGoogleCalendar = async (tokens, eventId) => {
+export const removeFromGoogleCalendar = async (
+  tokens: Credentials,
+  eventId: string
+): Promise<boolean> => {
   try {
     const oauth2Client = createOAuth2Client();
     oauth2Client.setCredentials(tokens);
@@ -80,10 +87,10 @@ export const removeFromGoogleCalendar = async (tokens, eventId) => {
       eventId: eventId,
     });
 
-    console.log("📅 Evento eliminado de Google Calendar");
+    logger.info("Evento eliminado de Google Calendar");
     return true;
   } catch (error) {
-    console.error("❌ Error removing from Google Calendar:", error.message);
+    logger.error({ err: error }, "Error removing from Google Calendar");
     return false;
   }
 };

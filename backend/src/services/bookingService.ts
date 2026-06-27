@@ -1,5 +1,8 @@
 import { bookingRepository } from '../repositories/bookingRepository.js';
 import { serviceRepository } from '../repositories/serviceRepository.js';
+import { userRepository } from '../repositories/userRepository.js';
+import { serviceHoursRepository } from '../repositories/serviceHoursRepository.js';
+import { serviceBreaksRepository } from '../repositories/serviceBreaksRepository.js';
 import { NotFoundError, ForbiddenError, ConflictError } from '../errors/AppError.js';
 import type { Booking, BookingStats, BookingStatusAction } from '../types/index.js';
 import type { Service } from '../types/index.js';
@@ -67,9 +70,7 @@ async function sendBookingNotifications(
   clientEmail: string,
   clientName: string
 ) {
-  const userResult = await import('../repositories/userRepository.js').then(
-    (m) => m.userRepository.findById(service.user_id)
-  );
+  const userResult = await userRepository.findById(service.user_id);
   if (userResult) {
     try {
       await sendBookingConfirmation(
@@ -219,12 +220,8 @@ export const bookingService = {
     let endHour = service.end_hour ?? 18;
 
     const [customHours, breaks, bookings] = await Promise.all([
-      import('../repositories/serviceHoursRepository.js').then((m) =>
-        m.serviceHoursRepository.findByService(serviceId)
-      ),
-      import('../repositories/serviceBreaksRepository.js').then((m) =>
-        m.serviceBreaksRepository.findByServiceAndDate(serviceId, date)
-      ),
+      serviceHoursRepository.findByService(serviceId),
+      serviceBreaksRepository.findByServiceAndDate(serviceId, date),
       bookingRepository.findBookingsForDate(serviceId, date),
     ]);
 

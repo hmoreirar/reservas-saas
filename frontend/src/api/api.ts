@@ -28,22 +28,33 @@ interface PublicBookingResponse {
   error?: string;
 }
 
+async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
+  const res = await fetch(url, options);
+  if (!res.ok) {
+    try {
+      const body = await res.json();
+      return { error: body.error || `Error ${res.status}` } as T;
+    } catch {
+      return { error: `Error ${res.status}: ${res.statusText}` } as T;
+    }
+  }
+  return res.json();
+}
+
 export const loginUser = async (email: string, password: string): Promise<AuthResponse> => {
-  const res = await fetch(`${API_URL}/api/auth/login`, {
+  return apiFetch(`${API_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  return res.json();
 };
 
 export const registerUser = async (name: string, email: string, password: string): Promise<RegisterResponse> => {
-  const res = await fetch(`${API_URL}/api/auth/register`, {
+  return apiFetch(`${API_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password }),
   });
-  return res.json();
 };
 
 const authHeaders = (): HeadersInit => ({
@@ -52,56 +63,47 @@ const authHeaders = (): HeadersInit => ({
 });
 
 export const getServices = async (): Promise<Service[]> => {
-  const res = await fetch(`${API_URL}/api/services`, {
-    headers: authHeaders(),
-  });
-  return res.json();
+  return apiFetch(`${API_URL}/api/services`, { headers: authHeaders() });
 };
 
 export const getServiceBySlug = async (slug: string): Promise<Service | { error: string }> => {
-  const res = await fetch(`${API_URL}/api/services/${slug}`);
-  return res.json();
+  return apiFetch(`${API_URL}/api/services/${slug}`);
 };
 
 export const createService = async (serviceData: Record<string, unknown>): Promise<IdResponse> => {
-  const res = await fetch(`${API_URL}/api/services`, {
+  return apiFetch(`${API_URL}/api/services`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(serviceData),
   });
-  return res.json();
 };
 
 export const updateService = async (id: number, serviceData: Record<string, unknown>): Promise<IdResponse> => {
-  const res = await fetch(`${API_URL}/api/services/${id}`, {
+  return apiFetch(`${API_URL}/api/services/${id}`, {
     method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify(serviceData),
   });
-  return res.json();
 };
 
 export const deleteService = async (id: number): Promise<MessageResponse> => {
-  const res = await fetch(`${API_URL}/api/services/${id}`, {
+  return apiFetch(`${API_URL}/api/services/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const getAvailability = async (serviceId: number, date: string): Promise<TimeSlot[]> => {
-  const res = await fetch(
+  return apiFetch(
     `${API_URL}/api/bookings/availability?service_id=${serviceId}&date=${date}`,
-    { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+    { headers: authHeaders() }
   );
-  return res.json();
 };
 
 export const getPublicAvailability = async (serviceId: number, date: string): Promise<TimeSlot[]> => {
-  const res = await fetch(
+  return apiFetch(
     `${API_URL}/api/bookings/public/availability?service_id=${serviceId}&date=${date}`
   );
-  return res.json();
 };
 
 export const createBooking = async (
@@ -120,12 +122,11 @@ export const createBooking = async (
     notes,
   };
   if (price !== undefined) body.price = price;
-  const res = await fetch(`${API_URL}/api/bookings`, {
+  return apiFetch(`${API_URL}/api/bookings`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(body),
   });
-  return res.json();
 };
 
 export const createPublicBooking = async (
@@ -135,7 +136,7 @@ export const createPublicBooking = async (
   startTime: string,
   notes = ""
 ): Promise<PublicBookingResponse> => {
-  const res = await fetch(`${API_URL}/api/bookings/public`, {
+  return apiFetch(`${API_URL}/api/bookings/public`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -146,130 +147,114 @@ export const createPublicBooking = async (
       notes,
     }),
   });
-  return res.json();
 };
 
 export const getMyBookings = async (): Promise<Booking[]> => {
-  const res = await fetch(`${API_URL}/api/bookings/my`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  return apiFetch(`${API_URL}/api/bookings/my`, {
+    headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const getStats = async (period?: string): Promise<Stats | { error: string }> => {
   const params = period ? `?period=${period}` : "";
-  const res = await fetch(`${API_URL}/api/bookings/stats${params}`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  return apiFetch(`${API_URL}/api/bookings/stats${params}`, {
+    headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const cancelBooking = async (id: number): Promise<MessageResponse> => {
-  const res = await fetch(`${API_URL}/api/bookings/${id}/cancel`, {
+  return apiFetch(`${API_URL}/api/bookings/${id}/cancel`, {
     method: "PUT",
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const rescheduleBooking = async (id: number, newStartTime: string): Promise<MessageResponse> => {
-  const res = await fetch(`${API_URL}/api/bookings/${id}/reschedule`, {
+  return apiFetch(`${API_URL}/api/bookings/${id}/reschedule`, {
     method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify({ new_start_time: newStartTime }),
   });
-  return res.json();
 };
 
 export const getStaff = async (): Promise<unknown[]> => {
-  const res = await fetch(`${API_URL}/api/staff`, {
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  return apiFetch(`${API_URL}/api/staff`, {
+    headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const addStaff = async (staffData: Record<string, unknown>): Promise<unknown> => {
-  const res = await fetch(`${API_URL}/api/staff`, {
+  return apiFetch(`${API_URL}/api/staff`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(staffData),
   });
-  return res.json();
 };
 
 export const deleteStaff = async (id: number): Promise<MessageResponse> => {
-  const res = await fetch(`${API_URL}/api/staff/${id}`, {
+  return apiFetch(`${API_URL}/api/staff/${id}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const getServiceHours = async (serviceId: number): Promise<import("../types").ServiceHour[]> => {
-  const res = await fetch(`${API_URL}/api/services/${serviceId}/hours`, {
+  return apiFetch(`${API_URL}/api/services/${serviceId}/hours`, {
     headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const updateServiceHours = async (serviceId: number, hours: { day_of_week: number; start_hour: number; end_hour: number; is_active: boolean }[]): Promise<import("../types").ServiceHour[]> => {
-  const res = await fetch(`${API_URL}/api/services/${serviceId}/hours`, {
+  return apiFetch(`${API_URL}/api/services/${serviceId}/hours`, {
     method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify({ hours }),
   });
-  return res.json();
 };
 
 export const getServiceBreaks = async (serviceId: number): Promise<import("../types").ServiceBreak[]> => {
-  const res = await fetch(`${API_URL}/api/services/${serviceId}/breaks`, {
+  return apiFetch(`${API_URL}/api/services/${serviceId}/breaks`, {
     headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const createServiceBreak = async (serviceId: number, data: { name?: string; date: string; start_time: string; end_time: string; is_recurring?: boolean }): Promise<import("../types").ServiceBreak> => {
-  const res = await fetch(`${API_URL}/api/services/${serviceId}/breaks`, {
+  return apiFetch(`${API_URL}/api/services/${serviceId}/breaks`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify(data),
   });
-  return res.json();
 };
 
 export const deleteServiceBreak = async (serviceId: number, breakId: number): Promise<MessageResponse> => {
-  const res = await fetch(`${API_URL}/api/services/${serviceId}/breaks/${breakId}`, {
+  return apiFetch(`${API_URL}/api/services/${serviceId}/breaks/${breakId}`, {
     method: "DELETE",
-    headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const getDayAgenda = async (date: string, serviceId?: number): Promise<DayAgenda[]> => {
   const params = new URLSearchParams({ date });
   if (serviceId) params.set("service_id", String(serviceId));
-  const res = await fetch(`${API_URL}/api/agenda/day?${params}`, {
+  return apiFetch(`${API_URL}/api/agenda/day?${params}`, {
     headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const getWeekAgenda = async (startDate: string, serviceId?: number): Promise<WeekAgenda[]> => {
   const params = new URLSearchParams({ start_date: startDate });
   if (serviceId) params.set("service_id", String(serviceId));
-  const res = await fetch(`${API_URL}/api/agenda/week?${params}`, {
+  return apiFetch(`${API_URL}/api/agenda/week?${params}`, {
     headers: authHeaders(),
   });
-  return res.json();
 };
 
 export const updateBookingStatus = async (id: number, status: string, reason?: string): Promise<MessageResponse> => {
   const body: Record<string, unknown> = { status };
   if (reason !== undefined) body.reason = reason;
-  const res = await fetch(`${API_URL}/api/bookings/${id}/status`, {
+  return apiFetch(`${API_URL}/api/bookings/${id}/status`, {
     method: "PUT",
     headers: authHeaders(),
     body: JSON.stringify(body),
   });
-  return res.json();
 };

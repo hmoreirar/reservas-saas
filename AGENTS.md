@@ -32,11 +32,11 @@ JWT con bcrypt para auth, validacion con Zod, manejo de errores con AppError
 - Reemplazado PublicBookingModal por BookingWizard inline en BookingPage
 
 ### Pendiente — Deuda tecnica
-- Migrar googleCalendar.js y zoom.js a TypeScript con logger Pino
-- Agregar res.ok validation en frontend api.ts
+- ~~Migrar googleCalendar.js y zoom.js a TypeScript con logger Pino~~ (completado)
+- ~~Agregar res.ok validation en frontend api.ts~~ (completado)
 - Agregar paginacion real a endpoints de bookings
 - Tests de frontend
-- Eliminar imports dinamicos en bookingService.ts
+- ~~Eliminar imports dinamicos en bookingService.ts~~ (completado)
 
 ## Convenios
 - TypeScript strict mode, ESM modules, imports con extension .js
