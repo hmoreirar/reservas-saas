@@ -3,7 +3,7 @@ import type { Booking } from "../types";
 import Input from "./ui/Input";
 import EmptyState from "./ui/EmptyState";
 import Modal from "./ui/Modal";
-import Button from "./ui/Button";
+import Pagination from "./ui/Pagination";
 import StatusBadge from "./ui/StatusBadge";
 
 interface MyBookingsProps {
@@ -173,32 +173,7 @@ export default function MyBookings({
         </div>
       )}
 
-      <div className="flex items-center justify-between pt-2">
-        <p className="text-sm text-text-muted">
-          {total} reserva{total !== 1 ? "s" : ""}
-        </p>
-        {totalPages > 1 && (
-          <div className="flex items-center gap-3">
-            <Button
-              variant="secondary"
-              disabled={page <= 1}
-              onClick={() => onPageChange(page - 1)}
-            >
-              &larr; Anterior
-            </Button>
-            <span className="text-sm text-text-secondary">
-              {page} / {totalPages}
-            </span>
-            <Button
-              variant="secondary"
-              disabled={page >= totalPages}
-              onClick={() => onPageChange(page + 1)}
-            >
-              Siguiente &rarr;
-            </Button>
-          </div>
-        )}
-      </div>
+      <Pagination page={page} totalPages={totalPages} total={total} onPageChange={onPageChange} />
 
       <Modal open={declineModal.open} onClose={() => setDeclineModal({ open: false, bookingId: 0 })} title="Rechazar Reserva">
         <p className="mb-4 text-sm text-text-secondary">

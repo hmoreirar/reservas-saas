@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Modal from "./ui/Modal";
 import Input from "./ui/Input";
 import Button from "./ui/Button";
+import Tabs from "./ui/Tabs";
 import ServiceHoursEditor from "./ServiceHoursEditor";
 import ServiceBreaksManager from "./ServiceBreaksManager";
 
@@ -77,19 +78,7 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
 
   return (
     <Modal open={open} onClose={handleClose} title={editingService ? "Editar Servicio" : "Nuevo Servicio"}>
-      <div className="mb-4 flex gap-1 rounded-lg bg-surface p-1">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex-1 cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
-              tab === t.id ? "bg-white text-text" : "text-text-secondary hover:text-text"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <Tabs tabs={tabs} active={tab} onChange={(id) => setTab(id as Tab)} />
 
       {tab === "basico" && (
         <form id="service-form" onSubmit={handleSubmit}>
