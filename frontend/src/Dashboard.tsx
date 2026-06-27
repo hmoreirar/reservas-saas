@@ -32,7 +32,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-bg font-sans">
       <Navbar view={currentView} onViewChange={handleNavigate} onLogout={logout} />
       <ToastContainer />
-      <div className="mx-auto max-w-[1200px] px-4 py-6 md:px-10 md:py-10">
+      <div id="main-content" role="main" className="mx-auto max-w-[1200px] px-4 py-6 md:px-10 md:py-10">
         <Outlet />
       </div>
     </div>

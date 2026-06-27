@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Booking } from "../types";
+import Input from "./ui/Input";
 import EmptyState from "./ui/EmptyState";
 import Modal from "./ui/Modal";
 import Button from "./ui/Button";
@@ -65,12 +66,12 @@ export default function MyBookings({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <input
+        <Input
           type="text"
           placeholder="Buscar por nombre o email..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none md:max-w-xs"
+          className="md:max-w-xs"
         />
         <div className="flex flex-wrap gap-1.5">
           {FILTERS.map((f) => (

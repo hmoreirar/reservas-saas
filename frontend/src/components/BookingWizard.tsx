@@ -1,5 +1,6 @@
 import { useState } from "react";
 import WizardProgressBar from "./WizardProgressBar";
+import Input from "./ui/Input";
 import Button from "./ui/Button";
 import type { TimeSlot, Service } from "../types";
 
@@ -98,34 +99,31 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
           </div>
 
           <div className="mb-4">
-            <label className="mb-1 block text-sm font-medium text-text">Nombre completo *</label>
-            <input
+            <Input
+              label="Nombre completo *"
               type="text"
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Juan Perez"
-              className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
             />
           </div>
 
           <div className="mb-4">
-            <label className="mb-1 block text-sm font-medium text-text">Email *</label>
-            <input
+            <Input
+              label="Email *"
               type="email"
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value)}
               placeholder="juan@example.com"
-              className="w-full rounded-lg border border-border px-3 py-2.5 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
             />
           </div>
 
           <div className="mb-6">
-            <label className="mb-1 block text-sm font-medium text-text">Notas (opcional)</label>
-            <textarea
+            <Input.Textarea
+              label="Notas (opcional)"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Informacion adicional..."
-              className="min-h-[60px] w-full rounded-lg border border-border px-3 py-2.5 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
             />
           </div>
 

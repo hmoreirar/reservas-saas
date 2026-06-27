@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Input from "./ui/Input";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import { getServiceHours, updateServiceHours } from "../api/api";
 import type { ServiceHour } from "../types";
@@ -71,17 +72,11 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
       <div className="space-y-2">
         {hours.map((h) => (
           <div key={h.day_of_week} className="flex items-center gap-3">
-            <label className="flex w-10 items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={h.is_active}
-                onChange={(e) => update(h.day_of_week, "is_active", e.target.checked)}
-                className="h-4 w-4 accent-accent"
-              />
-              <span className={h.is_active ? "text-text" : "text-text-muted"}>
-                {DAY_NAMES[h.day_of_week]}
-              </span>
-            </label>
+            <Input.Checkbox
+              checked={h.is_active}
+              onChange={(e) => update(h.day_of_week, "is_active", e.target.checked)}
+              label={<span className={h.is_active ? "text-text" : "text-text-muted"}>{DAY_NAMES[h.day_of_week]}</span>}
+            />
             {h.is_active && (
               <>
                 <input
@@ -90,7 +85,7 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
                   max={23}
                   value={h.start_hour}
                   onChange={(e) => update(h.day_of_week, "start_hour", parseInt(e.target.value) || 9)}
-                  className="w-16 rounded border border-border px-2 py-1 text-center text-sm text-text"
+                  className="w-16 rounded border border-border px-2 py-1 text-center text-sm text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                 />
                 <span className="text-xs text-text-muted">a</span>
                 <input
@@ -99,7 +94,7 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
                   max={23}
                   value={h.end_hour}
                   onChange={(e) => update(h.day_of_week, "end_hour", parseInt(e.target.value) || 18)}
-                  className="w-16 rounded border border-border px-2 py-1 text-center text-sm text-text"
+                  className="w-16 rounded border border-border px-2 py-1 text-center text-sm text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                 />
               </>
             )}
@@ -113,7 +108,7 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
         <button
           onClick={save}
           disabled={saving}
-          className="cursor-pointer rounded bg-accent px-3 py-1.5 text-xs font-medium text-accent-text transition-colors hover:bg-accent-hover disabled:opacity-50"
+          className="cursor-pointer rounded bg-accent px-3 py-1.5 text-xs font-medium text-accent-text transition-colors hover:bg-accent-hover disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
           {saving ? "Guardando..." : "Guardar Horarios"}
         </button>
@@ -123,7 +118,7 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
           </span>
         )}
       </div>
-      <p className="mt-2 text-[11px] text-text-muted">
+      <p className="mt-2 text-xs text-text-muted">
         Si no configuras horarios, se usara el horario general del servicio.
       </p>
     </div>

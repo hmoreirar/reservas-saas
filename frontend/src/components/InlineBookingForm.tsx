@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Input from "./ui/Input";
 import Button from "./ui/Button";
 import type { TimelineSlot } from "../types";
 
@@ -75,35 +76,32 @@ export default function InlineBookingForm({
       )}
 
       <div className="mb-3">
-        <label className="mb-1 block text-sm font-medium text-text">Nombre del cliente *</label>
-        <input
+        <Input
+          label="Nombre del cliente *"
           type="text"
           value={clientName}
           onChange={(e) => setClientName(e.target.value)}
           placeholder="Juan Perez"
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none"
         />
       </div>
 
       <div className="mb-3">
-        <label className="mb-1 block text-sm font-medium text-text">Email del cliente *</label>
-        <input
+        <Input
+          label="Email del cliente *"
           type="email"
           value={clientEmail}
           onChange={(e) => setClientEmail(e.target.value)}
           placeholder="juan@example.com"
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none"
         />
       </div>
 
       <div className="mb-4">
-        <label className="mb-1 block text-sm font-medium text-text">Precio ($)</label>
-        <input
+        <Input
+          label="Precio ($)"
           type="number"
           value={manualPrice}
           onChange={(e) => setManualPrice(e.target.value)}
           placeholder={defaultPrice ? String(defaultPrice) : "Precio variable"}
-          className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text placeholder:text-text-muted focus:border-accent focus:outline-none"
         />
       </div>
 

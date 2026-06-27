@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import Input from "../components/ui/Input";
 import Alert from "../components/ui/Alert";
 import Button from "../components/ui/Button";
 import Logo from "../components/ui/Logo";
@@ -35,7 +36,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg font-sans">
-      <div className="mx-4 w-full max-w-[400px] rounded-2xl border border-border bg-surface p-8 md:p-10">
+      <div className="mx-4 w-full max-w-[400px] rounded-xl border border-border bg-surface p-8 md:p-10">
         <div className="mb-8 flex flex-col items-center gap-3">
           <Logo />
           <h1 className="text-center text-2xl font-bold text-text">
@@ -49,33 +50,30 @@ export default function LoginPage() {
         <form onSubmit={showRegister ? handleRegister : handleLogin}>
           {showRegister && (
             <div className="mb-4">
-              <label className="mb-1 block text-sm text-text-secondary">Nombre</label>
-              <input
+              <Input
+                label="Nombre"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-border px-3 py-3 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
               />
             </div>
           )}
 
           <div className="mb-4">
-            <label className="mb-1 block text-sm text-text-secondary">Email</label>
-            <input
+            <Input
+              label="Email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-border px-3 py-3 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
             />
           </div>
 
           <div className="mb-5">
-            <label className="mb-1 block text-sm text-text-secondary">Contrasena</label>
-            <input
+            <Input
+              label="Contrasena"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-border px-3 py-3 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none"
             />
           </div>
 

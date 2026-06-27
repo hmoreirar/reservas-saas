@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import Modal from "./ui/Modal";
+import Input from "./ui/Input";
 import Button from "./ui/Button";
 import ServiceHoursEditor from "./ServiceHoursEditor";
 import ServiceBreaksManager from "./ServiceBreaksManager";
@@ -74,9 +75,6 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
     { id: "bloqueos", label: "Bloqueos" },
   ];
 
-  const inputClass =
-    "w-full rounded-lg border border-border px-3 py-2.5 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none";
-
   return (
     <Modal open={open} onClose={handleClose} title={editingService ? "Editar Servicio" : "Nuevo Servicio"}>
       <div className="mb-4 flex gap-1 rounded-lg bg-surface p-1">
@@ -84,7 +82,7 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex-1 cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`flex-1 cursor-pointer rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
               tab === t.id ? "bg-white text-text" : "text-text-secondary hover:text-text"
             }`}
           >
@@ -96,100 +94,80 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
       {tab === "basico" && (
         <form id="service-form" onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="mb-1 block text-sm font-medium text-text">Nombre del servicio *</label>
-            <input
+            <Input
+              label="Nombre del servicio *"
               type="text"
               value={form.name}
               onChange={(e) => update("name", e.target.value)}
               required
-              className={inputClass}
             />
           </div>
 
           <div className="mb-4">
-            <label className="mb-1 block text-sm font-medium text-text">Descripcion</label>
-            <textarea
+            <Input.Textarea
+              label="Descripcion"
               value={form.description}
               onChange={(e) => update("description", e.target.value)}
-              className={`min-h-[80px] ${inputClass}`}
             />
           </div>
 
           <div className="mb-4 grid grid-cols-3 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-text">Duracion (min) *</label>
-              <input
-                type="number"
-                required
-                min={1}
-                value={form.duration}
-                onChange={(e) => update("duration", parseInt(e.target.value) || 30)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-text">Precio ($)</label>
-              <input
-                type="number"
-                min={0}
-                value={form.price}
-                onChange={(e) => update("price", e.target.value)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-text">Capacidad *</label>
-              <input
-                type="number"
-                required
-                min={1}
-                value={form.max_capacity}
-                onChange={(e) => update("max_capacity", parseInt(e.target.value) || 1)}
-                className={inputClass}
-                title="Personas por horario (1 = individual)"
-              />
-            </div>
+            <Input
+              label="Duracion (min) *"
+              type="number"
+              required
+              min={1}
+              value={form.duration}
+              onChange={(e) => update("duration", parseInt(e.target.value) || 30)}
+            />
+            <Input
+              label="Precio ($)"
+              type="number"
+              min={0}
+              value={form.price}
+              onChange={(e) => update("price", e.target.value)}
+            />
+            <Input
+              label="Capacidad *"
+              type="number"
+              required
+              min={1}
+              value={form.max_capacity}
+              onChange={(e) => update("max_capacity", parseInt(e.target.value) || 1)}
+            />
           </div>
 
           <div className="mb-6 grid grid-cols-3 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium text-text">Zona Horaria</label>
-              <select
-                value={form.timezone}
-                onChange={(e) => update("timezone", e.target.value)}
-                className={inputClass}
-              >
-                <option value="America/Santiago">Santiago (CL)</option>
-                <option value="America/Buenos_Aires">Buenos Aires (AR)</option>
-                <option value="America/Mexico_City">CDMX (MX)</option>
-                <option value="America/New_York">New York (US)</option>
-                <option value="Europe/Madrid">Madrid (ES)</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-text">Hora inicio *</label>
-              <input
-                type="number"
-                required
-                min={0}
-                max={23}
-                value={form.start_hour}
-                onChange={(e) => update("start_hour", parseInt(e.target.value) || 9)}
-                className={inputClass}
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium text-text">Hora fin *</label>
-              <input
-                type="number"
-                required
-                min={0}
-                max={23}
-                value={form.end_hour}
-                onChange={(e) => update("end_hour", parseInt(e.target.value) || 18)}
-                className={inputClass}
-              />
-            </div>
+            <Input.Select
+              label="Zona Horaria"
+              value={form.timezone}
+              onChange={(e) => update("timezone", e.target.value)}
+              options={[
+                { value: "America/Santiago", label: "Santiago (CL)" },
+                { value: "America/Buenos_Aires", label: "Buenos Aires (AR)" },
+                { value: "America/Mexico_City", label: "CDMX (MX)" },
+                { value: "America/New_York", label: "New York (US)" },
+                { value: "Europe/Madrid", label: "Madrid (ES)" },
+              ]}
+            />
+            <Input
+              label="Hora inicio *"
+              type="number"
+              required
+              min={0}
+              max={23}
+              value={form.start_hour}
+              onChange={(e) => update("start_hour", parseInt(e.target.value) || 9)}
+            />
+            <Input
+              label="Hora fin *"
+              type="number"
+              required
+              min={0}
+              max={23}
+              value={form.end_hour}
+              onChange={(e) => update("end_hour", parseInt(e.target.value) || 18)}
+            />
           </div>
 
           <div className="flex gap-3">
