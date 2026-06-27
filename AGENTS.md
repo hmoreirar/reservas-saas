@@ -18,13 +18,14 @@ JWT con bcrypt para auth, validacion con Zod, manejo de errores con AppError
 - Refactor: eliminada duplicacion create/createPublic en bookingService.ts
 - Frontend actualizado para usar endpoint unificado
 
-### Pendiente — Fase 2 (frontend)
-- Nuevo ruteo: /agenda, /reservas, /servicios, /configuracion
-- Componente DayTimeline (timeline vertical del dia)
-- Componente WeekBar (selector de 7 dias)
-- InlineBookingForm (reemplaza BookingModal)
-- BookingPopover (acciones rapidas en reserva existente)
-- Bottom navigation en mobile
+### Fase 2 — Completada (commit fb92363)
+- Nuevo ruteo: Dashboard con Outlet + 4 vistas (Agenda, Reservas, Servicios, Config)
+- WeekBar: selector horizontal de 7 dias con navegacion semanal
+- DayTimeline: timeline vertical del dia con slots available/booked/blocked/past
+- InlineBookingForm: formulario inline (reemplaza BookingModal)
+- BookingPopover: acciones rapidas sobre reserva existente
+- Navbar con 4 tabs + bottom navigation fija en mobile
+- Eliminados componentes viejos: CalendarView, AvailableSlots, BookingModal, RescheduleView
 
 ### Pendiente — Fase 3 (booking publico)
 - BookingWizard (paso a paso con progress bar)
