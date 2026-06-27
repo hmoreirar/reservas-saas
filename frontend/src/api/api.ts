@@ -1,4 +1,4 @@
-import type { Service, Booking, Stats, TimeSlot } from "../types";
+import type { Service, Booking, Stats, TimeSlot, DayAgenda, WeekAgenda } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -241,6 +241,24 @@ export const deleteServiceBreak = async (serviceId: number, breakId: number): Pr
   const res = await fetch(`${API_URL}/api/services/${serviceId}/breaks/${breakId}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+  });
+  return res.json();
+};
+
+export const getDayAgenda = async (date: string, serviceId?: number): Promise<DayAgenda[]> => {
+  const params = new URLSearchParams({ date });
+  if (serviceId) params.set("service_id", String(serviceId));
+  const res = await fetch(`${API_URL}/api/agenda/day?${params}`, {
+    headers: authHeaders(),
+  });
+  return res.json();
+};
+
+export const getWeekAgenda = async (startDate: string, serviceId?: number): Promise<WeekAgenda[]> => {
+  const params = new URLSearchParams({ start_date: startDate });
+  if (serviceId) params.set("service_id", String(serviceId));
+  const res = await fetch(`${API_URL}/api/agenda/week?${params}`, {
+    headers: authHeaders(),
   });
   return res.json();
 };
