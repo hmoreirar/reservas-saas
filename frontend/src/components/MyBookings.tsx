@@ -1,14 +1,20 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import type { Booking } from "../types";
 import EmptyState from "./ui/EmptyState";
 import Modal from "./ui/Modal";
 import Button from "./ui/Button";
 import StatusBadge from "./ui/StatusBadge";
 
-const PAGE_SIZE = 10;
-
 interface MyBookingsProps {
   bookings: Booking[];
+  total: number;
+  page: number;
+  totalPages: number;
+  search: string;
+  statusFilter: string;
+  onSearchChange: (q: string) => void;
+  onFilterChange: (f: string) => void;
+  onPageChange: (p: number) => void;
   onReschedule: (id: number) => void;
   onCancel: (id: number) => void;
   onStatusChange: (id: number, status: string, reason?: string) => void;
@@ -25,27 +31,20 @@ const FILTERS = [
 
 export default function MyBookings({
   bookings,
+  total,
+  page,
+  totalPages,
+  search,
+  statusFilter,
+  onSearchChange,
+  onFilterChange,
+  onPageChange,
   onReschedule,
   onCancel,
   onStatusChange,
 }: MyBookingsProps) {
   const [declineModal, setDeclineModal] = useState<{ open: boolean; bookingId: number }>({ open: false, bookingId: 0 });
   const [declineReason, setDeclineReason] = useState("");
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [page, setPage] = useState(1);
-
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    return bookings
-      .filter((b) => !statusFilter || b.status === statusFilter)
-      .filter((b) => !q || b.client_name.toLowerCase().includes(q) || b.client_email.toLowerCase().includes(q))
-      .sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
-  }, [bookings, search, statusFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const handleDecline = () => {
     onStatusChange(declineModal.bookingId, "declined", declineReason || undefined);
@@ -53,7 +52,7 @@ export default function MyBookings({
     setDeclineReason("");
   };
 
-  if (bookings.length === 0) {
+  if (total === 0) {
     return (
       <EmptyState
         variant="bookings"
@@ -70,14 +69,14 @@ export default function MyBookings({
           type="text"
           placeholder="Buscar por nombre o email..."
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => onSearchChange(e.target.value)}
           className="w-full rounded-lg border border-border px-3 py-2 text-sm text-text transition-colors placeholder:text-text-muted focus:border-accent focus:outline-none md:max-w-xs"
         />
         <div className="flex flex-wrap gap-1.5">
           {FILTERS.map((f) => (
             <button
               key={f.key}
-              onClick={() => { setStatusFilter(f.key); setPage(1); }}
+              onClick={() => onFilterChange(f.key)}
               className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                 statusFilter === f.key
                   ? "bg-accent text-white"
@@ -90,13 +89,13 @@ export default function MyBookings({
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {bookings.length === 0 ? (
         <p className="py-8 text-center text-sm text-text-muted">
           No se encontraron reservas con esos criterios.
         </p>
       ) : (
         <div className="divide-y divide-border">
-          {paginated.map((booking) => (
+          {bookings.map((booking) => (
             <div
               key={booking.id}
               className="py-4"
@@ -173,27 +172,32 @@ export default function MyBookings({
         </div>
       )}
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 pt-4">
-          <Button
-            variant="secondary"
-            disabled={safePage <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-          >
-            &larr; Anterior
-          </Button>
-          <span className="text-sm text-text-secondary">
-            {safePage} / {totalPages}
-          </span>
-          <Button
-            variant="secondary"
-            disabled={safePage >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-          >
-            Siguiente &rarr;
-          </Button>
-        </div>
-      )}
+      <div className="flex items-center justify-between pt-2">
+        <p className="text-sm text-text-muted">
+          {total} reserva{total !== 1 ? "s" : ""}
+        </p>
+        {totalPages > 1 && (
+          <div className="flex items-center gap-3">
+            <Button
+              variant="secondary"
+              disabled={page <= 1}
+              onClick={() => onPageChange(page - 1)}
+            >
+              &larr; Anterior
+            </Button>
+            <span className="text-sm text-text-secondary">
+              {page} / {totalPages}
+            </span>
+            <Button
+              variant="secondary"
+              disabled={page >= totalPages}
+              onClick={() => onPageChange(page + 1)}
+            >
+              Siguiente &rarr;
+            </Button>
+          </div>
+        )}
+      </div>
 
       <Modal open={declineModal.open} onClose={() => setDeclineModal({ open: false, bookingId: 0 })} title="Rechazar Reserva">
         <p className="mb-4 text-sm text-text-secondary">

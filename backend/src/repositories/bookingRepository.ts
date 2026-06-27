@@ -81,17 +81,49 @@ export const bookingRepository = {
     return result.rows[0];
   },
 
-  async findUpcomingByUser(userId: number): Promise<Booking[]> {
-    const result = await pool.query(
-      `SELECT b.*, s.name as service_name, s.duration, COALESCE(b.price, s.price) as price 
-       FROM bookings b 
-       JOIN services s ON b.service_id = s.id 
-       WHERE s.user_id = $1 
-       AND b.start_time >= NOW() 
-       ORDER BY b.start_time`,
-      [userId]
+  async findUpcomingByUser(
+    userId: number,
+    options: {
+      limit: number;
+      offset: number;
+      search?: string;
+      status?: string;
+    }
+  ): Promise<{ rows: Booking[]; total: number }> {
+    const conditions: string[] = ['s.user_id = $1', 'b.start_time >= NOW()'];
+    const values: unknown[] = [userId];
+
+    if (options.status) {
+      conditions.push(`b.status = $${values.length + 1}`);
+      values.push(options.status);
+    }
+
+    if (options.search) {
+      conditions.push(
+        `(LOWER(b.client_name) LIKE $${values.length + 1} OR LOWER(b.client_email) LIKE $${values.length + 1})`
+      );
+      values.push(`%${options.search.toLowerCase()}%`);
+    }
+
+    const where = conditions.join(' AND ');
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*) as total FROM bookings b JOIN services s ON b.service_id = s.id WHERE ${where}`,
+      values
     );
-    return result.rows;
+    const total = parseInt(countResult.rows[0]?.total || '0');
+
+    const dataResult = await pool.query(
+      `SELECT b.*, s.name as service_name, s.duration, COALESCE(b.price, s.price) as price
+       FROM bookings b
+       JOIN services s ON b.service_id = s.id
+       WHERE ${where}
+       ORDER BY b.start_time DESC
+       LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
+      [...values, options.limit, options.offset]
+    );
+
+    return { rows: dataResult.rows, total };
   },
 
   async findByServiceUser(serviceId: number, userId: number): Promise<Booking[]> {

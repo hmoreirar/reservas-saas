@@ -61,8 +61,12 @@ export const getPublicAvailability = async (req: Request, res: Response, next: N
 
 export const getMyBookings = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const bookings = await bookingService.getMyBookings(req.user!.id);
-    res.json(bookings);
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const search = req.query.search as string | undefined;
+    const status = req.query.status as string | undefined;
+    const result = await bookingService.getMyBookings(req.user!.id, { page, limit, search, status });
+    res.json(result);
   } catch (error) {
     next(error);
   }

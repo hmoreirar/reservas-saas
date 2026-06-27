@@ -103,6 +103,14 @@ export interface WeekDayOverview {
   past: number;
 }
 
+export interface PaginatedBookings {
+  data: Booking[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface WeekAgenda {
   start_date: string;
   service_id: number;

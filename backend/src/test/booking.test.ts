@@ -113,8 +113,11 @@ describe('Booking Flow', () => {
   });
 
   it('deberia obtener mis reservas', async () => {
-    const bookings = await bookingService.getMyBookings(userId);
-    expect(bookings.length).toBeGreaterThan(0);
+    const result = await bookingService.getMyBookings(userId);
+    expect(result.data.length).toBeGreaterThan(0);
+    expect(result.total).toBeGreaterThan(0);
+    expect(result.page).toBe(1);
+    expect(result.totalPages).toBeGreaterThanOrEqual(1);
   });
 
   it('deberia cancelar la reserva', async () => {

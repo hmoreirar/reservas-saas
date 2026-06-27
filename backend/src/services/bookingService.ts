@@ -293,8 +293,28 @@ export const bookingService = {
     return bookingRepository.findByDay(serviceId, date);
   },
 
-  async getMyBookings(userId: number) {
-    return bookingRepository.findUpcomingByUser(userId);
+  async getMyBookings(
+    userId: number,
+    options: { page?: number; limit?: number; search?: string; status?: string } = {}
+  ) {
+    const page = options.page ?? 1;
+    const limit = options.limit ?? 20;
+    const offset = (page - 1) * limit;
+
+    const { rows, total } = await bookingRepository.findUpcomingByUser(userId, {
+      limit,
+      offset,
+      search: options.search,
+      status: options.status,
+    });
+
+    return {
+      data: rows,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   },
 
   async getStats(userId: number, period?: string): Promise<BookingStats> {

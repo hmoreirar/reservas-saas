@@ -3,7 +3,7 @@
 ## Stack
 - Backend: Node.js + Express 5 + TypeScript + PostgreSQL + Zod + Pino
 - Frontend: React 19 + React Router 7 + Tailwind CSS 4 + Vite 8
-- Testing: Vitest (backend, 14 tests de integracion)
+- Testing: Vitest (backend, 14 tests de integracion; frontend, 41 tests)
 
 ## Arquitectura backend
 Routes → Controllers → Services → Repositories → PostgreSQL
@@ -34,8 +34,8 @@ JWT con bcrypt para auth, validacion con Zod, manejo de errores con AppError
 ### Pendiente — Deuda tecnica
 - ~~Migrar googleCalendar.js y zoom.js a TypeScript con logger Pino~~ (completado)
 - ~~Agregar res.ok validation en frontend api.ts~~ (completado)
-- Agregar paginacion real a endpoints de bookings
-- Tests de frontend
+- ~~Agregar paginacion real a endpoints de bookings~~ (completado)
+- ~~Tests de frontend: Vitest + RTL configurado, 41 tests (UI components, BookingWizard, api)~~ (completado)
 - ~~Eliminar imports dinamicos en bookingService.ts~~ (completado)
 
 ## Convenios
