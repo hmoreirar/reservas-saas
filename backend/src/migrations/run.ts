@@ -78,11 +78,15 @@ const migrations = [
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS price DECIMAL(10,2)`,
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS status_changed_at TIMESTAMP`,
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancellation_reason VARCHAR(255)`,
+  `CREATE INDEX IF NOT EXISTS idx_bookings_service_time_status
+   ON bookings (service_id, start_time, end_time, status)`,
+  `CREATE INDEX IF NOT EXISTS idx_services_user_id ON services (user_id)`,
 ];
 
 export async function runMigrations(): Promise<void> {
   const client = await pool.connect();
   try {
+    await client.query('BEGIN');
     await client.query(migrations[0]);
 
     for (let i = 1; i < migrations.length; i++) {
@@ -100,8 +104,10 @@ export async function runMigrations(): Promise<void> {
         logger.info({ migration: name }, 'Migracion aplicada');
       }
     }
+    await client.query('COMMIT');
     logger.info('Migraciones completadas');
   } catch (err) {
+    await client.query('ROLLBACK');
     logger.error({ err }, 'Error ejecutando migraciones');
     throw err;
   } finally {

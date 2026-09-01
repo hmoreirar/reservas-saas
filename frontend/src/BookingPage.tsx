@@ -16,7 +16,7 @@ export default function BookingPage() {
   const [error, setError] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().split("T")[0];
+     return today.toISOString().split("T")[0]!;
   });
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -49,12 +49,22 @@ export default function BookingPage() {
     if (!service) return;
     setSelectedSlot(null);
     setSlotsLoading(true);
+    setError("");
     const load = async () => {
-      const data = await getPublicAvailability(service.id, selectedDate);
-      if (Array.isArray(data)) {
-        setAvailableSlots(data);
+      try {
+        const data = await getPublicAvailability(service.id, selectedDate);
+        if (Array.isArray(data)) {
+          setAvailableSlots(data);
+        } else {
+          setAvailableSlots([]);
+          setError(data.error || "Error al cargar horarios");
+        }
+      } catch {
+        setAvailableSlots([]);
+        setError("Error al cargar horarios");
+      } finally {
+        setSlotsLoading(false);
       }
-      setSlotsLoading(false);
     };
     load();
   }, [selectedDate, service]);
@@ -120,9 +130,9 @@ export default function BookingPage() {
       <div className="mx-auto w-full max-w-[1100px] px-4 py-6 md:px-6 md:py-10">
         {wizardActive ? (
           <BookingWizard
-            service={service}
-            slot={selectedSlot}
-            date={selectedDate}
+             service={service!}
+             slot={selectedSlot!}
+             date={selectedDate!}
             onBack={() => setWizardActive(false)}
             onConfirm={handleConfirmBooking}
           />
@@ -146,7 +156,7 @@ export default function BookingPage() {
                 {formattedDate}
               </p>
 
-              {service?.timezone && (
+                {service?.timezone && (
                 <p className="mb-4 text-xs text-text-muted">
                   Zona horaria: {service.timezone}
                 </p>

@@ -3,6 +3,50 @@ import { Booking } from '../types/index.js';
 import { QueryResult } from 'pg';
 
 export const bookingRepository = {
+  async createIfAvailable(data: {
+    service_id: number;
+    client_name: string;
+    client_email: string;
+    start_time: Date;
+    end_time: Date;
+    notes: string | null;
+    price?: number | null;
+    status?: string;
+    max_capacity: number;
+  }): Promise<Booking | undefined> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      // Serialise bookings for one service so check-then-insert is atomic.
+      await client.query('SELECT pg_advisory_xact_lock($1)', [data.service_id]);
+      const conflict = await client.query(
+        `SELECT COUNT(*)::int AS count FROM bookings
+         WHERE service_id = $1
+         AND status IN ('confirmed', 'pending')
+         AND start_time < $3 AND end_time > $2`,
+        [data.service_id, data.start_time, data.end_time]
+      );
+      if (conflict.rows[0].count >= data.max_capacity) {
+        await client.query('ROLLBACK');
+        return undefined;
+      }
+
+      const result = await client.query(
+        `INSERT INTO bookings (service_id, client_name, client_email, start_time, end_time, notes, price, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [data.service_id, data.client_name, data.client_email, data.start_time, data.end_time,
+          data.notes, data.price ?? null, data.status ?? 'confirmed']
+      );
+      await client.query('COMMIT');
+      return result.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  },
+
   async create(data: {
     service_id: number;
     client_name: string;
@@ -155,6 +199,42 @@ export const bookingRepository = {
       'UPDATE bookings SET start_time = $1, end_time = $2 WHERE id = $3',
       [start_time, end_time, id]
     );
+  },
+
+  async updateTimeIfAvailable(
+    id: number,
+    serviceId: number,
+    startTime: Date,
+    endTime: Date,
+    maxCapacity: number
+  ): Promise<boolean> {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('SELECT pg_advisory_xact_lock($1)', [serviceId]);
+      const conflict = await client.query(
+        `SELECT COUNT(*)::int AS count FROM bookings
+         WHERE service_id = $1 AND id <> $4
+         AND status IN ('confirmed', 'pending')
+         AND start_time < $3 AND end_time > $2`,
+        [serviceId, startTime, endTime, id]
+      );
+      if (conflict.rows[0].count >= maxCapacity) {
+        await client.query('ROLLBACK');
+        return false;
+      }
+      await client.query(
+        'UPDATE bookings SET start_time = $1, end_time = $2 WHERE id = $3',
+        [startTime, endTime, id]
+      );
+      await client.query('COMMIT');
+      return true;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   },
 
   async assignStaff(bookingId: number, staffId: number): Promise<void> {

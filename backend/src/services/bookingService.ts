@@ -3,7 +3,7 @@ import { serviceRepository } from '../repositories/serviceRepository.js';
 import { userRepository } from '../repositories/userRepository.js';
 import { serviceHoursRepository } from '../repositories/serviceHoursRepository.js';
 import { serviceBreaksRepository } from '../repositories/serviceBreaksRepository.js';
-import { NotFoundError, ForbiddenError, ConflictError } from '../errors/AppError.js';
+import { NotFoundError, ForbiddenError, ConflictError, ValidationError } from '../errors/AppError.js';
 import type { Booking, BookingStats, BookingStatusAction } from '../types/index.js';
 import type { Service } from '../types/index.js';
 import {
@@ -36,30 +36,37 @@ async function createBookingRecord(data: {
   client_email: string;
   start_time: string;
   notes?: string;
-  price?: number | null;
   status?: string;
 }) {
   const start = new Date(data.start_time);
+  if (Number.isNaN(start.getTime()) || start <= new Date()) {
+    throw new ValidationError('La fecha de la reserva debe ser valida y futura');
+  }
   const duration = data.service.duration || 30;
   const end = new Date(start.getTime() + duration * 60000);
 
-  const hasConflict = await bookingRepository.findConflicts(data.service.id, start, end);
-  if (hasConflict) {
+  const date = start.toISOString().slice(0, 10);
+  const availableSlots = await bookingService.getAvailability(data.service.id, date);
+  const isAvailableSlot = availableSlots.some((slot) => new Date(slot.start).getTime() === start.getTime());
+  if (!isAvailableSlot) {
     throw new ConflictError('Horario no disponible');
   }
 
-  const bookingPrice = data.price ?? data.service.price;
-
-  const booking = await bookingRepository.create({
+  const maxCapacity = data.service.max_capacity ?? 1;
+  const booking = await bookingRepository.createIfAvailable({
     service_id: data.service.id,
     client_name: data.client_name,
     client_email: data.client_email,
     start_time: start,
     end_time: end,
     notes: data.notes ?? null,
-    price: bookingPrice,
+    price: data.service.price,
     status: data.status ?? 'confirmed',
+    max_capacity: maxCapacity,
   });
+  if (!booking) {
+    throw new ConflictError('Horario no disponible');
+  }
 
   return { booking, service: data.service, start, end };
 }
@@ -106,7 +113,6 @@ export const bookingService = {
       client_email: string;
       start_time: string;
       notes?: string;
-      price?: number | null;
     }
   ) {
     const owner = await serviceRepository.findUserByServiceId(data.service_id);
@@ -123,7 +129,6 @@ export const bookingService = {
       client_email: data.client_email,
       start_time: data.start_time,
       notes: data.notes,
-      price: data.price,
       status: 'confirmed',
     });
 
@@ -138,7 +143,6 @@ export const bookingService = {
     client_email: string;
     start_time: string;
     notes?: string;
-    price?: number | null;
   }) {
     const service = await findServiceByIdOrSlug(data.service_id);
 
@@ -148,7 +152,6 @@ export const bookingService = {
       client_email: data.client_email,
       start_time: data.start_time,
       notes: data.notes,
-      price: data.price,
       status: 'pending',
     });
 
@@ -363,20 +366,31 @@ export const bookingService = {
     if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
 
     const start = new Date(newStartTime);
+    if (Number.isNaN(start.getTime()) || start <= new Date()) {
+      throw new ValidationError('La fecha de la reserva debe ser valida y futura');
+    }
     const duration = booking.duration || 30;
     const end = new Date(start.getTime() + duration * 60000);
 
-    const hasConflict = await bookingRepository.findConflicts(
+    const availableSlots = await bookingService.getAvailability(
       booking.service_id,
-      start,
-      end,
-      id
+      start.toISOString().slice(0, 10)
     );
-    if (hasConflict) {
+    if (!availableSlots.some((slot) => new Date(slot.start).getTime() === start.getTime())) {
       throw new ConflictError('Nuevo horario no disponible');
     }
 
-    await bookingRepository.updateTime(id, start, end);
+    const service = await serviceRepository.findById(booking.service_id);
+    const updated = await bookingRepository.updateTimeIfAvailable(
+      id,
+      booking.service_id,
+      start,
+      end,
+      service?.max_capacity ?? 1
+    );
+    if (!updated) {
+      throw new ConflictError('Nuevo horario no disponible');
+    }
     return { message: 'Reserva reprogramada', new_start: start, new_end: end };
   },
 };

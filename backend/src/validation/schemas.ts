@@ -31,6 +31,9 @@ export const createServiceSchema = z.object({
     )
     .optional(),
   allow_multiple: z.boolean().default(false),
+}).refine((data) => data.end_hour > data.start_hour, {
+  message: 'La hora de cierre debe ser posterior a la de inicio',
+  path: ['end_hour'],
 });
 
 export const updateServiceSchema = z.object({
@@ -41,24 +44,25 @@ export const updateServiceSchema = z.object({
   timezone: z.string().optional(),
   start_hour: z.number().int().min(0).max(23).optional(),
   end_hour: z.number().int().min(0).max(23).optional(),
+}).refine((data) => data.start_hour === undefined || data.end_hour === undefined || data.end_hour > data.start_hour, {
+  message: 'La hora de cierre debe ser posterior a la de inicio',
+  path: ['end_hour'],
 });
 
 export const createBookingSchema = z.object({
   service_id: z.number().int().positive(),
   client_name: z.string().min(1, 'Nombre del cliente requerido').max(100),
   client_email: z.string().email('Email del cliente invalido'),
-  start_time: z.string().min(1, 'Fecha y hora requerida'),
-  notes: z.string().optional(),
-  price: z.number().min(0).optional().nullable(),
+  start_time: z.string().datetime({ offset: true }),
+  notes: z.string().max(1000).optional(),
 });
 
 export const createPublicBookingSchema = z.object({
   service_id: z.union([z.number().int().positive(), z.string().min(1)]),
   client_name: z.string().min(1, 'Nombre requerido').max(100),
   client_email: z.string().email('Email invalido'),
-  start_time: z.string().min(1, 'Fecha y hora requerida'),
-  notes: z.string().optional(),
-  price: z.number().min(0).optional().nullable(),
+  start_time: z.string().datetime({ offset: true }),
+  notes: z.string().max(1000).optional(),
 });
 
 export const staffSchema = z.object({
@@ -81,14 +85,24 @@ export const serviceHoursSchema = z.object({
       end_hour: z.number().int().min(0).max(23),
       is_active: z.boolean().default(true),
     })
-  ),
+  ).superRefine((hours, ctx) => {
+    for (const [index, hour] of hours.entries()) {
+      if (hour.is_active && hour.end_hour <= hour.start_hour) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [index, 'end_hour'],
+          message: 'La hora de cierre debe ser posterior a la de inicio',
+        });
+      }
+    }
+  }),
 });
 
 export const serviceBreakSchema = z.object({
   name: z.string().max(100).default(''),
   date: z.string().min(1, 'Fecha requerida'),
-  start_time: z.string().min(1, 'Hora inicio requerida'),
-  end_time: z.string().min(1, 'Hora fin requerida'),
+  start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Hora inicio invalida'),
+  end_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Hora fin invalida'),
   is_recurring: z.boolean().default(false),
 });
 

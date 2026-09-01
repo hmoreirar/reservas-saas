@@ -22,7 +22,7 @@ export default function AgendaPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
-    return today.toISOString().split("T")[0];
+     return today.toISOString().split("T")[0]!;
   });
   const [periodFilter, setPeriodFilter] = useState("all");
   const [selectedSlot, setSelectedSlot] = useState<{
@@ -75,13 +75,13 @@ export default function AgendaPage() {
   const handlePrevWeek = () => {
     const d = new Date(selectedDate);
     d.setDate(d.getDate() - 7);
-    handleDateChange(d.toISOString().split("T")[0]);
+     handleDateChange(d.toISOString().split("T")[0]!);
   };
 
   const handleNextWeek = () => {
     const d = new Date(selectedDate);
     d.setDate(d.getDate() + 7);
-    handleDateChange(d.toISOString().split("T")[0]);
+     handleDateChange(d.toISOString().split("T")[0]!);
   };
 
   const handleSlotClick = (slot: TimelineSlot, serviceId: number, serviceName: string) => {
@@ -96,11 +96,11 @@ export default function AgendaPage() {
     }
   };
 
-  const handleConfirmBooking = async (name: string, email: string, price?: number | null) => {
+  const handleConfirmBooking = async (name: string, email: string) => {
     if (!selectedSlot) return "Error inesperado";
     const data = await createBooking(
       selectedSlot.serviceId, name, email,
-      selectedSlot.slot.start, "", price,
+      selectedSlot.slot.start, "",
     );
     if (data.id) {
       setShowBookingForm(false);
@@ -179,7 +179,6 @@ export default function AgendaPage() {
           <InlineBookingForm
             slot={selectedSlot.slot}
             serviceName={selectedSlot.serviceName}
-            defaultPrice={null}
             onConfirm={handleConfirmBooking}
             onCancel={() => { setShowBookingForm(false); setSelectedSlot(null); }}
           />

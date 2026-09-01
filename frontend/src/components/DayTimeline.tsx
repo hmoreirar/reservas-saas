@@ -57,11 +57,6 @@ function TimelineRow({ slot, onClick }: TimelineRowProps) {
     minute: "2-digit",
   });
 
-  const endTime = new Date(slot.end).toLocaleTimeString("es-ES", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
   if (slot.type === "past") {
     return (
       <div className="flex items-center gap-4 px-4 py-3 opacity-40 md:px-6">

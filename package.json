@@ -9,8 +9,11 @@
     "dev": "cd backend && npx tsx watch src/server.ts",
     "dev:frontend": "cd frontend && npm run dev",
     "test": "cd backend && npx vitest run",
+    "test:frontend": "cd frontend && npm test",
     "test:watch": "cd backend && npx vitest",
-    "typecheck": "cd backend && npx tsc --noEmit"
+    "typecheck": "cd backend && npx tsc --noEmit",
+    "typecheck:frontend": "cd frontend && npx tsc -p tsconfig.app.json --noEmit",
+    "lint:frontend": "cd frontend && npm run lint"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

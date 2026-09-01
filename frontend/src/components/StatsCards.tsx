@@ -61,6 +61,7 @@ export default function StatsCards({ stats, period, onPeriodChange }: StatsCards
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {cards.map((card) => {
           const meta = CARD_META[card.key];
+          if (!meta) return null;
           return (
             <div
               key={card.key}

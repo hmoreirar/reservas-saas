@@ -5,6 +5,7 @@ import EmptyState from "./ui/EmptyState";
 import Modal from "./ui/Modal";
 import Pagination from "./ui/Pagination";
 import StatusBadge from "./ui/StatusBadge";
+import Button from "./ui/Button";
 
 interface MyBookingsProps {
   bookings: Booking[];

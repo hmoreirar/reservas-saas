@@ -1,4 +1,4 @@
-import type { Service, Booking, Stats, TimeSlot, DayAgenda, WeekAgenda } from "../types";
+import type { Service, Stats, TimeSlot, DayAgenda, WeekAgenda } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -106,7 +106,7 @@ export const getAvailability = async (serviceId: number, date: string): Promise<
   );
 };
 
-export const getPublicAvailability = async (serviceId: number, date: string): Promise<TimeSlot[]> => {
+export const getPublicAvailability = async (serviceId: number, date: string): Promise<TimeSlot[] | { error: string }> => {
   return apiFetch(
     `${API_URL}/api/bookings/public/availability?service_id=${serviceId}&date=${date}`
   );
@@ -118,7 +118,6 @@ export const createBooking = async (
   clientEmail: string,
   startTime: string,
   notes = "",
-  price?: number | null,
 ): Promise<IdResponse> => {
   const body: Record<string, unknown> = {
     service_id: serviceId,
@@ -127,7 +126,6 @@ export const createBooking = async (
     start_time: startTime,
     notes,
   };
-  if (price !== undefined) body.price = price;
   return apiFetch(`${API_URL}/api/bookings`, {
     method: "POST",
     headers: authHeaders(),

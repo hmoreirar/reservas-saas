@@ -27,10 +27,10 @@ export default function WeekBar({
 }: WeekBarProps) {
   const weekDays = useMemo(() => getWeekDays(selectedDate), [selectedDate]);
 
-  const todayStr = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toISOString().split("T")[0]!;
 
-  const firstDay = weekDays[0];
-  const lastDay = weekDays[6];
+  const firstDay = weekDays[0]!;
+  const lastDay = weekDays[6]!;
   const firstMonth = firstDay.toLocaleDateString("es-ES", { month: "long" });
   const lastMonth = lastDay.toLocaleDateString("es-ES", { month: "long" });
   const firstYear = firstDay.getFullYear();
@@ -67,7 +67,7 @@ export default function WeekBar({
 
       <div className="grid grid-cols-7 gap-1 md:gap-2">
         {weekDays.map((day) => {
-          const dateStr = day.toISOString().split("T")[0];
+          const dateStr = day.toISOString().split("T")[0]!;
           const isSelected = dateStr === selectedDate;
           const isToday = dateStr === todayStr;
 

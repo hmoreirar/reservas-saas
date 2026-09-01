@@ -12,10 +12,10 @@ interface DatePickerProps {
 export default function DatePicker({ selectedDate, onSelect, weekOffset, onPrevWeek, onNextWeek }: DatePickerProps) {
   const weekDays = useMemo(() => getWeekDays(selectedDate, weekOffset), [selectedDate, weekOffset]);
 
-  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0]!, []);
 
-  const firstDay = weekDays[0];
-  const lastDay = weekDays[6];
+  const firstDay = weekDays[0]!;
+  const lastDay = weekDays[6]!;
   const firstMonth = firstDay.toLocaleDateString("es-ES", { month: "long" });
   const lastMonth = lastDay.toLocaleDateString("es-ES", { month: "long" });
   const firstYear = firstDay.getFullYear();
@@ -52,7 +52,7 @@ export default function DatePicker({ selectedDate, onSelect, weekOffset, onPrevW
 
       <div className="flex flex-col gap-0.5">
         {weekDays.map((day) => {
-          const dateStr = day.toISOString().split("T")[0];
+          const dateStr = day.toISOString().split("T")[0]!;
           const isSelected = dateStr === selectedDate;
           const isToday = dateStr === todayStr;
 

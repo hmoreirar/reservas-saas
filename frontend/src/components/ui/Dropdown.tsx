@@ -29,14 +29,19 @@ export default function Dropdown({ trigger, items, align = "left" }: DropdownPro
 
   return (
     <div ref={ref} className="relative inline-block">
-      <button
+      <div
         onClick={() => setOpen(!open)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") setOpen(!open);
+        }}
         className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
+        tabIndex={0}
+        role="button"
         aria-haspopup="true"
         aria-expanded={open}
       >
         {trigger}
-      </button>
+      </div>
       {open && (
         <div
           className={`absolute z-50 mt-1 min-w-[160px] animate-fade-in rounded-lg border border-border bg-surface py-1 shadow-md ${

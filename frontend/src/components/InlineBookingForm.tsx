@@ -8,21 +8,18 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 interface InlineBookingFormProps {
   slot: TimelineSlot;
   serviceName: string;
-  defaultPrice?: number | null;
-  onConfirm: (name: string, email: string, price?: number | null) => Promise<string | null>;
+  onConfirm: (name: string, email: string) => Promise<string | null>;
   onCancel: () => void;
 }
 
 export default function InlineBookingForm({
   slot,
   serviceName,
-  defaultPrice,
   onConfirm,
   onCancel,
 }: InlineBookingFormProps) {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
-  const [manualPrice, setManualPrice] = useState(defaultPrice ? String(defaultPrice) : "");
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState("");
 
@@ -48,15 +45,13 @@ export default function InlineBookingForm({
     }
     setError("");
     setIsBooking(true);
-    const price = manualPrice ? Number(manualPrice) : null;
-    const err = await onConfirm(clientName, clientEmail, price);
+    const err = await onConfirm(clientName, clientEmail);
     setIsBooking(false);
     if (err) {
       setError(err);
     } else {
       setClientName("");
       setClientEmail("");
-      setManualPrice(defaultPrice ? String(defaultPrice) : "");
     }
   };
 
@@ -92,16 +87,6 @@ export default function InlineBookingForm({
           value={clientEmail}
           onChange={(e) => setClientEmail(e.target.value)}
           placeholder="juan@example.com"
-        />
-      </div>
-
-      <div className="mb-4">
-        <Input
-          label="Precio ($)"
-          type="number"
-          value={manualPrice}
-          onChange={(e) => setManualPrice(e.target.value)}
-          placeholder={defaultPrice ? String(defaultPrice) : "Precio variable"}
         />
       </div>
 

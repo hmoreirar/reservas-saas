@@ -21,6 +21,7 @@ export interface Service {
   service_type: string;
   is_package: boolean;
   allow_multiple: boolean;
+  max_capacity: number;
   created_at: Date;
   provider_name?: string;
   provider_email?: string;

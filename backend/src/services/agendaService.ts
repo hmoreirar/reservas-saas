@@ -122,7 +122,9 @@ export const agendaService = {
     _staffId?: number
   ): Promise<DayAgenda[]> {
     const services = serviceId
-      ? [await serviceRepository.findById(serviceId)].filter(Boolean)
+      ? [await serviceRepository.findById(serviceId)].filter(
+          (service): service is NonNullable<typeof service> => Boolean(service && service.user_id === userId)
+        )
       : await serviceRepository.findAllByUser(userId);
 
     if (!services.length) throw new NotFoundError('No se encontraron servicios');
@@ -185,7 +187,9 @@ export const agendaService = {
     serviceId?: number
   ): Promise<WeekAgenda[]> {
     const services = serviceId
-      ? [await serviceRepository.findById(serviceId)].filter(Boolean)
+      ? [await serviceRepository.findById(serviceId)].filter(
+          (service): service is NonNullable<typeof service> => Boolean(service && service.user_id === userId)
+        )
       : await serviceRepository.findAllByUser(userId);
 
     if (!services.length) throw new NotFoundError('No se encontraron servicios');
