@@ -5,6 +5,7 @@ import DayTimeline from "../components/DayTimeline";
 import InlineBookingForm from "../components/InlineBookingForm";
 import BookingPopover from "../components/BookingPopover";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
+import RescheduleModal from "../components/RescheduleModal";
 import { SkeletonStatCard } from "../components/ui/Skeleton";
 import { showToast } from "../components/ui/Toast";
 import {
@@ -13,6 +14,7 @@ import {
   createBooking,
   updateBookingStatus,
   cancelBooking,
+  rescheduleBooking,
 } from "../api/api";
 import type { Stats, DayAgenda, TimelineSlot } from "../types";
 
@@ -37,6 +39,10 @@ export default function AgendaPage() {
     serviceName: string;
   } | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
+  const [rescheduleTarget, setRescheduleTarget] = useState<{
+    booking: import("../types").Booking;
+    serviceName: string;
+  } | null>(null);
 
   const loadAgenda = useCallback(async (date: string) => {
     setAgendaLoading(true);
@@ -133,6 +139,25 @@ export default function AgendaPage() {
     setCancelConfirm(id);
   };
 
+  const handleReschedule = (_id: number) => {
+    if (selectedBooking) {
+      setRescheduleTarget(selectedBooking);
+      setShowPopover(false);
+    }
+  };
+
+  const confirmReschedule = async (newStartTime: string) => {
+    if (!rescheduleTarget) return "Error inesperado";
+    const data = await rescheduleBooking(rescheduleTarget.booking.id, newStartTime);
+    if (data.message) {
+      setRescheduleTarget(null);
+      loadAgenda(selectedDate);
+      showToast("Reserva reprogramada", "success");
+      return null;
+    }
+    return data.error || "Error al reprogramar";
+  };
+
   const confirmCancel = async () => {
     if (cancelConfirm === null) return;
     const data = await cancelBooking(cancelConfirm);
@@ -191,11 +216,19 @@ export default function AgendaPage() {
             booking={selectedBooking.booking}
             serviceName={selectedBooking.serviceName}
             onStatusChange={handleStatusChange}
-            onReschedule={() => {}}
+            onReschedule={handleReschedule}
             onCancel={handleCancelBooking}
             onClose={() => { setShowPopover(false); setSelectedBooking(null); }}
           />
         </div>
+      )}
+
+      {rescheduleTarget && (
+        <RescheduleModal
+          booking={rescheduleTarget.booking}
+          onClose={() => setRescheduleTarget(null)}
+          onConfirm={confirmReschedule}
+        />
       )}
 
       <ConfirmDialog

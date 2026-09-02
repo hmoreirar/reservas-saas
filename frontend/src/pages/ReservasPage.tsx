@@ -2,11 +2,13 @@ import { useState, useEffect, useCallback } from "react";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import MyBookings from "../components/MyBookings";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
+import RescheduleModal from "../components/RescheduleModal";
 import { showToast } from "../components/ui/Toast";
 import {
   getMyBookings,
   cancelBooking,
   updateBookingStatus,
+  rescheduleBooking,
 } from "../api/api";
 import type { Booking, PaginatedBookings } from "../types";
 
@@ -20,6 +22,7 @@ export default function ReservasPage() {
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
+  const [rescheduleTarget, setRescheduleTarget] = useState<Booking | null>(null);
 
   const loadMyBookings = useCallback(async (p: number, s: string, f: string) => {
     setFetching(true);
@@ -54,6 +57,23 @@ export default function ReservasPage() {
 
   const handleCancelClick = (id: number) => {
     setCancelConfirm(id);
+  };
+
+  const handleReschedule = (id: number) => {
+    const booking = myBookings.find((b) => b.id === id) ?? null;
+    setRescheduleTarget(booking);
+  };
+
+  const confirmReschedule = async (newStartTime: string) => {
+    if (!rescheduleTarget) return "Error inesperado";
+    const data = await rescheduleBooking(rescheduleTarget.id, newStartTime);
+    if (data.message) {
+      setRescheduleTarget(null);
+      loadMyBookings(page, search, statusFilter);
+      showToast("Reserva reprogramada", "success");
+      return null;
+    }
+    return data.error || "Error al reprogramar";
   };
 
   const confirmCancel = async () => {
@@ -105,10 +125,18 @@ export default function ReservasPage() {
         onSearchChange={handleSearchChange}
         onFilterChange={handleFilterChange}
         onPageChange={handlePageChange}
-        onReschedule={() => {}}
+        onReschedule={handleReschedule}
         onCancel={handleCancelClick}
         onStatusChange={handleUpdateStatus}
       />
+
+      {rescheduleTarget && (
+        <RescheduleModal
+          booking={rescheduleTarget}
+          onClose={() => setRescheduleTarget(null)}
+          onConfirm={confirmReschedule}
+        />
+      )}
 
       <ConfirmDialog
         open={cancelConfirm !== null}
