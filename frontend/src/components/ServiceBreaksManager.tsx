@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Input from "./ui/Input";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import Modal from "./ui/Modal";
@@ -15,13 +15,13 @@ export default function ServiceBreaksManager({ serviceId }: ServiceBreaksManager
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: "", date: "", start_time: "", end_time: "", is_recurring: false });
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const data = await getServiceBreaks(serviceId);
     if (Array.isArray(data)) setBreaks(data);
     setLoading(false);
-  };
+  }, [serviceId]);
 
-  useEffect(() => { load(); }, [serviceId]);
+  useEffect(() => { load(); }, [load]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
