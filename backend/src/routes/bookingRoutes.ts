@@ -14,18 +14,12 @@ import {
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 import { validate } from '../validation/validate.js';
 import { createBookingSchema, createPublicBookingSchema, updateBookingStatusSchema } from '../validation/schemas.js';
-import rateLimit from 'express-rate-limit';
+import { publicBookingLimiter } from '../config/rateLimit.js';
 
 const router = Router();
 
-const publicLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 30,
-  message: { error: 'Demasiadas solicitudes, intente en 1 minuto' },
-});
-
 router.post('/', authMiddleware, validate(createBookingSchema), createBooking);
-router.post('/public', publicLimiter, validate(createPublicBookingSchema), createPublicBooking);
+router.post('/public', publicBookingLimiter, validate(createPublicBookingSchema), createPublicBooking);
 router.get('/day', authMiddleware, getBookingsByDay);
 router.get('/availability', authMiddleware, getAvailability);
 router.get('/public/availability', getPublicAvailability);

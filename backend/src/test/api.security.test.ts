@@ -3,6 +3,7 @@ import request from 'supertest';
 import app from '../app.js';
 import pool from '../config/db.js';
 import { runMigrations } from '../migrations/run.js';
+import { PostgresRateLimitStore } from '../utils/rateLimitStore.js';
 
 let owner: { id: number; token: string };
 let attacker: { id: number; token: string };
@@ -394,6 +395,33 @@ describe('Zona horaria', () => {
     expect(slots.length).toBeGreaterThan(0);
     // 09:00 en Asia/Tokyo (UTC+9, sin DST) == 00:00 UTC
     expect(new Date(slots[0].start).toISOString()).toBe('2030-01-07T00:00:00.000Z');
+  });
+});
+
+describe('Rate limit store', () => {
+  it('incrementa, decrementa y resetea contadores por clave', async () => {
+    const store = new PostgresRateLimitStore();
+    store.init({ windowMs: 60_000 });
+    const key = `test:${Date.now()}`;
+
+    expect((await store.increment(key)).totalHits).toBe(1);
+    expect((await store.increment(key)).totalHits).toBe(2);
+
+    await store.decrement(key);
+    expect((await store.increment(key)).totalHits).toBe(2);
+
+    await store.resetKey(key);
+    expect((await store.increment(key)).totalHits).toBe(1);
+
+    await store.resetKey(key);
+  });
+});
+
+describe('Cabeceras de seguridad', () => {
+  it('expone cabeceras de helmet en las respuestas', async () => {
+    const res = await request(app).get('/api/health');
+    expect(res.headers['content-security-policy']).toBeDefined();
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
   });
 });
 

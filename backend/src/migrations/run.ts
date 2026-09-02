@@ -122,6 +122,11 @@ const migrations = [
   `CREATE TRIGGER trg_booking_capacity
    BEFORE INSERT OR UPDATE OF start_time, end_time, status ON bookings
    FOR EACH ROW EXECUTE FUNCTION enforce_booking_capacity()`,
+  `CREATE TABLE IF NOT EXISTS rate_limits (
+     key TEXT PRIMARY KEY,
+     count INT NOT NULL DEFAULT 0,
+     reset_at TIMESTAMPTZ NOT NULL
+   )`,
 ];
 
 export async function runMigrations(): Promise<void> {
