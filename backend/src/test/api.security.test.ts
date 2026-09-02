@@ -386,3 +386,30 @@ describe('Validacion de horarios', () => {
     expect(res.status).toBe(201);
   });
 });
+
+describe('Integridad a nivel de base de datos', () => {
+  async function rawBooking(serviceId: number, start: string, email: string) {
+    return pool.query(
+      `INSERT INTO bookings (service_id, client_name, client_email, start_time, end_time, status)
+       VALUES ($1, $2, $3, $4, $5, 'confirmed')`,
+      [serviceId, email, email, new Date(start), new Date(new Date(start).getTime() + 30 * 60000)]
+    );
+  }
+
+  it('la base rechaza un segundo registro solapado sin pasar por la API', async () => {
+    const service = await createService(owner.token, { max_capacity: 1 });
+    const slot = (await getAvailability(owner.token, service.id, dateOnly(daysFromNow(1))))[0];
+
+    await rawBooking(service.id, slot.start, 'directo1@example.com');
+    await expect(rawBooking(service.id, slot.start, 'directo2@example.com')).rejects.toThrow();
+  });
+
+  it('la base permite hasta dos registros solapados con capacidad 2', async () => {
+    const service = await createService(owner.token, { max_capacity: 2 });
+    const slot = (await getAvailability(owner.token, service.id, dateOnly(daysFromNow(1))))[0];
+
+    await rawBooking(service.id, slot.start, 'cap1@example.com');
+    await rawBooking(service.id, slot.start, 'cap2@example.com');
+    await expect(rawBooking(service.id, slot.start, 'cap3@example.com')).rejects.toThrow();
+  });
+});

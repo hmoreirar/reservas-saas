@@ -81,6 +81,41 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_bookings_service_time_status
    ON bookings (service_id, start_time, end_time, status)`,
   `CREATE INDEX IF NOT EXISTS idx_services_user_id ON services (user_id)`,
+  `CREATE OR REPLACE FUNCTION enforce_booking_capacity()
+   RETURNS TRIGGER AS $$
+   DECLARE
+     service_capacity INTEGER;
+     overlap_count INTEGER;
+   BEGIN
+     IF NEW.status NOT IN ('confirmed', 'pending') THEN
+       RETURN NEW;
+     END IF;
+
+     PERFORM pg_advisory_xact_lock(NEW.service_id);
+
+     SELECT max_capacity INTO service_capacity FROM services WHERE id = NEW.service_id;
+     IF service_capacity IS NULL OR service_capacity < 1 THEN
+       service_capacity := 1;
+     END IF;
+
+     SELECT COUNT(*) INTO overlap_count FROM bookings
+      WHERE service_id = NEW.service_id
+        AND id <> COALESCE(NEW.id, 0)
+        AND status IN ('confirmed', 'pending')
+        AND start_time < NEW.end_time
+        AND end_time > NEW.start_time;
+
+     IF overlap_count >= service_capacity THEN
+       RAISE EXCEPTION 'Horario no disponible';
+     END IF;
+
+     RETURN NEW;
+   END;
+   $$ LANGUAGE plpgsql`,
+  `DROP TRIGGER IF EXISTS trg_booking_capacity ON bookings`,
+  `CREATE TRIGGER trg_booking_capacity
+   BEFORE INSERT OR UPDATE OF start_time, end_time, status ON bookings
+   FOR EACH ROW EXECUTE FUNCTION enforce_booking_capacity()`,
 ];
 
 export async function runMigrations(): Promise<void> {
