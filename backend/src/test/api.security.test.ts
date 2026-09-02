@@ -109,7 +109,7 @@ describe('Autorizacion entre usuarios', () => {
 
 describe('Reglas de reserva', () => {
   it('ignora el precio enviado por el cliente', async () => {
-    const service = await createService(owner.token, { price: 25000 });
+    const service = await createService(owner.token, { price: 25000.9 });
     const slots = await getAvailability(owner.token, service.id, dateOnly(daysFromNow(1)));
     const res = await request(app).post('/api/bookings/public').send({
       service_id: service.id,
@@ -120,8 +120,31 @@ describe('Reglas de reserva', () => {
     });
     expect(res.status).toBe(200);
     const price = (res.body as { booking: { price: unknown } }).booking.price;
-    expect(Number(price)).toBe(25000);
+    expect(Number(price)).toBe(25000.9);
     expect(price).not.toBe(1);
+    expect(typeof price).toBe('number');
+  });
+
+  it('calcula los ingresos con decimales correctamente', async () => {
+    const service = await createService(owner.token, { price: 15000.75 });
+    const slot = (await getAvailability(owner.token, service.id, dateOnly(daysFromNow(1))))[0];
+    const bookingRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({
+        service_id: service.id,
+        client_name: 'Cliente',
+        client_email: 'cli-rev@example.com',
+        start_time: slot.start,
+      });
+    expect(bookingRes.status).toBe(200);
+
+    const statsRes = await request(app)
+      .get('/api/bookings/stats')
+      .set('Authorization', `Bearer ${owner.token}`);
+    expect(statsRes.status).toBe(200);
+    const stats = statsRes.body as { revenue: unknown };
+    expect(Math.abs(Number(stats.revenue) - 15000.75)).toBeLessThan(0.001);
   });
 
   it('rechaza reservas en fecha pasada', async () => {

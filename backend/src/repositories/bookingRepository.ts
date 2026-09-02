@@ -47,48 +47,6 @@ export const bookingRepository = {
     }
   },
 
-  async create(data: {
-    service_id: number;
-    client_name: string;
-    client_email: string;
-    start_time: Date;
-    end_time: Date;
-    notes: string | null;
-    price?: number | null;
-    status?: string;
-  }): Promise<Booking> {
-    const result = await pool.query(
-      `INSERT INTO bookings (service_id, client_name, client_email, start_time, end_time, notes, price, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING *`,
-      [data.service_id, data.client_name, data.client_email, data.start_time, data.end_time, data.notes, data.price ?? null, data.status ?? 'confirmed']
-    );
-    return result.rows[0];
-  },
-
-  async findConflicts(
-    serviceId: number,
-    start: Date,
-    end: Date,
-    excludeId?: number
-  ): Promise<boolean> {
-    let query = `SELECT 1 FROM bookings
-       WHERE service_id = $1
-       AND status IN ('confirmed', 'pending')
-       AND start_time < $3
-       AND end_time > $2`;
-    const params: unknown[] = [serviceId, start, end];
-
-    if (excludeId) {
-      query += ' AND id != $4';
-      params.push(excludeId);
-    }
-
-    query += ' LIMIT 1';
-    const result = await pool.query(query, params);
-    return result.rows.length > 0;
-  },
-
   async findByDay(serviceId: number, date: string): Promise<Booking[]> {
     const result = await pool.query(
       `SELECT * FROM bookings
@@ -194,13 +152,6 @@ export const bookingRepository = {
     );
   },
 
-  async updateTime(id: number, start_time: Date, end_time: Date): Promise<void> {
-    await pool.query(
-      'UPDATE bookings SET start_time = $1, end_time = $2 WHERE id = $3',
-      [start_time, end_time, id]
-    );
-  },
-
   async updateTimeIfAvailable(
     id: number,
     serviceId: number,
@@ -283,7 +234,7 @@ export const bookingRepository = {
       confirmed: parseInt(confirmedResult.rows[0]?.total || '0'),
       cancelled: parseInt(cancelledResult.rows[0]?.total || '0'),
       completed: parseInt(completedResult.rows[0]?.total || '0'),
-      revenue: parseInt(revenueResult.rows[0]?.revenue || '0'),
+      revenue: Number(revenueResult.rows[0]?.revenue || 0),
     };
   },
 
