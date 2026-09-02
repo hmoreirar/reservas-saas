@@ -35,7 +35,8 @@ export const getAvailability = async (req: Request, res: Response, next: NextFun
   try {
     const slots = await bookingService.getAvailability(
       Number(req.query.service_id as string),
-      req.query.date as string
+      req.query.date as string,
+      req.user!.id
     );
     res.json(slots);
   } catch (error) {

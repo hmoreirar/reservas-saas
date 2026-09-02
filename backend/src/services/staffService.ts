@@ -39,6 +39,10 @@ export const staffService = {
     if (!booking) throw new NotFoundError('Reserva no encontrada');
     if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
 
+    const staff = await staffRepository.findById(staffId);
+    if (!staff) throw new NotFoundError('Staff no encontrado');
+    if (staff.user_id !== userId) throw new ForbiddenError('No tienes permiso');
+
     await bookingRepository.assignStaff(bookingId, staffId);
     return { message: 'Reserva asignada a staff' };
   },

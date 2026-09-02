@@ -230,3 +230,80 @@ describe('Reglas de reserva', () => {
     expect(third.status).toBe(409);
   });
 });
+
+describe('Aislamiento de staff', () => {
+  it('no permite asignar staff de otro proveedor', async () => {
+    const ownerStaff = await request(app)
+      .post('/api/staff')
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ name: 'Staff Owner', email: 'staffowner@example.com' });
+    expect(ownerStaff.status).toBe(201);
+
+    const attackerService = await createService(attacker.token);
+    const slot = (await getAvailability(attacker.token, attackerService.id, dateOnly(daysFromNow(1))))[0];
+
+    const bookingRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${attacker.token}`)
+      .send({
+        service_id: attackerService.id,
+        client_name: 'Cliente',
+        client_email: 'cli@example.com',
+        start_time: slot.start,
+      });
+    expect(bookingRes.status).toBe(200);
+    const bookingId = (bookingRes.body as { id: number }).id;
+
+    const ownerStaffId = (ownerStaff.body as { id: number }).id;
+    const assign = await request(app)
+      .put(`/api/staff/assign/${bookingId}`)
+      .set('Authorization', `Bearer ${attacker.token}`)
+      .send({ staffId: ownerStaffId });
+    expect(assign.status).toBe(403);
+  });
+
+  it('permite asignar el propio staff', async () => {
+    const attackerStaff = await request(app)
+      .post('/api/staff')
+      .set('Authorization', `Bearer ${attacker.token}`)
+      .send({ name: 'Staff Attacker', email: 'staffattacker@example.com' });
+    expect(attackerStaff.status).toBe(201);
+
+    const attackerService = await createService(attacker.token);
+    const slot = (await getAvailability(attacker.token, attackerService.id, dateOnly(daysFromNow(1))))[0];
+    const bookingRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${attacker.token}`)
+      .send({
+        service_id: attackerService.id,
+        client_name: 'Cliente',
+        client_email: 'cli2@example.com',
+        start_time: slot.start,
+      });
+    const bookingId = (bookingRes.body as { id: number }).id;
+
+    const assign = await request(app)
+      .put(`/api/staff/assign/${bookingId}`)
+      .set('Authorization', `Bearer ${attacker.token}`)
+      .send({ staffId: (attackerStaff.body as { id: number }).id });
+    expect(assign.status).toBe(200);
+  });
+});
+
+describe('Disponibilidad aislada por proveedor', () => {
+  it('un usuario no consulta la disponibilidad del servicio de otro', async () => {
+    const service = await createService(owner.token);
+    const res = await request(app)
+      .get(`/api/bookings/availability?service_id=${service.id}&date=${dateOnly(daysFromNow(1))}`)
+      .set('Authorization', `Bearer ${attacker.token}`);
+    expect(res.status).toBe(403);
+  });
+
+  it('el dueño si consulta su disponibilidad', async () => {
+    const service = await createService(owner.token);
+    const res = await request(app)
+      .get(`/api/bookings/availability?service_id=${service.id}&date=${dateOnly(daysFromNow(1))}`)
+      .set('Authorization', `Bearer ${owner.token}`);
+    expect(res.status).toBe(200);
+  });
+});

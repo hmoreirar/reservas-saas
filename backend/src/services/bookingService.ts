@@ -212,9 +212,12 @@ export const bookingService = {
     return { message: `Reserva ${action === 'declined' ? 'rechazada' : action === 'confirmed' ? 'confirmada' : action === 'cancelled' ? 'cancelada' : action === 'completed' ? 'completada' : 'marcada como no show'}` };
   },
 
-  async getAvailability(serviceId: number, date: string) {
+  async getAvailability(serviceId: number, date: string, userId?: number) {
     const service = await serviceRepository.findById(serviceId);
     if (!service) throw new NotFoundError('Servicio no encontrado');
+    if (userId !== undefined && service.user_id !== userId) {
+      throw new ForbiddenError('No tienes permiso');
+    }
 
     const dayOfWeek = new Date(date).getDay();
     const duration = service.duration || 30;
