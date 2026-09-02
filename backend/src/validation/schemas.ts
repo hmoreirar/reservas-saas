@@ -100,10 +100,13 @@ export const serviceHoursSchema = z.object({
 
 export const serviceBreakSchema = z.object({
   name: z.string().max(100).default(''),
-  date: z.string().min(1, 'Fecha requerida'),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha invalida'),
   start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Hora inicio invalida'),
   end_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/, 'Hora fin invalida'),
   is_recurring: z.boolean().default(false),
+}).refine((b) => b.end_time > b.start_time, {
+  message: 'La hora de fin debe ser posterior a la de inicio',
+  path: ['end_time'],
 });
 
 export const updateBookingStatusSchema = z.object({

@@ -1,5 +1,5 @@
 import { serviceRepository } from '../repositories/serviceRepository.js';
-import { NotFoundError, ForbiddenError } from '../errors/AppError.js';
+import { NotFoundError, ForbiddenError, ValidationError } from '../errors/AppError.js';
 
 function generateSlug(name: string): string {
   const base = name
@@ -98,6 +98,15 @@ export const serviceService = {
     const owner = await serviceRepository.findUserByServiceId(id);
     if (!owner) throw new NotFoundError('Servicio no encontrado');
     if (owner.user_id !== userId) throw new ForbiddenError('No tienes permiso');
+
+    const current = await serviceRepository.findById(id);
+    if (!current) throw new NotFoundError('Servicio no encontrado');
+
+    const startHour = data.start_hour ?? current.start_hour;
+    const endHour = data.end_hour ?? current.end_hour;
+    if (endHour <= startHour) {
+      throw new ValidationError('La hora de cierre debe ser posterior a la de inicio');
+    }
 
     const updated = await serviceRepository.update(id, data);
     if (!updated) throw new NotFoundError('Error al actualizar');

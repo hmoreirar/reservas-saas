@@ -330,3 +330,59 @@ describe('Disponibilidad aislada por proveedor', () => {
     expect(res.status).toBe(200);
   });
 });
+
+describe('Validacion de horarios', () => {
+  it('rechaza una actualizacion parcial que invierte la jornada', async () => {
+    const service = await createService(owner.token, { start_hour: 9, end_hour: 13 });
+    const res = await request(app)
+      .put(`/api/services/${service.id}`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ end_hour: 5 });
+    expect(res.status).toBe(400);
+  });
+
+  it('acepta una actualizacion parcial valida', async () => {
+    const service = await createService(owner.token, { start_hour: 9, end_hour: 13 });
+    const res = await request(app)
+      .put(`/api/services/${service.id}`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ end_hour: 14 });
+    expect(res.status).toBe(200);
+  });
+
+  it('rechaza un descanso con horas invertidas', async () => {
+    const service = await createService(owner.token);
+    const res = await request(app)
+      .post(`/api/services/${service.id}/breaks`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ name: 'Invertido', date: dateOnly(daysFromNow(1)), start_time: '14:00', end_time: '10:00' });
+    expect(res.status).toBe(400);
+  });
+
+  it('rechaza un descanso fuera de la jornada del servicio', async () => {
+    const service = await createService(owner.token, { start_hour: 9, end_hour: 13 });
+    const res = await request(app)
+      .post(`/api/services/${service.id}/breaks`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ name: 'Fuera', date: dateOnly(daysFromNow(1)), start_time: '14:00', end_time: '15:00' });
+    expect(res.status).toBe(400);
+  });
+
+  it('rechaza una fecha de descanso con formato invalido', async () => {
+    const service = await createService(owner.token);
+    const res = await request(app)
+      .post(`/api/services/${service.id}/breaks`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ name: 'Mal', date: '02/09/2026', start_time: '10:00', end_time: '11:00' });
+    expect(res.status).toBe(400);
+  });
+
+  it('acepta un descanso dentro de la jornada', async () => {
+    const service = await createService(owner.token, { start_hour: 9, end_hour: 18 });
+    const res = await request(app)
+      .post(`/api/services/${service.id}/breaks`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ name: 'Pausa', date: dateOnly(daysFromNow(1)), start_time: '12:00', end_time: '13:00' });
+    expect(res.status).toBe(201);
+  });
+});
