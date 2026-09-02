@@ -196,6 +196,7 @@ export default function BookingPage() {
                           {new Date(slot.start).toLocaleTimeString("es-ES", {
                             hour: "2-digit",
                             minute: "2-digit",
+                            timeZone: service?.timezone || undefined,
                           })}
                         </button>
                       );

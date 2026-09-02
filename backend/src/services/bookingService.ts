@@ -14,6 +14,7 @@ import {
   sendProviderNotification,
 } from '../utils/emailService.js';
 import { integrationService } from './integrationService.js';
+import { serviceTimeZone, dayStart, dayUtcRange, serviceDayOfWeek, timeParts, toUtcIso, instantToServiceDate } from '../utils/datetime.js';
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   pending: ['confirmed', 'cancelled'],
@@ -45,7 +46,7 @@ async function createBookingRecord(data: {
   const duration = data.service.duration || 30;
   const end = new Date(start.getTime() + duration * 60000);
 
-  const date = start.toISOString().slice(0, 10);
+  const date = instantToServiceDate(start, serviceTimeZone(data.service));
   const availableSlots = await bookingService.getAvailability(data.service.id, date);
   const isAvailableSlot = availableSlots.some((slot) => new Date(slot.start).getTime() === start.getTime());
   if (!isAvailableSlot) {
@@ -219,16 +220,18 @@ export const bookingService = {
       throw new ForbiddenError('No tienes permiso');
     }
 
-    const dayOfWeek = new Date(date).getDay();
+    const timezone = serviceTimeZone(service);
+    const dayOfWeek = serviceDayOfWeek(date, timezone);
     const duration = service.duration || 30;
 
     let startHour = service.start_hour ?? 9;
     let endHour = service.end_hour ?? 18;
 
+    const { start: rangeStart, end: rangeEnd } = dayUtcRange(date, timezone);
     const [customHours, breaks, bookings] = await Promise.all([
       serviceHoursRepository.findByService(serviceId),
       serviceBreaksRepository.findByServiceAndDate(serviceId, date),
-      bookingRepository.findBookingsForDate(serviceId, date),
+      bookingRepository.findBookingsInRange(serviceId, rangeStart, rangeEnd),
     ]);
 
     const dayHours = customHours.find((h: { day_of_week: number }) => h.day_of_week === dayOfWeek);
@@ -239,32 +242,35 @@ export const bookingService = {
       endHour = dayHours.end_hour;
     }
 
-    const maxCapacity = (service as any).max_capacity ?? 1;
+    const maxCapacity = service.max_capacity ?? 1;
 
     const slots: { start: string; end: string }[] = [];
-    const current = new Date(`${date}T${String(startHour).padStart(2, '0')}:00:00`);
-    const endDay = new Date(`${date}T${String(endHour).padStart(2, '0')}:00:00`);
+    const day = dayStart(date, timezone);
+    let current = day.set({ hour: startHour, minute: 0 });
+    const endDay = day.set({ hour: endHour, minute: 0 });
 
     while (current < endDay) {
-      const slotStart = new Date(current);
-      const slotEnd = new Date(current.getTime() + duration * 60000);
+      const slotStart = current;
+      const slotEnd = current.plus({ minutes: duration });
 
       if (slotEnd > endDay) break;
 
       const isInBreak = breaks.some((b: { start_time: string; end_time: string }) => {
-        const breakStart = new Date(`${date}T${b.start_time}`);
-        const breakEnd = new Date(`${date}T${b.end_time}`);
+        const bs = timeParts(b.start_time);
+        const be = timeParts(b.end_time);
+        const breakStart = day.set({ hour: bs.hour, minute: bs.minute });
+        const breakEnd = day.set({ hour: be.hour, minute: be.minute });
         return slotStart < breakEnd && slotEnd > breakStart;
       });
 
       if (!isInBreak) {
         slots.push({
-          start: slotStart.toISOString(),
-          end: slotEnd.toISOString(),
+          start: toUtcIso(slotStart),
+          end: toUtcIso(slotEnd),
         });
       }
 
-      current.setMinutes(current.getMinutes() + duration);
+      current = current.plus({ minutes: duration });
     }
 
     if (maxCapacity > 1) {
@@ -296,7 +302,11 @@ export const bookingService = {
     if (!owner || owner.user_id !== userId)
       throw new ForbiddenError('No tienes permiso');
 
-    return bookingRepository.findByDay(serviceId, date);
+    const service = await serviceRepository.findById(serviceId);
+    if (!service) throw new NotFoundError('Servicio no encontrado');
+
+    const { start, end } = dayUtcRange(date, serviceTimeZone(service));
+    return bookingRepository.findByRange(serviceId, start, end);
   },
 
   async getMyBookings(
@@ -375,21 +385,22 @@ export const bookingService = {
     const duration = booking.duration || 30;
     const end = new Date(start.getTime() + duration * 60000);
 
+    const service = await serviceRepository.findById(booking.service_id);
+    if (!service) throw new NotFoundError('Servicio no encontrado');
     const availableSlots = await bookingService.getAvailability(
       booking.service_id,
-      start.toISOString().slice(0, 10)
+      instantToServiceDate(start, serviceTimeZone(service))
     );
     if (!availableSlots.some((slot) => new Date(slot.start).getTime() === start.getTime())) {
       throw new ConflictError('Nuevo horario no disponible');
     }
 
-    const service = await serviceRepository.findById(booking.service_id);
     const updated = await bookingRepository.updateTimeIfAvailable(
       id,
       booking.service_id,
       start,
       end,
-      service?.max_capacity ?? 1
+      service.max_capacity ?? 1
     );
     if (!updated) {
       throw new ConflictError('Nuevo horario no disponible');

@@ -387,6 +387,16 @@ describe('Validacion de horarios', () => {
   });
 });
 
+describe('Zona horaria', () => {
+  it('genera los horarios en la zona del servicio, no la del servidor', async () => {
+    const service = await createService(owner.token, { timezone: 'Asia/Tokyo', start_hour: 9, end_hour: 10 });
+    const slots = await getAvailability(owner.token, service.id, '2030-01-07');
+    expect(slots.length).toBeGreaterThan(0);
+    // 09:00 en Asia/Tokyo (UTC+9, sin DST) == 00:00 UTC
+    expect(new Date(slots[0].start).toISOString()).toBe('2030-01-07T00:00:00.000Z');
+  });
+});
+
 describe('Integridad a nivel de base de datos', () => {
   async function rawBooking(serviceId: number, start: string, email: string) {
     return pool.query(

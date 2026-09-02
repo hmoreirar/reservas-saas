@@ -116,6 +116,12 @@ const migrations = [
   `CREATE TRIGGER trg_booking_capacity
    BEFORE INSERT OR UPDATE OF start_time, end_time, status ON bookings
    FOR EACH ROW EXECUTE FUNCTION enforce_booking_capacity()`,
+  `DROP TRIGGER IF EXISTS trg_booking_capacity ON bookings`,
+  `ALTER TABLE bookings ALTER COLUMN start_time TYPE timestamptz USING start_time AT TIME ZONE 'UTC'`,
+  `ALTER TABLE bookings ALTER COLUMN end_time TYPE timestamptz USING end_time AT TIME ZONE 'UTC'`,
+  `CREATE TRIGGER trg_booking_capacity
+   BEFORE INSERT OR UPDATE OF start_time, end_time, status ON bookings
+   FOR EACH ROW EXECUTE FUNCTION enforce_booking_capacity()`,
 ];
 
 export async function runMigrations(): Promise<void> {

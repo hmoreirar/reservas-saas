@@ -47,25 +47,25 @@ export const bookingRepository = {
     }
   },
 
-  async findByDay(serviceId: number, date: string): Promise<Booking[]> {
+  async findByRange(serviceId: number, startUtc: Date, endUtc: Date): Promise<Booking[]> {
     const result = await pool.query(
       `SELECT * FROM bookings
        WHERE service_id = $1
-       AND start_time BETWEEN $2 AND $3
+       AND start_time >= $2 AND start_time < $3
        ORDER BY start_time`,
-      [serviceId, `${date} 00:00:00`, `${date} 23:59:59`]
+      [serviceId, startUtc, endUtc]
     );
     return result.rows;
   },
 
-  async findBookingsForDate(serviceId: number, date: string): Promise<{ id: number; start_time: Date; end_time: Date }[]> {
+  async findBookingsInRange(serviceId: number, startUtc: Date, endUtc: Date): Promise<{ id: number; start_time: Date; end_time: Date }[]> {
     const result = await pool.query(
       `SELECT id, start_time, end_time FROM bookings
        WHERE service_id = $1
-       AND DATE(start_time) = $2
+       AND start_time >= $2 AND start_time < $3
        AND status IN ('confirmed', 'pending')
        ORDER BY start_time`,
-      [serviceId, date]
+      [serviceId, startUtc, endUtc]
     );
     return result.rows;
   },
