@@ -8,19 +8,6 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: reservas_saas
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready -U postgres
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,12 +22,19 @@ jobs:
       - name: Build
         working-directory: backend
         run: npm run build
+      - name: Start PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql
+          sudo systemctl start postgresql || sudo service postgresql start
+          sudo -u postgres psql -c "CREATE ROLE runner WITH LOGIN PASSWORD 'runner' SUPERUSER;"
+          sudo -u postgres createdb -O runner reservas_saas
       - name: Tests
         working-directory: backend
         env:
           DB_HOST: localhost
-          DB_USER: postgres
-          DB_PASSWORD: postgres
+          DB_USER: runner
+          DB_PASSWORD: runner
           DB_NAME: reservas_saas
           DB_PORT: 5432
           JWT_SECRET: ci-secret
