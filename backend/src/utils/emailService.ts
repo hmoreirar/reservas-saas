@@ -18,6 +18,11 @@ const transporter = smtpConfigured()
     })
   : null;
 
+// Gmail exige que el remitente coincida con la cuenta autenticada.
+const FROM =
+  process.env.SMTP_FROM ||
+  (process.env.SMTP_USER ? `"Reservas SaaS" <${process.env.SMTP_USER}>` : '"Reservas SaaS" <noreply@reservassaas.com>');
+
 const formatDate = (dateStr: string): string => {
   try {
     const d = new Date(dateStr);
@@ -55,8 +60,7 @@ export const sendBookingConfirmation = async (
   if (!transporter) return;
 
   await transporter.sendMail({
-    from:
-      process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
+    from: FROM,
     to: clientEmail,
     subject: `Confirmacion de tu reserva: ${service?.name || 'Servicio'}`,
     html: `
@@ -88,8 +92,7 @@ export const sendBookingCancellation = async (
   if (!transporter) return;
 
   await transporter.sendMail({
-    from:
-      process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
+    from: FROM,
     to: clientEmail,
     subject: `Reserva cancelada: ${service?.name || 'Servicio'}`,
     html: `
@@ -119,8 +122,7 @@ export const sendProviderNotification = async (
 
   const statusLabel = booking?.status === 'pending' ? ' (pendiente de confirmacion)' : '';
   await transporter.sendMail({
-    from:
-      process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
+    from: FROM,
     to: providerEmail,
     subject: `Nueva reserva${statusLabel}: ${service?.name || 'Servicio'}`,
     html: `
@@ -150,7 +152,7 @@ export const sendBookingConfirmed = async (
   if (!transporter) return;
 
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
+    from: FROM,
     to: clientEmail,
     subject: `Reserva confirmada: ${service?.name || 'Servicio'}`,
     html: `
@@ -180,7 +182,7 @@ export const sendBookingDeclined = async (
   if (!transporter) return;
 
   await transporter.sendMail({
-    from: process.env.SMTP_FROM || '"Reservas SaaS" <noreply@reservassaas.com>',
+    from: FROM,
     to: clientEmail,
     subject: `Reserva rechazada: ${service?.name || 'Servicio'}`,
     html: `
