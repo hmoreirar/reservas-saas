@@ -31,6 +31,18 @@ JWT con bcrypt para auth, validacion con Zod, manejo de errores con AppError
 - BookingWizard: componente paso a paso con progress bar (3 pasos: Horario, Tus datos, Confirmar)
 - Reemplazado PublicBookingModal por BookingWizard inline en BookingPage
 
+### Fase 4 — Security pass (commit c58c190)
+- PII leak cerrado: endpoint publico por slug ya no expone `provider_email`
+- Guard de estados: reschedule/cancel rechazan reservas que no esten pending/confirmed
+- Rate limit en registro (5/min por IP)
+- Escape de HTML en correos + sanitizacion de asuntos (header injection)
+
+### Fase 5 — Deploy Koyeb + Neon (commit pendiente)
+- `Dockerfile` multi-stage (node:22, layout repo intacto para static path)
+- `docker-compose.yml` (app + postgres) y `.dockerignore`
+- `backend/src/scripts/seedDemo.ts`: seed idempotente (gate `SEED_DEMO=true`), usuario demo `demo@reservas-saas.dev` / `demo1234`
+- README reescrito: deploy Koyeb/Neon, Docker, datos demo. Eliminado `railway.toml`
+
 ### Pendiente — Deuda tecnica
 - ~~Migrar googleCalendar.js y zoom.js a TypeScript con logger Pino~~ (completado)
 - ~~Agregar res.ok validation en frontend api.ts~~ (completado)

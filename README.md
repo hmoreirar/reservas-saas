@@ -4,11 +4,11 @@
 ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB)
 ![Express](https://img.shields.io/badge/Express-000?logo=express&logoColor=fff)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=fff)
-![Railway](https://img.shields.io/badge/Railway-0B0D0E?logo=railway&logoColor=fff)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff)
 
 > Sistema de agendamiento de turnos tipo Calendly. Los proveedores gestionan servicios desde un dashboard y los clientes reservan sin necesidad de login.
 
-🔗 **Demo:** [reservas-saas-production.up.railway.app](https://reservas-saas-production.up.railway.app/)
+🔗 **Demo:** se despliega gratis con Koyeb + Neon en ~10 min (ver [Deploy](#deploy-koyeb--neon)). Cuenta demo incluida con datos de ejemplo.
 
 ---
 
@@ -21,7 +21,7 @@
 | Base de datos | PostgreSQL |
 | Auth | JWT (bcrypt + jsonwebtoken) |
 | Email | Nodemailer (opcional) |
-| Deploy | Railway |
+| Deploy | Koyeb + Neon (free tier), Docker |
 
 ## Features
 
@@ -53,8 +53,21 @@
 
 ## Inicio rápido
 
+### Opcion 1: Docker (recomendada)
+
 ```bash
-git clone https://github.com/tu-usuario/reservas-saas.git
+git clone https://github.com/hmoreirar/reservas-saas.git
+cd reservas-saas
+docker compose up --build        # → http://localhost:3000
+
+# (opcional) datos de ejemplo
+docker compose run --rm -e SEED_DEMO=true app node dist/scripts/seedDemo.js
+```
+
+### Opcion 2: local
+
+```bash
+git clone https://github.com/hmoreirar/reservas-saas.git
 cd reservas-saas
 
 # Backend
@@ -80,6 +93,57 @@ SMTP_USER=tu-email
 SMTP_PASS=tu-password
 ```
 
+### Datos de demo
+
+```bash
+cd backend
+SEED_DEMO=true npm run seed
+```
+
+Crea proveedor demo, 3 servicios con horarios y descansos, reservas en varios
+estados. Idempotente: repetir no duplica datos.
+
+| Credencial | Valor |
+|---|---|
+| Email | `demo@reservas-saas.dev` |
+| Password | `demo1234` |
+| Reserva publica | `/book/corte-demo-book` |
+
+## Deploy (Koyeb + Neon)
+
+Gratis, sin tarjeta de credito. ~10 minutos.
+
+### 1. Base de datos (Neon)
+
+1. Crear cuenta en [neon.com](https://neon.com) y un proyecto (plan Free)
+2. Copiar el `DATABASE_URL` (connection pooling esta bien: las transacciones
+   usan `pg_advisory_xact_lock` dentro de `BEGIN/COMMIT`, pinneadas a un backend)
+3. Restaurar datos si vienes de otro host:
+   `pg_restore "$DATABASE_URL" --no-owner --no-privileges -d neondb reservas-saas.dump`
+4. Las migraciones corren solas al arrancar (`runMigrations`)
+
+### 2. App (Koyeb)
+
+1. Crear cuenta en [koyeb.com](https://koyeb.com) y conectar el repo de GitHub
+2. Tipo de servicio: **Dockerfile** (region Washington DC o Frankfurt, free instance)
+3. Variables de entorno:
+
+```
+DATABASE_URL=postgresql://...     # de Neon
+JWT_SECRET=un-secreto-largo
+NODE_ENV=production
+FRONTEND_URL=https://<tu-app>.koyeb.app
+```
+
+4. Healthcheck: `/api/health`
+5. (Opcional) seed de demo: correr `node dist/scripts/seedDemo.js` con `SEED_DEMO=true` como job manual o desde terminal local apuntando a Neon
+
+### 3. SMTP (opcional)
+
+Sin SMTP configurado el sistema funciona completo, solo no envia correos.
+Para activarlos: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` (Gmail usa
+`SMTP_USER` como remitente).
+
 ## API
 
 | Método | Ruta | Descripción |
@@ -102,9 +166,10 @@ SMTP_PASS=tu-password
 reservas-saas/
 ├── backend/
 │   └── src/
-│       ├── config/        # Conexión DB, auth
+│       ├── config/        # Conexión DB, rate limit
 │       ├── routes/        # Rutas de la API
-│       └── server.js      # Entry point
+│       ├── scripts/       # seedDemo.ts (datos de ejemplo)
+│       └── server.ts      # Entry point
 ├── frontend/
 │   └── src/
 │       ├── api/           # Cliente API con tipos TypeScript
@@ -114,7 +179,8 @@ reservas-saas/
 │       ├── hooks/         # Custom hooks (useWeekDays)
 │       ├── pages/         # LoginPage, BookingPage
 │       ├── types/         # Interfaces TypeScript
-│       └── App.tsx        # Orquestador del dashboard
+│       └── main.tsx       # Router y providers
 ├── screenshots/           # Capturas de pantalla
-└── railway.toml           # Configuración de Railway
+├── Dockerfile             # Build multi-stage (frontend + backend)
+└── docker-compose.yml     # App + PostgreSQL para desarrollo
 ```
