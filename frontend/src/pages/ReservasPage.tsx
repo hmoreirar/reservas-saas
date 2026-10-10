@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import MyBookings from "../components/MyBookings";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
@@ -25,36 +25,37 @@ export default function ReservasPage() {
   const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
   const [rescheduleTarget, setRescheduleTarget] = useState<Booking | null>(null);
 
+  const abortRef = useRef<AbortController | null>(null);
+
   const loadMyBookings = useCallback(async (p: number, s: string, f: string) => {
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
     setFetching(true);
     try {
-      const data = await getMyBookings(p, 20, s || undefined, f || undefined);
+      const data = await getMyBookings(p, 20, s || undefined, f || undefined, ctrl.signal);
       setMyBookings(data.data);
       setTotal(data.total);
       setPage(data.page);
       setTotalPages(data.totalPages);
     } catch (e) {
+      if (ctrl.signal.aborted) return;
       setMyBookings([]);
       showToast(errorMessage(e, "Error al cargar reservas"), "error");
     } finally {
-      setLoading(false);
-      setFetching(false);
+      if (abortRef.current === ctrl) {
+        setLoading(false);
+        setFetching(false);
+      }
     }
   }, []);
 
+  // Debounce: una busqueda por tipeo sin debounce dispara requests de mas,
+  // y la respuesta lenta vieja puede pisar a la nueva (race).
   useEffect(() => {
-    loadMyBookings(page, search, statusFilter);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleSearchChange = (q: string) => {
-    setSearch(q);
-    loadMyBookings(1, q, statusFilter);
-  };
-
-  const handleFilterChange = (f: string) => {
-    setStatusFilter(f);
-    loadMyBookings(1, search, f);
-  };
+    const t = setTimeout(() => loadMyBookings(1, search, statusFilter), 300);
+    return () => clearTimeout(t);
+  }, [search, statusFilter, loadMyBookings]);
 
   const handlePageChange = (p: number) => {
     loadMyBookings(p, search, statusFilter);
@@ -130,8 +131,8 @@ export default function ReservasPage() {
         totalPages={totalPages}
         search={search}
         statusFilter={statusFilter}
-        onSearchChange={handleSearchChange}
-        onFilterChange={handleFilterChange}
+        onSearchChange={setSearch}
+        onFilterChange={setStatusFilter}
         onPageChange={handlePageChange}
         onReschedule={handleReschedule}
         onCancel={handleCancelClick}

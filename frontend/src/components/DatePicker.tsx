@@ -16,8 +16,8 @@ export default function DatePicker({ selectedDate, onSelect, weekOffset, onPrevW
 
   const firstDay = weekDays[0]!;
   const lastDay = weekDays[6]!;
-  const firstMonth = firstDay.toLocaleDateString("es-ES", { month: "long" });
-  const lastMonth = lastDay.toLocaleDateString("es-ES", { month: "long" });
+  const firstMonth = firstDay.toLocaleDateString("es-CL", { month: "long" });
+  const lastMonth = lastDay.toLocaleDateString("es-CL", { month: "long" });
   const firstYear = firstDay.getFullYear();
   const lastYear = lastDay.getFullYear();
 
@@ -67,7 +67,7 @@ export default function DatePicker({ selectedDate, onSelect, weekOffset, onPrevW
               }`}
             >
               <span className="font-medium capitalize">
-                {day.toLocaleDateString("es-ES", { weekday: "short" })}
+                {day.toLocaleDateString("es-CL", { weekday: "short" })}
               </span>
               <span
                 className={`tabular-nums ${

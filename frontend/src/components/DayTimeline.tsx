@@ -52,7 +52,7 @@ interface TimelineRowProps {
 }
 
 function TimelineRow({ slot, onClick }: TimelineRowProps) {
-  const timeLabel = new Date(slot.start).toLocaleTimeString("es-ES", {
+  const timeLabel = new Date(slot.start).toLocaleTimeString("es-CL", {
     hour: "2-digit",
     minute: "2-digit",
   });

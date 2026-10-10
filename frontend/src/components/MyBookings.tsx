@@ -54,7 +54,11 @@ export default function MyBookings({
     setDeclineReason("");
   };
 
-  if (total === 0) {
+  const isFiltered = Boolean(search || statusFilter);
+
+  // Con filtros activos nunca se ocultan los controles: si no, el usuario
+  // no puede limpiar la busqueda que dejo la lista vacia.
+  if (total === 0 && !isFiltered) {
     return (
       <EmptyState
         variant="bookings"

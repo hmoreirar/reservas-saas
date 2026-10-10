@@ -34,7 +34,10 @@ export default function WizardProgressBar({ steps, currentStep }: WizardProgress
 
         return (
           <div key={step.label} className="flex items-center">
-            <div className="flex flex-col items-center gap-1.5">
+            <div
+              className="flex flex-col items-center gap-1.5"
+              aria-current={status === "current" ? "step" : undefined}
+            >
               <div
                 className={`flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-semibold transition-all ${styles.circle}`}
               >

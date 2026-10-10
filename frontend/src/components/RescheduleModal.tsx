@@ -83,7 +83,7 @@ export default function RescheduleModal({ booking, onClose, onConfirm }: Resched
                   : "border-border text-text hover:border-accent hover:text-accent"
               }`}
             >
-              {new Date(slot.start).toLocaleTimeString("es-ES", {
+              {new Date(slot.start).toLocaleTimeString("es-CL", {
                 hour: "2-digit",
                 minute: "2-digit",
               })}

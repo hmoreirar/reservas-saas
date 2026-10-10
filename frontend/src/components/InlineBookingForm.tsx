@@ -23,7 +23,7 @@ export default function InlineBookingForm({
   const [isBooking, setIsBooking] = useState(false);
   const [error, setError] = useState("");
 
-  const timeLabel = new Date(slot.start).toLocaleTimeString("es-ES", {
+  const timeLabel = new Date(slot.start).toLocaleTimeString("es-CL", {
     hour: "2-digit",
     minute: "2-digit",
   });

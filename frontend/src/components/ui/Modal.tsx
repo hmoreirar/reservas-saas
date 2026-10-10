@@ -77,12 +77,12 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
     <div
       className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/10"
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
     >
       <div
         ref={modalRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
         className="mx-4 w-[calc(100vw-32px)] max-w-md rounded-xl border border-border bg-surface p-8"
         onClick={(e) => e.stopPropagation()}
       >

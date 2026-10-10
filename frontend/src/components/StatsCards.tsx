@@ -85,7 +85,7 @@ export default function StatsCards({ stats, period, onPeriodChange }: StatsCards
             <div className="flex items-end gap-2" style={{ height: 120 }}>
               {stats.last7Days.map((day) => {
                 const height = (day.total / maxLast7) * 100;
-                const label = new Date(day.date + "T12:00:00").toLocaleDateString("es-ES", {
+                const label = new Date(day.date + "T12:00:00").toLocaleDateString("es-CL", {
                   weekday: "short",
                 });
                 return (

@@ -19,7 +19,7 @@ export default function BookingPopover({
   onCancel,
   onClose,
 }: BookingPopoverProps) {
-  const timeLabel = new Date(booking.start_time).toLocaleTimeString("es-ES", {
+  const timeLabel = new Date(booking.start_time).toLocaleTimeString("es-CL", {
     hour: "2-digit",
     minute: "2-digit",
   });

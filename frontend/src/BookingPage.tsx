@@ -160,12 +160,14 @@ export default function BookingPage() {
                 </div>
               ) : availableSlots.length === 0 ? (
                 <div className="py-12 text-center">
-                  <p className="text-sm text-text-muted">
-                    No hay horarios disponibles para esta fecha.
+                  <p className={`text-sm ${error ? "text-danger" : "text-text-muted"}`}>
+                    {error || "No hay horarios disponibles para esta fecha."}
                   </p>
-                  <p className="mt-1 text-xs text-text-muted">
-                    Prueba seleccionar otro dia en el calendario.
-                  </p>
+                  {!error && (
+                    <p className="mt-1 text-xs text-text-muted">
+                      Prueba seleccionar otro dia en el calendario.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <>
@@ -183,7 +185,7 @@ export default function BookingPage() {
                               : "border-border text-text hover:border-accent hover:text-accent"
                           } disabled:cursor-not-allowed disabled:opacity-40`}
                         >
-                          {new Date(slot.start).toLocaleTimeString("es-ES", {
+                          {new Date(slot.start).toLocaleTimeString("es-CL", {
                             hour: "2-digit",
                             minute: "2-digit",
                             timeZone: service?.timezone || undefined,

@@ -13,7 +13,7 @@ export default function Pagination({ page, totalPages, total, onPageChange }: Pa
   );
 
   return (
-    <div className="flex items-center justify-between pt-2">
+    <nav aria-label="Paginacion" className="flex items-center justify-between pt-2">
       <p className="text-sm text-text-muted">{total} reserva{total !== 1 ? "s" : ""}</p>
       <div className="flex items-center gap-3">
         <Button
@@ -34,6 +34,6 @@ export default function Pagination({ page, totalPages, total, onPageChange }: Pa
           Siguiente &rarr;
         </Button>
       </div>
-    </div>
+    </nav>
   );
 }

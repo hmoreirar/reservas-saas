@@ -35,7 +35,7 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
     year: "numeric",
   });
 
-  const formattedTime = new Date(slot.start).toLocaleTimeString("es-ES", {
+  const formattedTime = new Date(slot.start).toLocaleTimeString("es-CL", {
     hour: "2-digit",
     minute: "2-digit",
     timeZone: service.timezone || undefined,
