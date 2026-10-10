@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router";
-import { getServiceBySlug, getPublicAvailability, createPublicBooking } from "./api/api";
+import { getServiceBySlug, getPublicAvailability, createPublicBooking, errorMessage } from "./api/api";
 import { useWeekOffset } from "./hooks/useWeekOffset";
-import { todayDateOnly } from "./utils/dates";
+import { todayDateOnly } from "@reservas/shared";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import BookingSuccess from "./components/BookingSuccess";
 import BookingWizard from "./components/BookingWizard";
@@ -30,14 +30,9 @@ export default function BookingPage() {
     if (!slug) return;
     const load = async () => {
       try {
-        const data = await getServiceBySlug(slug);
-        if ("id" in data) {
-          setService(data);
-        } else {
-          setError("Servicio no encontrado");
-        }
-      } catch {
-        setError("Error al cargar servicio");
+        setService(await getServiceBySlug(slug));
+      } catch (e) {
+        setError(errorMessage(e, "Error al cargar servicio"));
       } finally {
         setLoading(false);
       }
@@ -52,16 +47,10 @@ export default function BookingPage() {
     setError("");
     const load = async () => {
       try {
-        const data = await getPublicAvailability(service.id, selectedDate);
-        if (Array.isArray(data)) {
-          setAvailableSlots(data);
-        } else {
-          setAvailableSlots([]);
-          setError(data.error || "Error al cargar horarios");
-        }
-      } catch {
+        setAvailableSlots(await getPublicAvailability(service.id, selectedDate));
+      } catch (e) {
         setAvailableSlots([]);
-        setError("Error al cargar horarios");
+        setError(errorMessage(e, "Error al cargar horarios"));
       } finally {
         setSlotsLoading(false);
       }
@@ -73,16 +62,13 @@ export default function BookingPage() {
     async (name: string, email: string, notes: string) => {
       if (!service || !selectedSlot) return "Error inesperado";
       try {
-        const data = await createPublicBooking(service.id, name, email, selectedSlot.start, notes);
-        if (data.booking?.id) {
-          setBookingSuccess(true);
-          setWizardActive(false);
-          setClientEmail(email);
-          return null;
-        }
-        return data.error || "Error al crear reserva";
-      } catch {
-        return "Error de conexion. Intenta de nuevo.";
+        await createPublicBooking(service.id, name, email, selectedSlot.start, notes);
+        setBookingSuccess(true);
+        setWizardActive(false);
+        setClientEmail(email);
+        return null;
+      } catch (e) {
+        return errorMessage(e, "Error al crear reserva");
       }
     },
     [service, selectedSlot]
@@ -124,9 +110,9 @@ export default function BookingPage() {
         <p className="mt-2 opacity-90">
           {service?.description} &bull; ${service?.price} &bull; {service?.duration}min
         </p>
-        {service && "provider_name" in service && (
+        {service?.provider_name && (
           <p className="mt-2 text-sm opacity-80">
-            Provider: {(service as Record<string, unknown>).provider_name as string}
+            Proveedor: {service.provider_name}
           </p>
         )}
       </div>

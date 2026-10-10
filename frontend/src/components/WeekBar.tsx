@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { getWeekDays, todayDateOnly, toDateOnly } from "../utils/dates";
+import { getWeekDays, todayDateOnly, toDateOnly } from "@reservas/shared";
 
 interface WeekBarProps {
   selectedDate: string;

@@ -1,0 +1,10 @@
+{
+  "name": "@reservas/shared",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Contrato wire y utilidades compartidas entre frontend y backend",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

@@ -48,7 +48,6 @@ jobs:
         with:
           node-version: 22
       - name: Install
-        working-directory: frontend
         run: npm ci
       - name: Typecheck
         working-directory: frontend

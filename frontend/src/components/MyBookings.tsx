@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Booking } from "../types";
+import type { Booking, BookingStatusAction } from "../types";
 import Input from "./ui/Input";
 import EmptyState from "./ui/EmptyState";
 import Modal from "./ui/Modal";
@@ -19,7 +19,7 @@ interface MyBookingsProps {
   onPageChange: (p: number) => void;
   onReschedule: (id: number) => void;
   onCancel: (id: number) => void;
-  onStatusChange: (id: number, status: string, reason?: string) => void;
+  onStatusChange: (id: number, status: BookingStatusAction, reason?: string) => void;
 }
 
 const FILTERS = [

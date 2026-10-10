@@ -1,11 +1,11 @@
 import Button from "./ui/Button";
 import StatusBadge from "./ui/StatusBadge";
-import type { Booking } from "../types";
+import type { Booking, BookingStatusAction } from "../types";
 
 interface BookingPopoverProps {
   booking: Booking;
   serviceName: string;
-  onStatusChange: (id: number, status: string, reason?: string) => void;
+  onStatusChange: (id: number, status: BookingStatusAction, reason?: string) => void;
   onReschedule: (id: number) => void;
   onCancel: (id: number) => void;
   onClose: () => void;

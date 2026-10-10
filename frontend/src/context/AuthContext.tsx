@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
-import { loginUser, registerUser } from "../api/api";
+import { loginUser, registerUser, errorMessage } from "../api/api";
 
 interface User {
   id: number;
@@ -31,21 +31,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(getStoredUser);
 
   const login = useCallback(async (email: string, password: string) => {
-    const data = await loginUser(email, password);
-    if (data.token && data.user) {
+    try {
+      const data = await loginUser(email, password);
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       setToken(data.token);
       setUser(data.user);
       return null;
+    } catch (e) {
+      return errorMessage(e, "Error en login");
     }
-    return data.error || "Error en login";
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
-    const data = await registerUser(name, email, password);
-    if (data.id) return null;
-    return data.error || "Error al registrar";
+    try {
+      await registerUser(name, email, password);
+      return null;
+    } catch (e) {
+      return errorMessage(e, "Error al registrar");
+    }
   }, []);
 
   const logout = useCallback(() => {

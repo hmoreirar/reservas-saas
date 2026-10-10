@@ -3,30 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "frontend",
+    "packages/shared"
+  ],
   "scripts": {
-    "build": "cd backend && npm install && npx tsc && cd ../frontend && npm install && npm run build",
+    "build": "npm run build -w frontend && cd backend && npm install && npm run build",
     "start": "cd backend && node dist/server.js",
     "dev": "cd backend && npx tsx watch src/server.ts",
-    "dev:frontend": "cd frontend && npm run dev",
+    "dev:frontend": "npm run dev -w frontend",
     "test": "cd backend && npx vitest run",
-    "test:frontend": "cd frontend && npm test",
+    "test:frontend": "npm test -w frontend",
     "test:watch": "cd backend && npx vitest",
     "typecheck": "cd backend && npx tsc --noEmit",
-    "typecheck:frontend": "cd frontend && npx tsc -p tsconfig.app.json --noEmit",
-    "lint:frontend": "cd frontend && npm run lint"
-  },
-  "dependencies": {
-    "bcrypt": "^6.0.0",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "googleapis": "^128.0.0",
-    "jsonwebtoken": "^9.0.3",
-    "nodemailer": "^6.9.8",
-    "pg": "^8.20.0",
-    "uuid": "^9.0.1"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+    "typecheck:frontend": "npm run typecheck -w frontend",
+    "lint:frontend": "npm run lint -w frontend"
   }
 }

@@ -3,8 +3,8 @@ import Modal from "./ui/Modal";
 import Button from "./ui/Button";
 import Input from "./ui/Input";
 import LoadingSpinner from "./ui/LoadingSpinner";
-import { getAvailability } from "../api/api";
-import { todayDateOnly, toDateOnly } from "../utils/dates";
+import { getAvailability, errorMessage } from "../api/api";
+import { todayDateOnly, toDateOnly } from "@reservas/shared";
 import type { Booking, TimeSlot } from "../types";
 
 interface RescheduleModalProps {
@@ -26,18 +26,10 @@ export default function RescheduleModal({ booking, onClose, onConfirm }: Resched
     setError("");
     setSelectedSlot(null);
     try {
-      const data = (await getAvailability(booking.service_id, d)) as unknown as
-        | TimeSlot[]
-        | { error?: string };
-      if (Array.isArray(data)) {
-        setSlots(data);
-      } else {
-        setSlots([]);
-        setError(data.error || "Error al cargar horarios");
-      }
-    } catch {
+      setSlots(await getAvailability(booking.service_id, d));
+    } catch (e) {
       setSlots([]);
-      setError("Error al cargar horarios");
+      setError(errorMessage(e, "Error al cargar horarios"));
     } finally {
       setLoading(false);
     }

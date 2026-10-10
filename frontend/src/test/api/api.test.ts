@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { loginUser, getMyBookings, createPublicBooking } from "../../api/api";
+import { loginUser, getMyBookings, createPublicBooking, ApiError } from "../../api/api";
 
 const mockFetch = vi.fn();
 vi.stubGlobal("fetch", mockFetch);
@@ -12,7 +12,7 @@ describe("loginUser", () => {
   it("returns token on success", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ token: "abc" }),
+      json: async () => ({ token: "abc", user: { id: 1, name: "A", email: "a@b.com" } }),
     });
 
     const result = await loginUser("a@b.com", "123");
@@ -26,27 +26,42 @@ describe("loginUser", () => {
     );
   });
 
-  it("returns error when request fails", async () => {
+  it("throws ApiError with server message on 401", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 401,
       json: async () => ({ error: "Credenciales invalidas" }),
     });
 
-    const result = await loginUser("a@b.com", "wrong");
-    expect(result.error).toBe("Credenciales invalidas");
+    await expect(loginUser("a@b.com", "wrong")).rejects.toMatchObject({
+      name: "ApiError",
+      status: 401,
+      message: "Credenciales invalidas",
+    });
   });
 
-  it("returns generic error on network failure", async () => {
+  it("throws ApiError when the network is down", async () => {
+    mockFetch.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+
+    const err = await loginUser("a@b.com", "123").catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.status).toBe(0);
+    expect(err.message).toContain("conexion");
+  });
+
+  it("throws ApiError with generic message when body is not JSON", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
       status: 500,
       statusText: "Internal Server Error",
-      json: async () => { throw new Error("not json"); },
+      json: async () => {
+        throw new Error("not json");
+      },
     });
 
-    const result = await loginUser("a@b.com", "123");
-    expect(result.error).toContain("500");
+    const err = await loginUser("a@b.com", "123").catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.message).toContain("500");
   });
 });
 
@@ -74,14 +89,14 @@ describe("getMyBookings", () => {
 });
 
 describe("createPublicBooking", () => {
-  it("sends correct body", async () => {
+  it("sends correct body and returns booking", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ booking: { id: 1 } }),
     });
 
     const result = await createPublicBooking(1, "Juan", "j@b.com", "2026-07-01T10:00:00");
-    expect(result.booking?.id).toBe(1);
+    expect(result.booking.id).toBe(1);
     expect(mockFetch).toHaveBeenCalledWith(
       expect.stringContaining("/api/bookings/public"),
       expect.objectContaining({

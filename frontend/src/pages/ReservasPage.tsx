@@ -9,8 +9,9 @@ import {
   cancelBooking,
   updateBookingStatus,
   rescheduleBooking,
+  errorMessage,
 } from "../api/api";
-import type { Booking, PaginatedBookings } from "../types";
+import type { Booking, BookingStatusAction } from "../types";
 
 export default function ReservasPage() {
   const [myBookings, setMyBookings] = useState<Booking[]>([]);
@@ -26,15 +27,19 @@ export default function ReservasPage() {
 
   const loadMyBookings = useCallback(async (p: number, s: string, f: string) => {
     setFetching(true);
-    const data: PaginatedBookings = await getMyBookings(p, 20, s || undefined, f || undefined);
-    if ("data" in data) {
+    try {
+      const data = await getMyBookings(p, 20, s || undefined, f || undefined);
       setMyBookings(data.data);
       setTotal(data.total);
       setPage(data.page);
       setTotalPages(data.totalPages);
+    } catch (e) {
+      setMyBookings([]);
+      showToast(errorMessage(e, "Error al cargar reservas"), "error");
+    } finally {
+      setLoading(false);
+      setFetching(false);
     }
-    setLoading(false);
-    setFetching(false);
   }, []);
 
   useEffect(() => {
@@ -67,53 +72,42 @@ export default function ReservasPage() {
   const confirmReschedule = async (newStartTime: string) => {
     if (!rescheduleTarget) return "Error inesperado";
     try {
-      const data = await rescheduleBooking(rescheduleTarget.id, newStartTime);
-      if (data.message) {
-        setRescheduleTarget(null);
-        loadMyBookings(page, search, statusFilter);
-        showToast("Reserva reprogramada", "success");
-        return null;
-      }
-      return data.error || "Error al reprogramar";
-    } catch {
-      return "Error de conexion. Intenta de nuevo.";
+      await rescheduleBooking(rescheduleTarget.id, newStartTime);
+      setRescheduleTarget(null);
+      loadMyBookings(page, search, statusFilter);
+      showToast("Reserva reprogramada", "success");
+      return null;
+    } catch (e) {
+      return errorMessage(e, "Error al reprogramar");
     }
   };
 
   const confirmCancel = async () => {
     if (cancelConfirm === null) return;
     try {
-      const data = await cancelBooking(cancelConfirm);
-      if (data.message) {
-        loadMyBookings(page, search, statusFilter);
-        showToast("Reserva cancelada", "success");
-      } else {
-        showToast(data.error || "Error al cancelar reserva", "error");
-      }
-    } catch {
-      showToast("Error de conexion. Intenta de nuevo.", "error");
+      await cancelBooking(cancelConfirm);
+      loadMyBookings(page, search, statusFilter);
+      showToast("Reserva cancelada", "success");
+    } catch (e) {
+      showToast(errorMessage(e, "Error al cancelar reserva"), "error");
     }
     setCancelConfirm(null);
   };
 
-  const handleUpdateStatus = async (id: number, status: string, reason?: string) => {
+  const handleUpdateStatus = async (id: number, status: BookingStatusAction, reason?: string) => {
     try {
-      const data = await updateBookingStatus(id, status, reason);
-      if (data.message) {
-        loadMyBookings(page, search, statusFilter);
-        const labels: Record<string, string> = {
-          confirmed: "Reserva confirmada",
-          declined: "Reserva rechazada",
-          completed: "Reserva completada",
-          "no-show": "Cliente no asistio",
-          cancelled: "Reserva cancelada",
-        };
-        showToast(labels[status] || "Estado actualizado", "success");
-      } else {
-        showToast(data.error || "Error al actualizar estado", "error");
-      }
-    } catch {
-      showToast("Error de conexion. Intenta de nuevo.", "error");
+      await updateBookingStatus(id, status, reason);
+      loadMyBookings(page, search, statusFilter);
+      const labels: Record<string, string> = {
+        confirmed: "Reserva confirmada",
+        declined: "Reserva rechazada",
+        completed: "Reserva completada",
+        "no-show": "Cliente no asistio",
+        cancelled: "Reserva cancelada",
+      };
+      showToast(labels[status] || "Estado actualizado", "success");
+    } catch (e) {
+      showToast(errorMessage(e, "Error al actualizar estado"), "error");
     }
   };
 

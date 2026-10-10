@@ -7,6 +7,7 @@ import {
   createService,
   updateService,
   deleteService,
+  errorMessage,
 } from "../api/api";
 import type { Service } from "../types";
 
@@ -16,20 +17,13 @@ export default function ServiciosPage() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const publicBaseUrl = window.location.origin;
 
-  useEffect(() => {
-    getServices().then((data) => {
-      if (Array.isArray(data)) setServices(data);
-    });
-  }, []);
-
-  const loadServices = async (): Promise<Service[]> => {
-    const data = await getServices();
-    if (Array.isArray(data)) {
-      setServices(data);
-      return data;
-    }
-    return [];
+  const loadServices = async (): Promise<void> => {
+    setServices(await getServices());
   };
+
+  useEffect(() => {
+    loadServices().catch((e) => showToast(errorMessage(e, "Error al cargar servicios"), "error"));
+  }, []);
 
   const handleSaveService = async (formData: {
     name: string;
@@ -45,21 +39,22 @@ export default function ServiciosPage() {
       ...formData,
       price: formData.price === "" || formData.price === null ? undefined : Number(formData.price),
     };
-    const data = editingService
-      ? await updateService(editingService.id, payload)
-      : await createService(payload);
-    if (data.id) {
-      const list = await loadServices();
+    try {
+      const saved = editingService
+        ? await updateService(editingService.id, payload)
+        : await createService(payload);
+      await loadServices();
       if (editingService) {
         showToast("Servicio actualizado", "success");
       } else {
-        setEditingService(list.find((s) => s.id === data.id) ?? null);
+        setEditingService(saved);
         showToast("Servicio creado", "success");
       }
       return true;
+    } catch (e) {
+      showToast(errorMessage(e, "Error al guardar servicio"), "error");
+      return false;
     }
-    showToast(data.error || "Error al guardar servicio", "error");
-    return false;
   };
 
   const handleNewService = () => {
@@ -80,8 +75,13 @@ export default function ServiciosPage() {
 
   const handleDeleteService = async (id: number) => {
     if (!confirm("¿Eliminar servicio?")) return;
-    const data = await deleteService(id);
-    if (data.message) loadServices();
+    try {
+      await deleteService(id);
+      await loadServices();
+      showToast("Servicio eliminado", "success");
+    } catch (e) {
+      showToast(errorMessage(e, "Error al eliminar servicio"), "error");
+    }
   };
 
   return (

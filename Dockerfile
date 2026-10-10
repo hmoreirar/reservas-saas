@@ -8,13 +8,15 @@ RUN npm ci
 COPY backend/ ./
 RUN npm run build && npm prune --omit=dev
 
-# Frontend: build estatico de Vite.
+# Frontend: build estatico de Vite. Workspaces en la raiz (frontend + packages/shared).
 FROM node:22-slim AS frontend-build
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY frontend/package.json frontend/
+COPY packages/shared packages/shared
 RUN npm ci
-COPY frontend/ ./
-RUN npm run build
+COPY frontend frontend
+RUN npm run build -w frontend
 
 # Runtime: layout del repo intacto. backend/dist/app.js resuelve
 # ../../frontend/dist -> /app/frontend/dist sin cambios de codigo.
