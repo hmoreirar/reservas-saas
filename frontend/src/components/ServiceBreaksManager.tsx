@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import Input from "./ui/Input";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import Modal from "./ui/Modal";
-import { getServiceBreaks, createServiceBreak, deleteServiceBreak } from "../api/api";
+import { getServiceBreaks, createServiceBreak, deleteServiceBreak, errorMessage } from "../api/api";
+import { showToast } from "./ui/Toast";
 import type { ServiceBreak } from "../types";
 
 interface ServiceBreaksManagerProps {
@@ -16,9 +17,13 @@ export default function ServiceBreaksManager({ serviceId }: ServiceBreaksManager
   const [form, setForm] = useState({ name: "", date: "", start_time: "", end_time: "", is_recurring: false });
 
   const load = useCallback(async () => {
-    const data = await getServiceBreaks(serviceId);
-    if (Array.isArray(data)) setBreaks(data);
-    setLoading(false);
+    try {
+      setBreaks(await getServiceBreaks(serviceId));
+    } catch (e) {
+      showToast(errorMessage(e, "Error al cargar bloqueos"), "error");
+    } finally {
+      setLoading(false);
+    }
   }, [serviceId]);
 
   useEffect(() => { load(); }, [load]);
@@ -26,16 +31,24 @@ export default function ServiceBreaksManager({ serviceId }: ServiceBreaksManager
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.date || !form.start_time || !form.end_time) return;
-    await createServiceBreak(serviceId, form);
-    setShowModal(false);
-    setForm({ name: "", date: "", start_time: "", end_time: "", is_recurring: false });
-    load();
+    try {
+      await createServiceBreak(serviceId, form);
+      setShowModal(false);
+      setForm({ name: "", date: "", start_time: "", end_time: "", is_recurring: false });
+      load();
+    } catch (err) {
+      showToast(errorMessage(err, "Error al crear bloqueo"), "error");
+    }
   };
 
   const handleDelete = async (id: number) => {
     if (!confirm("Eliminar este bloque?")) return;
-    await deleteServiceBreak(serviceId, id);
-    load();
+    try {
+      await deleteServiceBreak(serviceId, id);
+      load();
+    } catch (e) {
+      showToast(errorMessage(e, "Error al eliminar bloqueo"), "error");
+    }
   };
 
   const formatDate = (d: string) => {

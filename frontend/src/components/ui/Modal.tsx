@@ -69,7 +69,9 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       document.body.style.overflow = "";
       previousFocusRef.current?.focus();
     };
-  }, [open, onClose]);
+    // Solo al abrir/cerrar: con onClose en deps (suele ser inline) el efecto se
+    // re-ejecutaba con cada render y robaba el foco mientras se escribia.
+  }, [open]);
 
   if (!open) return null;
 

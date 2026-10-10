@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Input from "./ui/Input";
 import LoadingSpinner from "./ui/LoadingSpinner";
-import { getServiceHours, updateServiceHours } from "../api/api";
+import { getServiceHours, updateServiceHours, errorMessage } from "../api/api";
 import type { ServiceHour } from "../types";
 
 const DAY_NAMES = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
@@ -27,18 +27,23 @@ export default function ServiceHoursEditor({ serviceId }: ServiceHoursEditorProp
 
   useEffect(() => {
     const load = async () => {
-      const data = await getServiceHours(serviceId);
-      if (data && data.length > 0) {
-        setHours(
-          data.map((h: ServiceHour) => ({
-            day_of_week: h.day_of_week,
-            start_hour: h.start_hour,
-            end_hour: h.end_hour,
-            is_active: h.is_active,
-          }))
-        );
+      try {
+        const data = await getServiceHours(serviceId);
+        if (data && data.length > 0) {
+          setHours(
+            data.map((h: ServiceHour) => ({
+              day_of_week: h.day_of_week,
+              start_hour: h.start_hour,
+              end_hour: h.end_hour,
+              is_active: h.is_active,
+            }))
+          );
+        }
+      } catch (e) {
+        setMessage(errorMessage(e, "Error al cargar horarios"));
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     load();
   }, [serviceId]);

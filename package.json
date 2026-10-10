@@ -17,6 +17,11 @@
     "test:watch": "cd backend && npx vitest",
     "typecheck": "cd backend && npx tsc --noEmit",
     "typecheck:frontend": "npm run typecheck -w frontend",
-    "lint:frontend": "npm run lint -w frontend"
+    "lint:frontend": "npm run lint -w frontend",
+    "e2e:serve": "npm run build -w frontend && cd backend && npx tsx src/server.ts",
+    "test:e2e": "playwright test -c e2e/playwright.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0"
   }
 }

@@ -83,6 +83,8 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
         setJustCreated(true);
         setForm(initialData);
         setTab("horarios");
+      } else if (ok) {
+        handleClose();
       }
     } finally {
       setIsSubmitting(false);
@@ -216,6 +218,9 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
               Crea el servicio primero para configurar horarios por dia.
             </div>
           )}
+          <Button variant="secondary" type="button" onClick={handleClose} className="mt-4 w-full">
+            Cerrar
+          </Button>
         </div>
       )}
 
@@ -228,6 +233,9 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
               Crea el servicio primero para gestionar bloqueos.
             </div>
           )}
+          <Button variant="secondary" type="button" onClick={handleClose} className="mt-4 w-full">
+            Cerrar
+          </Button>
         </div>
       )}
     </Modal>
