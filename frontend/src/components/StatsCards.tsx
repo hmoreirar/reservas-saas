@@ -34,7 +34,7 @@ export default function StatsCards({ stats, period, onPeriodChange }: StatsCards
     { key: "confirmed", value: stats.confirmed },
     { key: "completed", value: stats.completed },
     { key: "cancelled", value: stats.cancelled },
-    { key: "revenue", value: `$${stats.revenue?.toLocaleString()}` },
+    { key: "revenue", value: `$${stats.revenue.toLocaleString()}` },
   ];
 
   return (
@@ -112,15 +112,13 @@ export default function StatsCards({ stats, period, onPeriodChange }: StatsCards
           ) : (
             <div className="space-y-3">
               {stats.byService.map((s) => {
-                const pct = stats.byService.length > 0
-                  ? Math.round((s.total / Math.max(...stats.byService.map((x) => x.total))) * 100)
-                  : 0;
+                const pct = Math.round((s.total / Math.max(...stats.byService.map((x) => x.total))) * 100);
                 return (
                   <div key={s.name}>
                     <div className="mb-1 flex items-center justify-between text-sm">
                       <span className="text-text">{s.name}</span>
                       <span className="font-medium text-text">
-                        {s.total} — ${s.revenue?.toLocaleString()}
+                        {s.total} — ${s.revenue.toLocaleString()}
                       </span>
                     </div>
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-bg">

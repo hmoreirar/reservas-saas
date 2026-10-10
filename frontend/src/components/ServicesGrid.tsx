@@ -4,8 +4,6 @@ import { showToast } from "./ui/Toast";
 
 interface ServicesGridProps {
   services: Service[];
-  selectedService: Service | null;
-  onSelectService: (service: Service) => void;
   onDeleteService: (id: number) => void;
   onNewService: () => void;
   publicBaseUrl: string;
@@ -13,8 +11,6 @@ interface ServicesGridProps {
 
 export default function ServicesGrid({
   services,
-  selectedService,
-  onSelectService,
   onDeleteService,
   onNewService,
   publicBaseUrl,
@@ -48,12 +44,7 @@ export default function ServicesGrid({
           {services.map((s) => (
             <div
               key={s.id}
-              className={`cursor-pointer rounded-xl border bg-surface p-5 transition-all hover:border-border-hover ${
-                selectedService?.id === s.id
-                  ? "border-accent"
-                  : "border-border"
-              }`}
-              onClick={() => onSelectService(s)}
+              className="rounded-xl border border-border bg-surface p-5 transition-all hover:border-border-hover"
             >
               <h3 className="m-0 mb-2 text-base font-semibold text-text">{s.name}</h3>
               <p className="mb-3 text-sm text-text-secondary">{s.description}</p>

@@ -60,8 +60,6 @@ export default function ServiciosPage() {
     <div className="animate-fade-in">
       <ServicesGrid
         services={services}
-        selectedService={null}
-        onSelectService={() => {}}
         onDeleteService={handleDeleteService}
         onNewService={() => setShowServiceModal(true)}
         publicBaseUrl={publicBaseUrl}

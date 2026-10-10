@@ -1,4 +1,4 @@
-import type { Service, Stats, TimeSlot, DayAgenda, WeekAgenda } from "../types";
+import type { Service, Stats, TimeSlot, DayAgenda } from "../types";
 
 const API_URL = import.meta.env.VITE_API_URL || "";
 
@@ -189,27 +189,6 @@ export const rescheduleBooking = async (id: number, newStartTime: string): Promi
   });
 };
 
-export const getStaff = async (): Promise<unknown[]> => {
-  return apiFetch(`${API_URL}/api/staff`, {
-    headers: authHeaders(),
-  });
-};
-
-export const addStaff = async (staffData: Record<string, unknown>): Promise<unknown> => {
-  return apiFetch(`${API_URL}/api/staff`, {
-    method: "POST",
-    headers: authHeaders(),
-    body: JSON.stringify(staffData),
-  });
-};
-
-export const deleteStaff = async (id: number): Promise<MessageResponse> => {
-  return apiFetch(`${API_URL}/api/staff/${id}`, {
-    method: "DELETE",
-    headers: authHeaders(),
-  });
-};
-
 export const getServiceHours = async (serviceId: number): Promise<import("../types").ServiceHour[]> => {
   return apiFetch(`${API_URL}/api/services/${serviceId}/hours`, {
     headers: authHeaders(),
@@ -249,14 +228,6 @@ export const getDayAgenda = async (date: string, serviceId?: number): Promise<Da
   const params = new URLSearchParams({ date });
   if (serviceId) params.set("service_id", String(serviceId));
   return apiFetch(`${API_URL}/api/agenda/day?${params}`, {
-    headers: authHeaders(),
-  });
-};
-
-export const getWeekAgenda = async (startDate: string, serviceId?: number): Promise<WeekAgenda[]> => {
-  const params = new URLSearchParams({ start_date: startDate });
-  if (serviceId) params.set("service_id", String(serviceId));
-  return apiFetch(`${API_URL}/api/agenda/week?${params}`, {
     headers: authHeaders(),
   });
 };

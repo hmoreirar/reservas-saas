@@ -1,22 +1,11 @@
 import { useMemo } from "react";
+import { getWeekDays } from "../hooks/useWeekDays";
 
 interface WeekBarProps {
   selectedDate: string;
   onDateChange: (date: string) => void;
   onPrevWeek: () => void;
   onNextWeek: () => void;
-}
-
-function getWeekDays(dateStr: string): Date[] {
-  const date = new Date(dateStr);
-  const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-  const monday = new Date(date.setDate(diff));
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    return d;
-  });
 }
 
 export default function WeekBar({

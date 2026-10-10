@@ -92,28 +92,10 @@ export interface DayAgenda {
   slots: TimelineSlot[];
 }
 
-export interface WeekDayOverview {
-  date: string;
-  day_of_week: number;
-  label: string;
-  total_slots: number;
-  booked: number;
-  available: number;
-  blocked: number;
-  past: number;
-}
-
 export interface PaginatedBookings {
   data: Booking[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
-}
-
-export interface WeekAgenda {
-  start_date: string;
-  service_id: number;
-  service_name: string;
-  days: WeekDayOverview[];
 }
