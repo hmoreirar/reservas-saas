@@ -128,16 +128,39 @@ describe('Booking Flow', () => {
     expect(booking.rows[0].status).toBe('cancelled');
   });
 
-  it('deberia reprogramar la reserva', async () => {
+  it('deberia rechazar reprogramar una reserva cancelada', async () => {
     const slots = await bookingService.getAvailability(serviceId, dateStr);
     expect(slots.length).toBeGreaterThan(0);
 
-    const result = await bookingService.reschedule(
-      bookingId,
-      slots[0].start,
-      userId
+    await expect(
+      bookingService.reschedule(bookingId, slots[0].start, userId)
+    ).rejects.toThrow('Solo reservas pendientes o confirmadas se pueden reprogramar');
+  });
+
+  it('deberia rechazar cancelar una reserva ya cancelada', async () => {
+    await expect(bookingService.cancel(bookingId, userId)).rejects.toThrow(
+      'Solo reservas pendientes o confirmadas se pueden cancelar'
     );
+  });
+
+  it('deberia reprogramar una reserva activa', async () => {
+    const slots = await bookingService.getAvailability(serviceId, dateStr);
+    expect(slots.length).toBeGreaterThan(1);
+
+    const booking = await bookingService.create(userId, {
+      service_id: serviceId,
+      client_name: 'Cliente Reprogramar',
+      client_email: 'reprogramar@test.com',
+      start_time: slots[0].start,
+    });
+
+    const free = await bookingService.getAvailability(serviceId, dateStr);
+    expect(free.length).toBeGreaterThan(0);
+
+    const result = await bookingService.reschedule(booking.id, free[0].start, userId);
     expect(result.message).toBe('Reserva reprogramada');
+
+    await pool.query('DELETE FROM bookings WHERE id = $1', [booking.id]);
   });
 });
 

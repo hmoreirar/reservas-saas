@@ -21,6 +21,9 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   confirmed: ['completed', 'cancelled', 'no-show'],
 };
 
+// Estados desde los que una reserva sigue viva y admite cambios de horario o cancelacion.
+const ACTIVE_STATUSES = ['pending', 'confirmed'];
+
 async function findServiceByIdOrSlug(serviceId: number | string): Promise<Service> {
   if (typeof serviceId === 'number' || !isNaN(Number(serviceId))) {
     const service = await serviceRepository.findById(Number(serviceId));
@@ -354,6 +357,9 @@ export const bookingService = {
     const booking = await bookingRepository.findWithService(id);
     if (!booking) throw new NotFoundError('Reserva no encontrada');
     if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
+    if (!ACTIVE_STATUSES.includes(booking.status)) {
+      throw new ConflictError('Solo reservas pendientes o confirmadas se pueden cancelar');
+    }
 
     await bookingRepository.updateStatus(id, 'cancelled');
 
@@ -377,6 +383,9 @@ export const bookingService = {
     const booking = await bookingRepository.findWithService(id);
     if (!booking) throw new NotFoundError('Reserva no encontrada');
     if (booking.user_id !== userId) throw new ForbiddenError('No tienes permiso');
+    if (!ACTIVE_STATUSES.includes(booking.status)) {
+      throw new ConflictError('Solo reservas pendientes o confirmadas se pueden reprogramar');
+    }
 
     const start = new Date(newStartTime);
     if (Number.isNaN(start.getTime()) || start <= new Date()) {

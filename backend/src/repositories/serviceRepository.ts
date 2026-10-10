@@ -13,10 +13,11 @@ export const serviceRepository = {
   },
 
   async findBySlug(slug: string): Promise<Service | undefined> {
+    // Endpoint publico: solo el nombre visible del proveedor, nunca el email de la cuenta.
     const result = await pool.query(
-      `SELECT s.*, u.name as provider_name, u.email as provider_email 
-       FROM services s 
-       JOIN users u ON s.user_id = u.id 
+      `SELECT s.*, u.name as provider_name
+       FROM services s
+       JOIN users u ON s.user_id = u.id
        WHERE s.slug = $1 OR s.booking_slug = $1`,
       [slug]
     );

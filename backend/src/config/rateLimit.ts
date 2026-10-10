@@ -11,6 +11,14 @@ export const loginLimiter = rateLimit({
   message,
 });
 
+export const registerLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  store: new PostgresRateLimitStore(),
+  keyGenerator: (req) => `register:${req.ip ?? 'unknown'}`,
+  message,
+});
+
 export const publicBookingLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,

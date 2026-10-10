@@ -417,6 +417,97 @@ describe('Rate limit store', () => {
   });
 });
 
+describe('Datos del proveedor en endpoints publicos', () => {
+  it('el servicio por slug no expone el email de la cuenta del proveedor', async () => {
+    const service = await createService(owner.token);
+    const res = await request(app).get(`/api/services/${service.booking_slug}`);
+    expect(res.status).toBe(200);
+    expect(res.body).toHaveProperty('provider_name');
+    expect(res.body).not.toHaveProperty('provider_email');
+    expect(JSON.stringify(res.body)).not.toContain('@');
+  });
+});
+
+describe('Transiciones de estado de reserva', () => {
+  it('no permite reprogramar ni recancelar una reserva cancelada', async () => {
+    const service = await createService(owner.token);
+    const slots = await getAvailability(owner.token, service.id, dateOnly(daysFromNow(1)));
+    const bookingRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({
+        service_id: service.id,
+        client_name: 'Cliente Estado',
+        client_email: 'estado@example.com',
+        start_time: slots[0].start,
+      });
+    expect(bookingRes.status).toBe(200);
+    const bookingId = (bookingRes.body as { id: number }).id;
+
+    const cancel = await request(app)
+      .put(`/api/bookings/${bookingId}/cancel`)
+      .set('Authorization', `Bearer ${owner.token}`);
+    expect(cancel.status).toBe(200);
+
+    const reschedule = await request(app)
+      .put(`/api/bookings/${bookingId}/reschedule`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ new_start_time: slots[1].start });
+    expect(reschedule.status).toBe(409);
+
+    const cancelAgain = await request(app)
+      .put(`/api/bookings/${bookingId}/cancel`)
+      .set('Authorization', `Bearer ${owner.token}`);
+    expect(cancelAgain.status).toBe(409);
+  });
+
+  it('permite reprogramar una reserva confirmada', async () => {
+    const service = await createService(owner.token);
+    const slots = await getAvailability(owner.token, service.id, dateOnly(daysFromNow(1)));
+    const bookingRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({
+        service_id: service.id,
+        client_name: 'Cliente Activo',
+        client_email: 'activo@example.com',
+        start_time: slots[0].start,
+      });
+    expect(bookingRes.status).toBe(200);
+    const bookingId = (bookingRes.body as { id: number }).id;
+
+    const reschedule = await request(app)
+      .put(`/api/bookings/${bookingId}/reschedule`)
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ new_start_time: slots[1].start });
+    expect(reschedule.status).toBe(200);
+  });
+});
+
+describe('Rate limit de registro', () => {
+  it('limita los registros repetidos desde la misma IP', async () => {
+    await pool.query('DELETE FROM rate_limits');
+    const stamp = Date.now();
+
+    const attempts = [];
+    for (let i = 0; i < 6; i++) {
+      attempts.push(
+        await request(app).post('/api/auth/register').send({
+          name: `Rate Limit ${i}`,
+          email: `ratelimit${stamp}${i}@example.com`,
+          password: 'password123',
+        })
+      );
+    }
+
+    expect(attempts.slice(0, 5).map((r) => r.status)).toEqual([201, 201, 201, 201, 201]);
+    expect(attempts[5].status).toBe(429);
+
+    await pool.query("DELETE FROM users WHERE email LIKE 'ratelimit%'");
+    await pool.query('DELETE FROM rate_limits');
+  });
+});
+
 describe('Cabeceras de seguridad', () => {
   it('expone cabeceras de helmet en las respuestas', async () => {
     const res = await request(app).get('/api/health');

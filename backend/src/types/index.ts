@@ -24,7 +24,6 @@ export interface Service {
   max_capacity: number;
   created_at: Date;
   provider_name?: string;
-  provider_email?: string;
 }
 
 export interface Booking {
