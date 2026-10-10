@@ -146,19 +146,38 @@ Para activarlos: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` (Gmail usa
 
 ## API
 
+Todas las rutas bajo `/api`. Las marcadas con (public) no requieren token.
+
 | Método | Ruta | Descripción |
 |---|---|---|
-| POST | `/api/auth/register` | Registro de usuario |
-| POST | `/api/auth/login` | Inicio de sesión |
-| GET | `/api/services` | Listar servicios |
-| POST | `/api/services` | Crear servicio |
-| DELETE | `/api/services/:id` | Eliminar servicio |
-| GET | `/api/bookings/availability?service_id=&date=` | Slots disponibles |
-| POST | `/api/bookings` | Crear reserva (público) |
-| GET | `/api/bookings` | Mis reservas |
-| DELETE | `/api/bookings/:id` | Cancelar reserva |
-| PATCH | `/api/bookings/:id/reschedule` | Reprogramar reserva |
-| GET | `/api/bookings/stats` | Estadísticas del dashboard |
+| POST | `/auth/register` | Registro de usuario (rate limit 5/min) |
+| POST | `/auth/login` | Inicio de sesión (rate limit 10/min) |
+| GET | `/auth/me` | Usuario actual |
+| GET | `/services` | Listar servicios del proveedor |
+| POST | `/services` | Crear servicio |
+| GET | `/services/:slug` | Servicio por slug (public) |
+| PUT | `/services/:id` | Actualizar servicio |
+| DELETE | `/services/:id` | Eliminar servicio |
+| GET/PUT | `/services/:id/hours` | Horarios por dia |
+| DELETE | `/services/:id/hours` | Restablecer horarios |
+| GET/POST | `/services/:id/breaks` | Bloqueos y descansos |
+| DELETE | `/services/:id/breaks/:breakId` | Eliminar bloqueo |
+| GET | `/bookings/availability` | Slots disponibles |
+| GET | `/bookings/public/availability` | Slots disponibles (public) |
+| POST | `/bookings` | Crear reserva (proveedor) |
+| POST | `/bookings/public` | Crear reserva (public, rate limit 30/min) |
+| GET | `/bookings/day` | Reservas del dia |
+| GET | `/bookings/my` | Mis reservas (paginadas, buscables) |
+| GET | `/bookings/stats` | Estadisticas del dashboard |
+| PUT | `/bookings/:id/status` | Confirmar/rechazar/completar/no-show |
+| PUT | `/bookings/:id/cancel` | Cancelar reserva |
+| PUT | `/bookings/:id/reschedule` | Reprogramar reserva |
+| GET | `/agenda/day` | Timeline del dia |
+| GET | `/agenda/week` | Resumen semanal |
+| GET/POST | `/staff` | Listar/crear staff |
+| PUT/DELETE | `/staff/:id` | Actualizar/eliminar staff |
+| PUT | `/staff/assign/:bookingId` | Asignar staff a reserva |
+| GET | `/health` | Healthcheck |
 
 ## Estructura del proyecto
 
@@ -172,15 +191,26 @@ reservas-saas/
 │       └── server.ts      # Entry point
 ├── frontend/
 │   └── src/
-│       ├── api/           # Cliente API con tipos TypeScript
+│       ├── api/           # Cliente API tipado (ApiError)
 │       ├── components/    # Componentes React
-│       │   └── ui/        # Button, Modal, Alert, Input, Card, Logo, EmptyState
-│       ├── context/       # AuthContext (estado global)
-│       ├── hooks/         # Custom hooks (useWeekDays)
-│       ├── pages/         # LoginPage, BookingPage
-│       ├── types/         # Interfaces TypeScript
+│       │   └── ui/        # Button, Modal, Alert, Input, Toast, Tabs, StatusBadge
+│       ├── context/       # AuthContext, ThemeContext (estado global)
+│       ├── hooks/         # Custom hooks (useWeekOffset)
+│       ├── pages/         # Agenda, Reservas, Servicios, Config, Login
+│       ├── test/          # Tests unitarios y de paginas (Vitest + RTL)
 │       └── main.tsx       # Router y providers
+├── packages/
+│   └── shared/            # Contrato wire y utilidades compartidas
+├── e2e/                   # Tests end-to-end (Playwright)
 ├── screenshots/           # Capturas de pantalla
 ├── Dockerfile             # Build multi-stage (frontend + backend)
 └── docker-compose.yml     # App + PostgreSQL para desarrollo
+```
+
+## Tests
+
+```bash
+npm test             # backend (Vitest + Supertest, PostgreSQL real)
+npm run test:frontend  # frontend (Vitest + Testing Library)
+npm run test:e2e     # end-to-end (Playwright, app completa)
 ```

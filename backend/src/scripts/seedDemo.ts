@@ -8,7 +8,7 @@ import { serviceHoursRepository } from '../repositories/serviceHoursRepository.j
 import { serviceBreaksRepository } from '../repositories/serviceBreaksRepository.js';
 import { bookingRepository } from '../repositories/bookingRepository.js';
 import { bookingService } from '../services/bookingService.js';
-import { instantToServiceDate, serviceTimeZone } from '../utils/datetime.js';
+import { instantToServiceDate } from '../utils/datetime.js';
 import type { Service } from '../types/index.js';
 
 // Seed idempotente para el demo publico. Correr con SEED_DEMO=true.
@@ -133,13 +133,18 @@ async function ensureBookings(userId: number, service: Service): Promise<void> {
   const existing = await bookingRepository.findByServiceUser(service.id, userId);
   if (existing.length > 0) return;
 
-  const timezone = serviceTimeZone(service);
+  // Mezcla de pasado y futuro para que el dashboard se vea vivo:
+  // historial (grafico de ultimos 7 dias, revenue) + agenda futura.
   const targets = [
-    { days: 1, status: 'confirmed' },
-    { days: 2, status: 'confirmed' },
-    { days: 3, status: 'pending' },
-    { days: 4, status: 'completed' },
-    { days: 5, status: 'cancelled' },
+    { days: -6, status: "completed" },
+    { days: -4, status: "completed" },
+    { days: -3, status: "cancelled" },
+    { days: -2, status: "completed" },
+    { days: -1, status: "no-show" },
+    { days: 1, status: "confirmed" },
+    { days: 2, status: "confirmed" },
+    { days: 3, status: "pending" },
+    { days: 5, status: "cancelled" },
   ];
 
   let clientIndex = 0;
@@ -152,28 +157,21 @@ async function ensureBookings(userId: number, service: Service): Promise<void> {
     const client = DEMO_CLIENTS[clientIndex % DEMO_CLIENTS.length];
     clientIndex += 1;
 
-    const booking =
-      target.status === 'pending'
-        ? (
-            await bookingService.createPublic({
-              service_id: service.id,
-              client_name: client.name,
-              client_email: client.email,
-              start_time: slot.start,
-              notes: 'Reserva creada desde el enlace publico.',
-            })
-          ).booking
-        : await bookingService.create(userId, {
-            service_id: service.id,
-            client_name: client.name,
-            client_email: client.email,
-            start_time: slot.start,
-          });
+    const booking = await bookingRepository.createIfAvailable({
+      service_id: service.id,
+      client_name: client.name,
+      client_email: client.email,
+      start_time: new Date(slot.start),
+      end_time: new Date(slot.end),
+      notes: target.status === "pending" ? 'Reserva creada desde el enlace publico.' : null,
+      price: service.price,
+      status: target.status,
+      max_capacity: service.max_capacity ?? 1,
+    });
 
-    if (target.status !== 'confirmed' && target.status !== 'pending') {
-      await bookingRepository.updateStatus(booking.id, target.status);
+    if (booking) {
+      logger.info({ bookingId: booking.id, status: target.status, service: service.name }, 'Reserva demo creada');
     }
-    logger.info({ bookingId: booking.id, status: target.status, service: service.name }, 'Reserva demo creada');
   }
 }
 

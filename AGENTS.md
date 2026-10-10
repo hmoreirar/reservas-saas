@@ -43,6 +43,13 @@ JWT con bcrypt para auth, validacion con Zod, manejo de errores con AppError
 - `backend/src/scripts/seedDemo.ts`: seed idempotente (gate `SEED_DEMO=true`), usuario demo `demo@reservas-saas.dev` / `demo1234`
 - README reescrito: deploy Koyeb/Neon, Docker, datos demo. Eliminado `railway.toml`
 
+### Fase 6 — Refactor de calidad (commits 81ec293..8b54cb2)
+- Limpieza: UI kit muerto, API muerta, App.tsx, duplicacion de getWeekDays
+- Bugs criticos: edicion real de servicios, Modal focus trap, fechas en timezone local (`@reservas/shared`), try/catch en handlers
+- Contrato API: `ApiError` tipado reemplaza `{ error } as T`; workspace `@reservas/shared` con tipos wire + fechas
+- UX: es-CL unificado, debounce+AbortController en busqueda, aria en kit UI, selector de tema en Configuracion
+- Tests: 76 frontend (incl. suites de paginas), 54 backend, 2 E2E Playwright. Bug de foco de Modal y rechazos sin catch encontrados por tests
+
 ### Pendiente — Deuda tecnica
 - ~~Migrar googleCalendar.js y zoom.js a TypeScript con logger Pino~~ (completado)
 - ~~Agregar res.ok validation en frontend api.ts~~ (completado)

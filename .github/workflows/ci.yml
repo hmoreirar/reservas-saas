@@ -61,3 +61,33 @@ jobs:
       - name: Build
         working-directory: frontend
         run: npm run build
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: npm ci
+      - name: Install backend deps
+        working-directory: backend
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Start PostgreSQL
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends postgresql
+          sudo systemctl start postgresql || sudo service postgresql start
+          sudo -u postgres psql -c "CREATE ROLE runner WITH LOGIN PASSWORD 'runner' SUPERUSER;"
+          sudo -u postgres createdb -O runner reservas_saas
+      - name: E2E tests
+        env:
+          DB_HOST: localhost
+          DB_USER: runner
+          DB_PASSWORD: runner
+          DB_NAME: reservas_saas
+          DB_PORT: 5432
+        run: npm run test:e2e
