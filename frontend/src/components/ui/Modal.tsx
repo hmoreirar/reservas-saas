@@ -11,6 +11,11 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
   const titleId = useId();
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  // Ref para no re-suscribir el listener con cada render: onClose suele ser inline.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) {
@@ -24,7 +29,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
     const handler = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab" || !modalRef.current) return;

@@ -4,6 +4,7 @@ import Button from "./ui/Button";
 import Input from "./ui/Input";
 import LoadingSpinner from "./ui/LoadingSpinner";
 import { getAvailability } from "../api/api";
+import { todayDateOnly, toDateOnly } from "../utils/dates";
 import type { Booking, TimeSlot } from "../types";
 
 interface RescheduleModalProps {
@@ -12,15 +13,8 @@ interface RescheduleModalProps {
   onConfirm: (newStartTime: string) => Promise<string | null>;
 }
 
-function toDateOnly(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 export default function RescheduleModal({ booking, onClose, onConfirm }: RescheduleModalProps) {
-  const [date, setDate] = useState(() => toDateOnly(new Date()));
+  const [date, setDate] = useState(() => todayDateOnly());
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

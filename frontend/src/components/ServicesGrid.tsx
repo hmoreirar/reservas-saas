@@ -5,6 +5,7 @@ import { showToast } from "./ui/Toast";
 interface ServicesGridProps {
   services: Service[];
   onDeleteService: (id: number) => void;
+  onEditService: (service: Service) => void;
   onNewService: () => void;
   publicBaseUrl: string;
 }
@@ -12,6 +13,7 @@ interface ServicesGridProps {
 export default function ServicesGrid({
   services,
   onDeleteService,
+  onEditService,
   onNewService,
   publicBaseUrl,
 }: ServicesGridProps) {
@@ -52,12 +54,20 @@ export default function ServicesGrid({
                 <span className="text-sm font-medium text-accent">
                   ${s.price} &middot; {s.duration}min
                 </span>
-                <button
-                  onClick={(e) => { e.stopPropagation(); onDeleteService(s.id); }}
-                  className="cursor-pointer text-xs text-text-muted hover:text-danger"
-                >
-                  Eliminar
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => onEditService(s)}
+                    className="cursor-pointer text-xs text-text-muted hover:text-accent"
+                  >
+                    Editar
+                  </button>
+                  <button
+                    onClick={() => onDeleteService(s.id)}
+                    className="cursor-pointer text-xs text-text-muted hover:text-danger"
+                  >
+                    Eliminar
+                  </button>
+                </div>
               </div>
               {s.max_capacity != null && s.max_capacity > 1 && (
                 <p className="mt-2 text-xs text-text-muted">Capacidad: {s.max_capacity} personas</p>

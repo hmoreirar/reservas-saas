@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { getWeekDays } from "../hooks/useWeekDays";
+import { getWeekDays, todayDateOnly, toDateOnly } from "../utils/dates";
 
 interface WeekBarProps {
   selectedDate: string;
@@ -16,7 +16,7 @@ export default function WeekBar({
 }: WeekBarProps) {
   const weekDays = useMemo(() => getWeekDays(selectedDate), [selectedDate]);
 
-  const todayStr = new Date().toISOString().split("T")[0]!;
+  const todayStr = todayDateOnly();
 
   const firstDay = weekDays[0]!;
   const lastDay = weekDays[6]!;
@@ -56,7 +56,7 @@ export default function WeekBar({
 
       <div className="grid grid-cols-7 gap-1 md:gap-2">
         {weekDays.map((day) => {
-          const dateStr = day.toISOString().split("T")[0]!;
+          const dateStr = toDateOnly(day);
           const isSelected = dateStr === selectedDate;
           const isToday = dateStr === todayStr;
 

@@ -94,6 +94,7 @@ export const serviceService = {
     timezone?: string;
     start_hour?: number;
     end_hour?: number;
+    max_capacity?: number;
   }) {
     const owner = await serviceRepository.findUserByServiceId(id);
     if (!owner) throw new NotFoundError('Servicio no encontrado');

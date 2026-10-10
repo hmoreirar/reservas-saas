@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router";
 import { getServiceBySlug, getPublicAvailability, createPublicBooking } from "./api/api";
 import { useWeekOffset } from "./hooks/useWeekOffset";
+import { todayDateOnly } from "./utils/dates";
 import LoadingSpinner from "./components/ui/LoadingSpinner";
 import BookingSuccess from "./components/BookingSuccess";
 import BookingWizard from "./components/BookingWizard";
@@ -15,8 +16,7 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-     return today.toISOString().split("T")[0]!;
+    return todayDateOnly();
   });
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
@@ -72,14 +72,18 @@ export default function BookingPage() {
   const handleConfirmBooking = useCallback(
     async (name: string, email: string, notes: string) => {
       if (!service || !selectedSlot) return "Error inesperado";
-      const data = await createPublicBooking(service.id, name, email, selectedSlot.start, notes);
-      if (data.booking?.id) {
-        setBookingSuccess(true);
-        setWizardActive(false);
-        setClientEmail(email);
-        return null;
+      try {
+        const data = await createPublicBooking(service.id, name, email, selectedSlot.start, notes);
+        if (data.booking?.id) {
+          setBookingSuccess(true);
+          setWizardActive(false);
+          setClientEmail(email);
+          return null;
+        }
+        return data.error || "Error al crear reserva";
+      } catch {
+        return "Error de conexion. Intenta de nuevo.";
       }
-      return data.error || "Error al crear reserva";
     },
     [service, selectedSlot]
   );

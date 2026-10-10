@@ -78,6 +78,7 @@ export const serviceRepository = {
       timezone?: string;
       start_hour?: number;
       end_hour?: number;
+      max_capacity?: number;
     }
   ): Promise<Service | undefined> {
     const fields: string[] = [];

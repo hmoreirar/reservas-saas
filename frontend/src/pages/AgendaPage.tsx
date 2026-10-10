@@ -8,6 +8,7 @@ import ConfirmDialog from "../components/ui/ConfirmDialog";
 import RescheduleModal from "../components/RescheduleModal";
 import { SkeletonStatCard } from "../components/ui/Skeleton";
 import { showToast } from "../components/ui/Toast";
+import { todayDateOnly, addDays } from "../utils/dates";
 import {
   getDayAgenda,
   getStats,
@@ -23,8 +24,7 @@ export default function AgendaPage() {
   const [agendaLoading, setAgendaLoading] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-     return today.toISOString().split("T")[0]!;
+    return todayDateOnly();
   });
   const [periodFilter, setPeriodFilter] = useState("all");
   const [selectedSlot, setSelectedSlot] = useState<{
@@ -79,15 +79,11 @@ export default function AgendaPage() {
   };
 
   const handlePrevWeek = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() - 7);
-     handleDateChange(d.toISOString().split("T")[0]!);
+    handleDateChange(addDays(selectedDate, -7));
   };
 
   const handleNextWeek = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + 7);
-     handleDateChange(d.toISOString().split("T")[0]!);
+    handleDateChange(addDays(selectedDate, 7));
   };
 
   const handleSlotClick = (slot: TimelineSlot, serviceId: number, serviceName: string) => {
@@ -104,34 +100,42 @@ export default function AgendaPage() {
 
   const handleConfirmBooking = async (name: string, email: string) => {
     if (!selectedSlot) return "Error inesperado";
-    const data = await createBooking(
-      selectedSlot.serviceId, name, email,
-      selectedSlot.slot.start, "",
-    );
-    if (data.id) {
-      setShowBookingForm(false);
-      setSelectedSlot(null);
-      loadAgenda(selectedDate);
-      showToast("Reserva creada", "success");
-      return null;
+    try {
+      const data = await createBooking(
+        selectedSlot.serviceId, name, email,
+        selectedSlot.slot.start, "",
+      );
+      if (data.id) {
+        setShowBookingForm(false);
+        setSelectedSlot(null);
+        loadAgenda(selectedDate);
+        showToast("Reserva creada", "success");
+        return null;
+      }
+      return data.error || "Error al crear reserva";
+    } catch {
+      return "Error de conexion. Intenta de nuevo.";
     }
-    return data.error || "Error al crear reserva";
   };
 
   const handleStatusChange = async (id: number, status: string, reason?: string) => {
-    const data = await updateBookingStatus(id, status, reason);
-    if (data.message) {
-      loadAgenda(selectedDate);
-      const labels: Record<string, string> = {
-        confirmed: "Reserva confirmada",
-        declined: "Reserva rechazada",
-        completed: "Reserva completada",
-        "no-show": "Cliente no asistio",
-        cancelled: "Reserva cancelada",
-      };
-      showToast(labels[status] || "Estado actualizado", "success");
-    } else {
-      showToast(data.error || "Error al actualizar estado", "error");
+    try {
+      const data = await updateBookingStatus(id, status, reason);
+      if (data.message) {
+        loadAgenda(selectedDate);
+        const labels: Record<string, string> = {
+          confirmed: "Reserva confirmada",
+          declined: "Reserva rechazada",
+          completed: "Reserva completada",
+          "no-show": "Cliente no asistio",
+          cancelled: "Reserva cancelada",
+        };
+        showToast(labels[status] || "Estado actualizado", "success");
+      } else {
+        showToast(data.error || "Error al actualizar estado", "error");
+      }
+    } catch {
+      showToast("Error de conexion. Intenta de nuevo.", "error");
     }
   };
 
@@ -148,22 +152,32 @@ export default function AgendaPage() {
 
   const confirmReschedule = async (newStartTime: string) => {
     if (!rescheduleTarget) return "Error inesperado";
-    const data = await rescheduleBooking(rescheduleTarget.booking.id, newStartTime);
-    if (data.message) {
-      setRescheduleTarget(null);
-      loadAgenda(selectedDate);
-      showToast("Reserva reprogramada", "success");
-      return null;
+    try {
+      const data = await rescheduleBooking(rescheduleTarget.booking.id, newStartTime);
+      if (data.message) {
+        setRescheduleTarget(null);
+        loadAgenda(selectedDate);
+        showToast("Reserva reprogramada", "success");
+        return null;
+      }
+      return data.error || "Error al reprogramar";
+    } catch {
+      return "Error de conexion. Intenta de nuevo.";
     }
-    return data.error || "Error al reprogramar";
   };
 
   const confirmCancel = async () => {
     if (cancelConfirm === null) return;
-    const data = await cancelBooking(cancelConfirm);
-    if (data.message) {
-      loadAgenda(selectedDate);
-      showToast("Reserva cancelada", "success");
+    try {
+      const data = await cancelBooking(cancelConfirm);
+      if (data.message) {
+        loadAgenda(selectedDate);
+        showToast("Reserva cancelada", "success");
+      } else {
+        showToast(data.error || "Error al cancelar reserva", "error");
+      }
+    } catch {
+      showToast("Error de conexion. Intenta de nuevo.", "error");
     }
     setCancelConfirm(null);
   };

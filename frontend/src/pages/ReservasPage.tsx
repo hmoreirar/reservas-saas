@@ -66,40 +66,54 @@ export default function ReservasPage() {
 
   const confirmReschedule = async (newStartTime: string) => {
     if (!rescheduleTarget) return "Error inesperado";
-    const data = await rescheduleBooking(rescheduleTarget.id, newStartTime);
-    if (data.message) {
-      setRescheduleTarget(null);
-      loadMyBookings(page, search, statusFilter);
-      showToast("Reserva reprogramada", "success");
-      return null;
+    try {
+      const data = await rescheduleBooking(rescheduleTarget.id, newStartTime);
+      if (data.message) {
+        setRescheduleTarget(null);
+        loadMyBookings(page, search, statusFilter);
+        showToast("Reserva reprogramada", "success");
+        return null;
+      }
+      return data.error || "Error al reprogramar";
+    } catch {
+      return "Error de conexion. Intenta de nuevo.";
     }
-    return data.error || "Error al reprogramar";
   };
 
   const confirmCancel = async () => {
     if (cancelConfirm === null) return;
-    const data = await cancelBooking(cancelConfirm);
-    if (data.message) {
-      loadMyBookings(page, search, statusFilter);
-      showToast("Reserva cancelada", "success");
+    try {
+      const data = await cancelBooking(cancelConfirm);
+      if (data.message) {
+        loadMyBookings(page, search, statusFilter);
+        showToast("Reserva cancelada", "success");
+      } else {
+        showToast(data.error || "Error al cancelar reserva", "error");
+      }
+    } catch {
+      showToast("Error de conexion. Intenta de nuevo.", "error");
     }
     setCancelConfirm(null);
   };
 
   const handleUpdateStatus = async (id: number, status: string, reason?: string) => {
-    const data = await updateBookingStatus(id, status, reason);
-    if (data.message) {
-      loadMyBookings(page, search, statusFilter);
-      const labels: Record<string, string> = {
-        confirmed: "Reserva confirmada",
-        declined: "Reserva rechazada",
-        completed: "Reserva completada",
-        "no-show": "Cliente no asistio",
-        cancelled: "Reserva cancelada",
-      };
-      showToast(labels[status] || "Estado actualizado", "success");
-    } else {
-      showToast(data.error || "Error al actualizar estado", "error");
+    try {
+      const data = await updateBookingStatus(id, status, reason);
+      if (data.message) {
+        loadMyBookings(page, search, statusFilter);
+        const labels: Record<string, string> = {
+          confirmed: "Reserva confirmada",
+          declined: "Reserva rechazada",
+          completed: "Reserva completada",
+          "no-show": "Cliente no asistio",
+          cancelled: "Reserva cancelada",
+        };
+        showToast(labels[status] || "Estado actualizado", "success");
+      } else {
+        showToast(data.error || "Error al actualizar estado", "error");
+      }
+    } catch {
+      showToast("Error de conexion. Intenta de nuevo.", "error");
     }
   };
 

@@ -45,13 +45,18 @@ export default function InlineBookingForm({
     }
     setError("");
     setIsBooking(true);
-    const err = await onConfirm(clientName, clientEmail);
-    setIsBooking(false);
-    if (err) {
-      setError(err);
-    } else {
-      setClientName("");
-      setClientEmail("");
+    try {
+      const err = await onConfirm(clientName, clientEmail);
+      if (err) {
+        setError(err);
+      } else {
+        setClientName("");
+        setClientEmail("");
+      }
+    } catch {
+      setError("Error de conexion. Intenta de nuevo.");
+    } finally {
+      setIsBooking(false);
     }
   };
 

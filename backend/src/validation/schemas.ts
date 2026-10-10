@@ -44,6 +44,7 @@ export const updateServiceSchema = z.object({
   timezone: z.string().optional(),
   start_hour: z.number().int().min(0).max(23).optional(),
   end_hour: z.number().int().min(0).max(23).optional(),
+  max_capacity: z.number().int().positive().optional(),
 }).refine((data) => data.start_hour === undefined || data.end_hour === undefined || data.end_hour > data.start_hour, {
   message: 'La hora de cierre debe ser posterior a la de inicio',
   path: ['end_hour'],

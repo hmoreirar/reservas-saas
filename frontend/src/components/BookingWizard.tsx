@@ -57,10 +57,15 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
   const handleConfirm = async () => {
     setError("");
     setIsBooking(true);
-    const err = await onConfirm(clientName, clientEmail, notes);
-    setIsBooking(false);
-    if (err) {
-      setError(err);
+    try {
+      const err = await onConfirm(clientName, clientEmail, notes);
+      if (err) {
+        setError(err);
+      }
+    } catch {
+      setError("Error de conexion. Intenta de nuevo.");
+    } finally {
+      setIsBooking(false);
     }
   };
 

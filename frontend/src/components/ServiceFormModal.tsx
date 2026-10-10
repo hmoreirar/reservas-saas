@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Modal from "./ui/Modal";
 import Input from "./ui/Input";
 import Button from "./ui/Button";
 import Tabs from "./ui/Tabs";
 import ServiceHoursEditor from "./ServiceHoursEditor";
 import ServiceBreaksManager from "./ServiceBreaksManager";
+import type { Service } from "../types";
 
 interface ServiceFormData {
   name: string;
@@ -20,8 +21,8 @@ interface ServiceFormData {
 interface ServiceFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: ServiceFormData) => void;
-  editingService?: { id: number } | null;
+  onSubmit: (data: ServiceFormData) => Promise<boolean>;
+  editingService?: Service | null;
 }
 
 const initialData: ServiceFormData = {
@@ -35,6 +36,19 @@ const initialData: ServiceFormData = {
   max_capacity: 1,
 };
 
+function prefill(service: Service): ServiceFormData {
+  return {
+    name: service.name,
+    description: service.description ?? "",
+    duration: service.duration,
+    price: service.price != null ? String(service.price) : "",
+    timezone: service.timezone,
+    start_hour: service.start_hour,
+    end_hour: service.end_hour,
+    max_capacity: service.max_capacity ?? 1,
+  };
+}
+
 type Tab = "basico" | "horarios" | "bloqueos";
 
 export default function ServiceFormModal({ open, onClose, onSubmit, editingService }: ServiceFormModalProps) {
@@ -42,20 +56,34 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
   const [tab, setTab] = useState<Tab>("basico");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [justCreated, setJustCreated] = useState(false);
+  // Pre-fill solo al abrir el modal: crear/editar cambia editingService
+  // con el modal abierto y no debe pisar lo que el usuario ya escribio.
+  const wasOpen = useRef(false);
 
   useEffect(() => {
-    if (editingService && justCreated) {
-      setTab("horarios");
+    if (open && !wasOpen.current) {
+      wasOpen.current = true;
+      setTab("basico");
+      setJustCreated(false);
+      setForm(editingService ? prefill(editingService) : initialData);
+    } else if (!open) {
+      wasOpen.current = false;
     }
-  }, [editingService, justCreated]);
+  }, [open, editingService]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const wasNew = !editingService;
     setIsSubmitting(true);
     try {
-      await onSubmit(form);
-      setJustCreated(true);
-      setForm(initialData);
+      const ok = await onSubmit(form);
+      if (ok && wasNew) {
+        // Crear: la page setea editingService con el servicio nuevo,
+        // asi las pestanas de horarios/bloqueos quedan operativas.
+        setJustCreated(true);
+        setForm(initialData);
+        setTab("horarios");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -164,7 +192,9 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
               {editingService ? "Cerrar" : "Cancelar"}
             </Button>
             <Button type="submit" disabled={isSubmitting} className="flex-1">
-              {isSubmitting ? "Creando..." : "Crear Servicio"}
+              {isSubmitting
+                ? (editingService ? "Guardando..." : "Creando...")
+                : (editingService ? "Guardar cambios" : "Crear Servicio")}
             </Button>
           </div>
         </form>
