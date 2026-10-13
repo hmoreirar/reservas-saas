@@ -77,7 +77,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/10"
+      className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/20"
       onClick={onClose}
     >
       <div

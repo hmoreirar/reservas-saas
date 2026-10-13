@@ -9,7 +9,7 @@ interface AlertProps {
 
 const variantStyles: Record<AlertVariant, { border: string; text: string; bg: string }> = {
   error: { border: "border-l-danger", text: "text-danger", bg: "bg-danger-bg" },
-  success: { border: "border-l-accent", text: "text-accent-text", bg: "bg-accent-bg" },
+  success: { border: "border-l-accent", text: "text-accent", bg: "bg-accent-bg" },
   warning: { border: "border-l-warning", text: "text-warning", bg: "bg-warning-bg" },
   info: { border: "border-l-info", text: "text-info", bg: "bg-info-bg" },
 };

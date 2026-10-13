@@ -37,7 +37,7 @@ export default function ConfiguracionPage() {
               onClick={() => setTheme(opt.value)}
               className={`cursor-pointer rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
                 theme === opt.value
-                  ? "bg-accent text-white"
+                  ? "bg-accent text-accent-text"
                   : "text-text-secondary hover:text-text"
               }`}
             >

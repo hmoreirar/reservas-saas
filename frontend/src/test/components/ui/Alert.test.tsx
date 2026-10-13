@@ -12,7 +12,7 @@ describe("Alert", () => {
   it("renders success variant", () => {
     render(<Alert variant="success">Success message</Alert>);
     expect(screen.getByText("Success message")).toBeInTheDocument();
-    expect(screen.getByText("Success message").className).toContain("text-accent-text");
+    expect(screen.getByText("Success message").className).toContain("text-accent");
   });
 
   it("renders warning variant", () => {

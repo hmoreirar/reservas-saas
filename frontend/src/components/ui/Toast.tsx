@@ -42,7 +42,7 @@ export default function ToastContainer() {
               : "border-l-danger border-l-4"
           }`}
         >
-          <span className={t.variant === "success" ? "text-accent-text" : "text-danger"}>
+          <span className={t.variant === "success" ? "text-accent" : "text-danger"}>
             {t.text}
           </span>
         </div>

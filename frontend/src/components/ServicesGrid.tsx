@@ -28,7 +28,7 @@ export default function ServicesGrid({
         <h2 className="m-0 text-xl font-semibold text-text">Mis Servicios</h2>
         <button
           onClick={onNewService}
-          className="cursor-pointer rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+          className="cursor-pointer rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-accent-text transition-colors hover:bg-accent-hover"
         >
           + Nuevo Servicio
         </button>

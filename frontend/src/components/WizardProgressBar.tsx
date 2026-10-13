@@ -7,12 +7,12 @@ interface WizardProgressBarProps {
 
 const statusStyles: Record<StepStatus, { circle: string; line: string; label: string }> = {
   completed: {
-    circle: "bg-accent text-white border-accent",
+    circle: "bg-accent text-accent-text border-accent",
     line: "bg-accent",
     label: "text-accent",
   },
   current: {
-    circle: "bg-accent text-white border-accent ring-2 ring-accent/30",
+    circle: "bg-accent text-accent-text border-accent ring-2 ring-accent/30",
     line: "bg-border",
     label: "text-text font-semibold",
   },

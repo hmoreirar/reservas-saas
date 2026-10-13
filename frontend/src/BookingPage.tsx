@@ -142,8 +142,8 @@ export default function BookingPage() {
               <h2 className="m-0 mb-1 text-lg font-semibold text-text">
                 Horarios disponibles
               </h2>
-              <p className="mb-4 text-sm capitalize text-text-secondary">
-                {formattedDate}
+              <p className="mb-4 text-sm text-text-secondary">
+                {formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1)}
               </p>
 
                 {service?.timezone && (
