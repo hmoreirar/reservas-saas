@@ -254,7 +254,7 @@ export const bookingRepository = {
 
   async getLast7Days(userId: number): Promise<{ date: string; total: number }[]> {
     const result = await pool.query(
-      `SELECT DATE(b.start_time) as date, COUNT(*) as total
+      `SELECT DATE(b.start_time)::text as date, COUNT(*) as total
        FROM bookings b 
        JOIN services s ON b.service_id = s.id 
        WHERE s.user_id = $1 AND b.start_time >= NOW() - INTERVAL '7 days' AND b.status = 'confirmed'

@@ -37,19 +37,19 @@
 
 ## Screenshots
 
-| Login | Dashboard |
+| Login | Agenda |
 |---|---|
-| ![Login](screenshots/login.png) | ![Dashboard](screenshots/dashboard.png) |
+| ![Login](screenshots/design-2026-10/01-login-light.png) | ![Agenda](screenshots/design-2026-10/02-agenda-light.png) |
 
-| Mis Reservas | Mobile login |
+| Servicios | Reserva pública |
 |---|---|
-| ![Bookings](screenshots/bookings.png) | ![Login mobile](screenshots/login-mobile.png) |
+| ![Servicios](screenshots/design-2026-10/03-servicios-light.png) | ![Reserva publica](screenshots/design-2026-10/04-booking-publico.png) |
 
-| Mobile dashboard |
-|---|
-| ![Dashboard mobile](screenshots/dashboard-mobile.png) |
+| Modo oscuro | Mobile |
+|---|---|
+| ![Agenda dark](screenshots/design-2026-10/06-agenda-dark.png) | ![Agenda mobile](screenshots/design-2026-10/09-agenda-mobile.png) |
 
-> 💡 Las capturas del dashboard muestran el panel con estadísticas, servicios y calendario. La vista pública de booking se genera automáticamente al crear un servicio.
+> 💡 Diseño minimalista monocromo (estilo Linear/Vercel) con modo oscuro. La vista pública de booking se genera automáticamente al crear un servicio (`/book/:slug`).
 
 ## Inicio rápido
 

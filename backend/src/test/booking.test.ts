@@ -173,6 +173,10 @@ describe('Stats Flow', () => {
     expect(stats).toHaveProperty('revenue');
     expect(stats).toHaveProperty('byService');
     expect(stats).toHaveProperty('last7Days');
+    for (const day of stats.last7Days) {
+      // contrato: fecha "YYYY-MM-dd", no ISO datetime (rompe el grafico del dashboard)
+      expect(day.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
     expect(stats).toHaveProperty('upcoming');
   });
 });
