@@ -37,11 +37,12 @@ JWT con bcrypt para auth, validacion con Zod, manejo de errores con AppError
 - Rate limit en registro (5/min por IP)
 - Escape de HTML en correos + sanitizacion de asuntos (header injection)
 
-### Fase 5 — Deploy Koyeb + Neon (commit pendiente)
+### Fase 5 — Deploy Render + Neon (completado)
 - `Dockerfile` multi-stage (node:22, layout repo intacto para static path)
 - `docker-compose.yml` (app + postgres) y `.dockerignore`
 - `backend/src/scripts/seedDemo.ts`: seed idempotente (gate `SEED_DEMO=true`), usuario demo `demo@reservas-saas.dev` / `demo1234`
-- README reescrito: deploy Koyeb/Neon, Docker, datos demo. Eliminado `railway.toml`
+- README reescrito: deploy Render/Neon, Docker, datos demo. Eliminado `railway.toml`
+- Demo vivo: https://reservas-saas-bwa7.onrender.com/ (app Render free + DB Neon, seed con reservas pasadas y futuras)
 
 ### Fase 6 — Refactor de calidad (commits 81ec293..8b54cb2)
 - Limpieza: UI kit muerto, API muerta, App.tsx, duplicacion de getWeekDays

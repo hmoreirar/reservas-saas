@@ -8,7 +8,7 @@
 
 > Sistema de agendamiento de turnos tipo Calendly. Los proveedores gestionan servicios desde un dashboard y los clientes reservan sin necesidad de login.
 
-🔗 **Demo:** se despliega gratis con Koyeb + Neon en ~10 min (ver [Deploy](#deploy-koyeb--neon)). Cuenta demo incluida con datos de ejemplo.
+🔗 **Demo en vivo:** [reservas-saas-bwa7.onrender.com](https://reservas-saas-bwa7.onrender.com/) — cuenta demo `demo@reservas-saas.dev` / `demo1234`, reserva pública en `/book/corte-demo-book`.
 
 ---
 
@@ -21,7 +21,7 @@
 | Base de datos | PostgreSQL |
 | Auth | JWT (bcrypt + jsonwebtoken) |
 | Email | Nodemailer (opcional) |
-| Deploy | Koyeb + Neon (free tier), Docker |
+| Deploy | Render + Neon (free tier), Docker |
 
 ## Features
 
@@ -109,34 +109,39 @@ estados. Idempotente: repetir no duplica datos.
 | Password | `demo1234` |
 | Reserva publica | `/book/corte-demo-book` |
 
-## Deploy (Koyeb + Neon)
+## Deploy (Render + Neon)
 
-Gratis, sin tarjeta de credito. ~10 minutos.
+Gratis, sin tarjeta de credito. ~15 minutos.
 
 ### 1. Base de datos (Neon)
 
 1. Crear cuenta en [neon.com](https://neon.com) y un proyecto (plan Free)
-2. Copiar el `DATABASE_URL` (connection pooling esta bien: las transacciones
-   usan `pg_advisory_xact_lock` dentro de `BEGIN/COMMIT`, pinneadas a un backend)
+2. Copiar el `DATABASE_URL` **pooled** (las transacciones usan
+   `pg_advisory_xact_lock` dentro de `BEGIN/COMMIT`, pinneadas a un backend)
 3. Restaurar datos si vienes de otro host:
    `pg_restore "$DATABASE_URL" --no-owner --no-privileges -d neondb reservas-saas.dump`
 4. Las migraciones corren solas al arrancar (`runMigrations`)
 
-### 2. App (Koyeb)
+### 2. App (Render)
 
-1. Crear cuenta en [koyeb.com](https://koyeb.com) y conectar el repo de GitHub
-2. Tipo de servicio: **Dockerfile** (region Washington DC o Frankfurt, free instance)
-3. Variables de entorno:
+1. En [render.com](https://render.com): **New +** → **Web Service** → conectar el repo de GitHub
+2. Runtime **Docker** (detecta el `Dockerfile` de la raiz), instance **Free**
+3. Health Check Path: `/api/health`
+4. Variables de entorno:
 
 ```
 DATABASE_URL=postgresql://...     # de Neon
 JWT_SECRET=un-secreto-largo
 NODE_ENV=production
-FRONTEND_URL=https://<tu-app>.koyeb.app
+FRONTEND_URL=https://<tu-servicio>.onrender.com
 ```
 
-4. Healthcheck: `/api/health`
-5. (Opcional) seed de demo: correr `node dist/scripts/seedDemo.js` con `SEED_DEMO=true` como job manual o desde terminal local apuntando a Neon
+5. **Create Web Service** → build ~3-5 min
+6. Seed de demo (opcional): `SEED_DEMO=true npm run seed` local con `backend/.env`
+   apuntando a Neon
+
+> Nota: el tier Free de Render duerme el servicio tras 15 min sin trafico;
+> la primera visita tarda ~50s (cold start).
 
 ### 3. SMTP (opcional)
 
