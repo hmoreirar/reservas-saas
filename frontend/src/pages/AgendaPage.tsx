@@ -4,6 +4,7 @@ import WeekBar from "../components/WeekBar";
 import DayTimeline from "../components/DayTimeline";
 import Modal from "../components/ui/Modal";
 import QuickBookingForm, { type SlotOption } from "../components/QuickBookingForm";
+import GettingStarted from "../components/GettingStarted";
 import BookingPopover from "../components/BookingPopover";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import RescheduleModal from "../components/RescheduleModal";
@@ -13,13 +14,14 @@ import { todayDateOnly, addDays } from "@reservas/shared";
 import {
   getDayAgenda,
   getStats,
+  getServices,
   createBooking,
   updateBookingStatus,
   cancelBooking,
   rescheduleBooking,
   errorMessage,
 } from "../api/api";
-import type { Stats, DayAgenda, TimelineSlot, BookingStatusAction } from "../types";
+import type { Stats, DayAgenda, TimelineSlot, BookingStatusAction, Service } from "../types";
 
 export default function AgendaPage() {
   const [agendas, setAgendas] = useState<DayAgenda[]>([]);
@@ -41,6 +43,13 @@ export default function AgendaPage() {
     serviceName: string;
   } | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
+  const [services, setServices] = useState<Service[]>([]);
+
+  useEffect(() => {
+    getServices()
+      .then((data) => setServices(data))
+      .catch(() => setServices([]));
+  }, []);
 
   // huecos libres del dia para el boton flotante "+ Agendar hora"
   const freeSlots = useMemo(() => {
@@ -194,15 +203,15 @@ export default function AgendaPage() {
 
   return (
     <div className="animate-fade-in">
-      {stats ? (
-        <StatsCards stats={stats} period={periodFilter} onPeriodChange={setPeriodFilter} />
-      ) : (
-        <div className="mb-8">
-          <h2 className="mb-5 text-xl font-semibold text-text">Estadisticas</h2>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-6">
-            {Array.from({ length: 6 }).map((_, i) => <SkeletonStatCard key={i} />)}
-          </div>
-        </div>
+      {stats && stats.total === 0 && (
+        <GettingStarted
+          hasService={services.length > 0}
+          bookingUrl={
+            services[0]?.booking_slug
+              ? `${window.location.origin}/book/${services[0].booking_slug}`
+              : undefined
+          }
+        />
       )}
 
       <div className="mb-6">
@@ -222,6 +231,20 @@ export default function AgendaPage() {
           onSlotClick={handleSlotClick}
         />
       )}
+
+      {/* Estadisticas abajo: agendar es la accion principal, no los numeros */}
+      <div className="mt-10">
+        {stats ? (
+          <StatsCards stats={stats} period={periodFilter} onPeriodChange={setPeriodFilter} />
+        ) : (
+          <div className="mb-8">
+            <h2 className="mb-5 text-xl font-semibold text-text">Estadisticas</h2>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-5 lg:grid-cols-6">
+              {Array.from({ length: 6 }).map((_, i) => <SkeletonStatCard key={i} />)}
+            </div>
+          </div>
+        )}
+      </div>
 
       {showBookingForm && (
         <Modal

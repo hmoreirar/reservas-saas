@@ -138,7 +138,12 @@ export const agendaService = {
         )
       : await serviceRepository.findAllByUser(userId);
 
-    if (!services.length) throw new NotFoundError('No se encontraron servicios');
+    // sin servicios propios y sin serviceId explicito: agenda vacia (usuario nuevo),
+    // no un error. Un serviceId ajeno o inexistente sigue devolviendo 404.
+    if (!services.length) {
+      if (serviceId) throw new NotFoundError('No se encontraron servicios');
+      return [];
+    }
 
     const agendas: DayAgenda[] = [];
 
@@ -205,7 +210,12 @@ export const agendaService = {
         )
       : await serviceRepository.findAllByUser(userId);
 
-    if (!services.length) throw new NotFoundError('No se encontraron servicios');
+    // sin servicios propios y sin serviceId explicito: agenda vacia (usuario nuevo),
+    // no un error. Un serviceId ajeno o inexistente sigue devolviendo 404.
+    if (!services.length) {
+      if (serviceId) throw new NotFoundError('No se encontraron servicios');
+      return [];
+    }
 
     const agendas: WeekAgenda[] = [];
 

@@ -1,6 +1,6 @@
 import type { Service } from "../types";
 import EmptyState from "./ui/EmptyState";
-import { showToast } from "./ui/Toast";
+import CopyLinkButton from "./CopyLinkButton";
 
 interface ServicesGridProps {
   services: Service[];
@@ -17,11 +17,6 @@ export default function ServicesGrid({
   onNewService,
   publicBaseUrl,
 }: ServicesGridProps) {
-  const copyLink = (slug: string) => {
-    navigator.clipboard.writeText(`${publicBaseUrl}/book/${slug}`);
-    showToast("Link copiado al portapapeles", "success");
-  };
-
   return (
     <>
       <div className="mb-6 flex items-center justify-between">
@@ -73,13 +68,16 @@ export default function ServicesGrid({
                 <p className="mt-2 text-xs text-text-muted">Capacidad: {s.max_capacity} personas</p>
               )}
               {s.booking_slug && (
-                <p
-                  onClick={(e) => { e.stopPropagation(); copyLink(s.booking_slug!); }}
-                  className="mt-2 cursor-pointer text-xs text-text-muted underline underline-offset-2 hover:text-accent"
-                  title="Click para copiar"
-                >
-                  {publicBaseUrl}/book/{s.booking_slug}
-                </p>
+                <div className="mt-3">
+                  <p className="mb-1.5 truncate text-xs text-text-muted">
+                    {publicBaseUrl}/book/{s.booking_slug}
+                  </p>
+                  <CopyLinkButton
+                    url={`${publicBaseUrl}/book/${s.booking_slug}`}
+                    label="Copiar link de reservas"
+                    variant="secondary"
+                  />
+                </div>
               )}
             </div>
           ))}
