@@ -25,15 +25,14 @@
 
 ## Features
 
-- **Dashboard** con estadísticas de reservas (totales, confirmadas, canceladas, ingresos)
-- **Servicios** — CRUD completo con nombre, descripción, duración, precio y horarios configurables
-- **Calendario semanal** con navegación y slots disponibles
-- **Booking público** — los clientes reservan turnos sin registrarse via `/book/:slug`
-- **Reprogramación y cancelación** de turnos desde el dashboard
-- **Autenticación** con registro e inicio de sesión
-- **Diseño responsive** con menú hamburguesa en mobile
-- **Micro-interacciones** — animaciones CSS (fade, scale, stagger, slide) sin librerías externas
-- **Estados vacíos** con ilustraciones SVG inline
+- **Agenda tipo calendario** — bloques de citas reales, toca un hueco y agendás en dos pasos
+- **Agendar en dos toques** — botón flotante "+ Agendar hora" con nombre y WhatsApp del paciente
+- **WhatsApp primero** — confirmaciones y recordatorios con un click (links `wa.me` con mensaje listo)
+- **Primeros pasos** — guía de 3 pasos para configurar el servicio y compartir el link de reservas
+- **Booking público** — los clientes reservan sin registrarse via `/book/:slug`, con WhatsApp como contacto principal
+- **Servicios** — duración y precio a la vista, ajustes avanzados colapsados (capacidad, timezone, horarios)
+- **Estadísticas** — ingresos, estados y reservas por servicio (abajo de la agenda)
+- **Modo oscuro** y diseño mobile-first minimalista
 
 ## Screenshots
 

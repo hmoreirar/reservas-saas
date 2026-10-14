@@ -7,6 +7,8 @@ import Pagination from "./ui/Pagination";
 import StatusBadge from "./ui/StatusBadge";
 import Button from "./ui/Button";
 import OverflowMenu from "./ui/OverflowMenu";
+import WhatsAppButton from "./WhatsAppButton";
+import { waRequestReceived, waConfirmed, waReminder } from "../utils/whatsapp";
 
 interface MyBookingsProps {
   bookings: Booking[];
@@ -146,6 +148,13 @@ export default function MyBookings({
                       <Button variant="danger" onClick={() => onCancel(booking.id)}>
                         Cancelar
                       </Button>
+                      {booking.client_phone && (
+                        <WhatsAppButton
+                          phone={booking.client_phone}
+                          message={waRequestReceived(booking, { name: booking.service_name ?? "" })}
+                          label="Avisar por WhatsApp"
+                        />
+                      )}
                       <OverflowMenu
                         items={[
                           {
@@ -163,8 +172,26 @@ export default function MyBookings({
                       <Button variant="danger" onClick={() => onCancel(booking.id)}>
                         Cancelar
                       </Button>
+                      {booking.client_phone && (
+                        <WhatsAppButton
+                          phone={booking.client_phone}
+                          message={waConfirmed(booking, { name: booking.service_name ?? "" })}
+                          label="Confirmar por WhatsApp"
+                        />
+                      )}
                       <OverflowMenu
                         items={[
+                          {
+                            label: "Enviar recordatorio",
+                            onClick: () => {
+                              if (booking.client_phone) {
+                                window.open(
+                                  `https://wa.me/${booking.client_phone.replace(/\D/g, "")}?text=${encodeURIComponent(waReminder(booking, { name: booking.service_name ?? "" }))}`,
+                                  "_blank"
+                                );
+                              }
+                            },
+                          },
                           { label: "Reprogramar", onClick: () => onReschedule(booking.id) },
                           { label: "Marcar como completada", onClick: () => onStatusChange(booking.id, "completed") },
                           { label: "Cliente no asistio", onClick: () => onStatusChange(booking.id, "no-show") },

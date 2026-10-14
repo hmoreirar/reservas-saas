@@ -18,6 +18,9 @@ export default defineConfig({
     env: {
       NODE_ENV: "production",
       JWT_SECRET: "e2e-secret",
+      // forzar DB de pruebas: si backend/.env define DATABASE_URL (Neon local),
+      // dotenv la cargaria y el e2e correria contra la base de produccion
+      DATABASE_URL: "",
       DB_HOST: process.env.DB_HOST ?? "127.0.0.1",
       DB_PORT: process.env.DB_PORT ?? "5439",
       DB_USER: process.env.DB_USER ?? "postgres",

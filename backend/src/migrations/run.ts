@@ -128,6 +128,7 @@ const migrations = [
      reset_at TIMESTAMPTZ NOT NULL
    )`,
   `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_phone VARCHAR(30)`,
+  `ALTER TABLE bookings ALTER COLUMN client_email DROP NOT NULL`,
 ];
 
 export async function runMigrations(): Promise<void> {

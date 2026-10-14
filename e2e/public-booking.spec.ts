@@ -44,14 +44,19 @@ test("un cliente reserva un turno desde el enlace publico", async ({ page }) => 
   }
   await dayBtn.click();
 
-  await page.getByRole("button", { name: /^\d{2}:\d{2}/ }).first().click();
+  // esperar la recarga de disponibilidad del dia elegido
+  const dateLabel = tomorrow.toLocaleDateString("es-CL", { day: "numeric", month: "long" });
+  await expect(page.getByText(new RegExp(dateLabel))).toBeVisible();
+  await page.waitForTimeout(800);
+
+  await page.getByRole("button", { name: /09:00/ }).first().click();
   await page.getByText("Reservar", { exact: true }).click();
 
   await page.getByPlaceholder("Juan Perez").fill("Ana Torres");
-  await page.getByPlaceholder("juan@example.com").fill("ana@example.com");
+  await page.getByPlaceholder("+56 9 1234 5678").fill("9 1234 5678");
   await page.getByText("Continuar", { exact: true }).click();
-  await page.getByText("Confirmar reserva", { exact: true }).click();
+  await page.getByText("Reservar ahora", { exact: true }).click();
 
-  await expect(page.getByText("Reserva Solicitada")).toBeVisible();
+  await expect(page.getByText("Tu hora fue solicitada")).toBeVisible();
   await api.dispose();
 });

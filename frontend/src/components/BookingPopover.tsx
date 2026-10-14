@@ -1,6 +1,8 @@
 import Button from "./ui/Button";
 import StatusBadge from "./ui/StatusBadge";
 import OverflowMenu from "./ui/OverflowMenu";
+import WhatsAppButton from "./WhatsAppButton";
+import { waRequestReceived, waConfirmed, waReminder } from "../utils/whatsapp";
 import type { Booking, BookingStatusAction } from "../types";
 
 interface BookingPopoverProps {
@@ -65,6 +67,13 @@ export default function BookingPopover({
             <Button variant="danger" onClick={() => { onCancel(booking.id); onClose(); }}>
               Cancelar
             </Button>
+            {booking.client_phone && (
+              <WhatsAppButton
+                phone={booking.client_phone}
+                message={waRequestReceived(booking, { name: serviceName })}
+                label="Avisar por WhatsApp"
+              />
+            )}
             <OverflowMenu
               items={[
                 { label: "Rechazar solicitud", danger: true, onClick: () => { onStatusChange(booking.id, "declined"); onClose(); } },
@@ -78,8 +87,16 @@ export default function BookingPopover({
             <Button variant="danger" onClick={() => { onCancel(booking.id); onClose(); }}>
               Cancelar
             </Button>
+            {booking.client_phone && (
+              <WhatsAppButton
+                phone={booking.client_phone}
+                message={waConfirmed(booking, { name: serviceName })}
+                label="Confirmar por WhatsApp"
+              />
+            )}
             <OverflowMenu
               items={[
+                { label: "Enviar recordatorio", onClick: () => { if (booking.client_phone) window.open(`https://wa.me/${booking.client_phone.replace(/\D/g, "")}?text=${encodeURIComponent(waReminder(booking, { name: serviceName }))}`, "_blank"); } },
                 { label: "Reprogramar", onClick: () => { onReschedule(booking.id); onClose(); } },
                 { label: "Marcar como completada", onClick: () => { onStatusChange(booking.id, "completed"); onClose(); } },
                 { label: "Cliente no asistio", onClick: () => { onStatusChange(booking.id, "no-show"); onClose(); } },

@@ -51,6 +51,16 @@ JWT con bcrypt para auth, validacion con Zod, manejo de errores con AppError
 - UX: es-CL unificado, debounce+AbortController en busqueda, aria en kit UI, selector de tema en Configuracion
 - Tests: 76 frontend (incl. suites de paginas), 54 backend, 2 E2E Playwright. Bug de foco de Modal y rechazos sin catch encontrados por tests
 
+### Fase 7 — UX a prueba de confusiones, enfoque dentista (commits 7f855dd..)
+- **Modelo**: `client_phone` (WhatsApp) requerido, email opcional; normalizador CL + `waMeLink` en shared; busqueda por telefono
+- **Agenda calendario**: bloques reales con estado, huecos tappable, sheet "Agendar hora", FAB mobile-first
+- **Primeros pasos**: checklist 3 pasos + "Copiar link de reservas" en cada servicio
+- **Simplificacion**: form de servicio 3 campos + avanzado colapsado, "Horarios no disponibles" unico, acciones Confirmar/Cancelar + menu "···"
+- **WhatsApp**: botones "Avisar por WhatsApp", "Confirmar por WhatsApp", "Recordar" con mensajes pre-armados
+- **Booking publico**: WhatsApp primero, grid de horas 24h, pantalla de exito con fecha/hora y que sigue
+- **Backend**: borrado staff y paquetes; migracion `client_email DROP NOT NULL` (bug encontrado por e2e: 500 al reservar sin email)
+- Tests: 76 frontend, 54 backend, 3 E2E (booking publico, crear/editar servicio, flujo dentista)
+
 ### Pendiente — Deuda tecnica
 - ~~Migrar googleCalendar.js y zoom.js a TypeScript con logger Pino~~ (completado)
 - ~~Agregar res.ok validation en frontend api.ts~~ (completado)
