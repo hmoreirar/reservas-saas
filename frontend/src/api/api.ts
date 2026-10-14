@@ -131,8 +131,9 @@ export const getPublicAvailability = async (serviceId: number, date: string): Pr
 export const createBooking = async (
   serviceId: number,
   clientName: string,
-  clientEmail: string,
+  clientPhone: string,
   startTime: string,
+  clientEmail = "",
   notes = "",
 ): Promise<Booking> => {
   return apiFetch(`${API_URL}/api/bookings`, {
@@ -141,6 +142,7 @@ export const createBooking = async (
     body: JSON.stringify({
       service_id: serviceId,
       client_name: clientName,
+      client_phone: clientPhone,
       client_email: clientEmail,
       start_time: startTime,
       notes,
@@ -151,8 +153,9 @@ export const createBooking = async (
 export const createPublicBooking = async (
   serviceId: number,
   clientName: string,
-  clientEmail: string,
+  clientPhone: string,
   startTime: string,
+  clientEmail = "",
   notes = ""
 ): Promise<{ booking: Booking; service: Service }> => {
   return apiFetch(`${API_URL}/api/bookings/public`, {
@@ -161,6 +164,7 @@ export const createPublicBooking = async (
     body: JSON.stringify({
       service_id: serviceId,
       client_name: clientName,
+      client_phone: clientPhone,
       client_email: clientEmail,
       start_time: startTime,
       notes,

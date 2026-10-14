@@ -5,9 +5,11 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   children: ReactNode;
+  /** anclado abajo en mobile (bottom sheet), centrado en desktop */
+  sheet?: boolean;
 }
 
-export default function Modal({ open, onClose, title, children }: ModalProps) {
+export default function Modal({ open, onClose, title, children, sheet = false }: ModalProps) {
   const titleId = useId();
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -77,7 +79,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex animate-fade-in items-center justify-center bg-black/20"
+      className={`fixed inset-0 z-50 flex animate-fade-in justify-center bg-black/20 ${sheet ? "items-end sm:items-center" : "items-center"}`}
       onClick={onClose}
     >
       <div
@@ -85,7 +87,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="mx-4 w-[calc(100vw-32px)] max-w-md rounded-xl border border-border bg-surface p-8"
+        className={`mx-4 w-[calc(100vw-32px)] max-w-md border border-border bg-surface p-8 ${sheet ? "mb-0 rounded-t-2xl sm:mb-0 sm:rounded-xl" : "rounded-xl"}`}
         onClick={(e) => e.stopPropagation()}
       >
         <h2 id={titleId} className="mb-6 text-lg font-semibold text-text">{title}</h2>

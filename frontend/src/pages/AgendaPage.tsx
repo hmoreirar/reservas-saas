@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import StatsCards from "../components/StatsCards";
 import WeekBar from "../components/WeekBar";
 import DayTimeline from "../components/DayTimeline";
-import InlineBookingForm from "../components/InlineBookingForm";
+import Modal from "../components/ui/Modal";
+import QuickBookingForm, { type SlotOption } from "../components/QuickBookingForm";
 import BookingPopover from "../components/BookingPopover";
 import ConfirmDialog from "../components/ui/ConfirmDialog";
 import RescheduleModal from "../components/RescheduleModal";
@@ -40,6 +41,28 @@ export default function AgendaPage() {
     serviceName: string;
   } | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
+
+  // huecos libres del dia para el boton flotante "+ Agendar hora"
+  const freeSlots = useMemo(() => {
+    const options: (SlotOption & { serviceId: number; start: string })[] = [];
+    for (const agenda of agendas) {
+      for (const slot of agenda.slots) {
+        if (slot.type !== "available") continue;
+        const label = new Date(slot.start).toLocaleTimeString("es-CL", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        });
+        options.push({
+          value: slot.start,
+          start: slot.start,
+          label: `${label} · ${agenda.service_name}`,
+          serviceId: agenda.service_id,
+        });
+      }
+    }
+    return options;
+  }, [agendas]);
   const [rescheduleTarget, setRescheduleTarget] = useState<{
     booking: import("../types").Booking;
     serviceName: string;
@@ -93,20 +116,26 @@ export default function AgendaPage() {
     }
   };
 
-  const handleConfirmBooking = async (name: string, email: string) => {
-    if (!selectedSlot) return "Error inesperado";
+  const handleConfirmBooking = async (data: {
+    name: string;
+    phone: string;
+    email: string;
+    notes: string;
+    slot: string;
+  }) => {
+    const target = selectedSlot
+      ? { serviceId: selectedSlot.serviceId, start: selectedSlot.slot.start }
+      : freeSlots.find((s) => s.value === data.slot);
+    if (!target) return "Elige un horario disponible";
     try {
-      await createBooking(
-        selectedSlot.serviceId, name, email,
-        selectedSlot.slot.start, "",
-      );
+      await createBooking(target.serviceId, data.name, data.phone, target.start, data.email, data.notes);
       setShowBookingForm(false);
       setSelectedSlot(null);
       loadAgenda(selectedDate);
-      showToast("Reserva creada", "success");
+      showToast("Hora agendada", "success");
       return null;
     } catch (e) {
-      return errorMessage(e, "Error al crear reserva");
+      return errorMessage(e, "Error al agendar la hora");
     }
   };
 
@@ -194,15 +223,29 @@ export default function AgendaPage() {
         />
       )}
 
-      {showBookingForm && selectedSlot && (
-        <div className="mt-4 animate-slide-up">
-          <InlineBookingForm
-            slot={selectedSlot.slot}
-            serviceName={selectedSlot.serviceName}
-            onConfirm={handleConfirmBooking}
-            onCancel={() => { setShowBookingForm(false); setSelectedSlot(null); }}
+      {showBookingForm && (
+        <Modal
+          sheet
+          open
+          title="Agendar hora"
+          onClose={() => { setShowBookingForm(false); setSelectedSlot(null); }}
+        >
+          <QuickBookingForm
+            serviceName={selectedSlot?.serviceName ?? "Nueva cita"}
+            timeLabel={
+              selectedSlot
+                ? new Date(selectedSlot.slot.start).toLocaleTimeString("es-CL", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })
+                : ""
+            }
+            slots={selectedSlot ? undefined : freeSlots}
+            initialSlotValue={selectedSlot?.slot.start}
+            onSubmit={handleConfirmBooking}
           />
-        </div>
+        </Modal>
       )}
 
       {showPopover && selectedBooking && (
@@ -235,6 +278,18 @@ export default function AgendaPage() {
         confirmLabel="Cancelar reserva"
         variant="danger"
       />
+
+      {/* Accion principal siempre visible: agendar la hora del paciente que llama */}
+      <button
+        onClick={() => { setSelectedSlot(null); setShowBookingForm(true); }}
+        disabled={freeSlots.length === 0}
+        className="fixed bottom-20 right-4 z-40 flex items-center gap-2 rounded-full bg-accent px-5 py-3.5 text-sm font-medium text-accent-text shadow-lg transition-colors hover:bg-accent-hover disabled:opacity-40 md:bottom-6 md:right-6"
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Agendar hora
+      </button>
     </div>
   );
 }
