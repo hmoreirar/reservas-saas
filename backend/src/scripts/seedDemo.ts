@@ -58,10 +58,10 @@ const DEMO_SERVICES = [
 ];
 
 const DEMO_CLIENTS = [
-  { name: 'Ana Torres', email: 'ana@example.com' },
-  { name: 'Luis Rojas', email: 'luis@example.com' },
-  { name: 'Maria Diaz', email: 'maria@example.com' },
-  { name: 'Pedro Soto', email: 'pedro@example.com' },
+  { name: 'Ana Torres', phone: '+56 9 1234 5678', email: 'ana@example.com' },
+  { name: 'Luis Rojas', phone: '+56 9 2345 6789', email: 'luis@example.com' },
+  { name: 'Maria Diaz', phone: '+56 9 3456 7890', email: 'maria@example.com' },
+  { name: 'Pedro Soto', phone: '+56 9 4567 8901', email: 'pedro@example.com' },
 ];
 
 function dateOnlyDaysFromNow(days: number): string {
@@ -160,6 +160,7 @@ async function ensureBookings(userId: number, service: Service): Promise<void> {
     const booking = await bookingRepository.createIfAvailable({
       service_id: service.id,
       client_name: client.name,
+      client_phone: client.phone,
       client_email: client.email,
       start_time: new Date(slot.start),
       end_time: new Date(slot.end),

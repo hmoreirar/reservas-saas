@@ -6,7 +6,8 @@ export const bookingRepository = {
   async createIfAvailable(data: {
     service_id: number;
     client_name: string;
-    client_email: string;
+    client_phone: string | null;
+    client_email: string | null;
     start_time: Date;
     end_time: Date;
     notes: string | null;
@@ -32,9 +33,9 @@ export const bookingRepository = {
       }
 
       const result = await client.query(
-        `INSERT INTO bookings (service_id, client_name, client_email, start_time, end_time, notes, price, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-        [data.service_id, data.client_name, data.client_email, data.start_time, data.end_time,
+        `INSERT INTO bookings (service_id, client_name, client_phone, client_email, start_time, end_time, notes, price, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        [data.service_id, data.client_name, data.client_phone, data.client_email, data.start_time, data.end_time,
           data.notes, data.price ?? null, data.status ?? 'confirmed']
       );
       await client.query('COMMIT');
@@ -102,7 +103,7 @@ export const bookingRepository = {
 
     if (options.search) {
       conditions.push(
-        `(LOWER(b.client_name) LIKE $${values.length + 1} OR LOWER(b.client_email) LIKE $${values.length + 1})`
+        `(LOWER(b.client_name) LIKE $${values.length + 1} OR LOWER(COALESCE(b.client_email, '')) LIKE $${values.length + 1} OR COALESCE(b.client_phone, '') LIKE $${values.length + 1})`
       );
       values.push(`%${options.search.toLowerCase()}%`);
     }

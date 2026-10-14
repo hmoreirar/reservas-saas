@@ -14,6 +14,7 @@ const mockBooking: Booking = {
   id: 10,
   service_id: 5,
   client_name: "Cliente",
+  client_phone: '+56 9 1234 5678',
   client_email: "cliente@example.com",
   start_time: "2026-07-01T10:00:00.000Z",
   end_time: "2026-07-01T11:00:00.000Z",

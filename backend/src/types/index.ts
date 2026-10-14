@@ -30,7 +30,8 @@ export interface Booking {
   id: number;
   service_id: number;
   client_name: string;
-  client_email: string;
+  client_phone: string | null;
+  client_email: string | null;
   start_time: Date;
   end_time: Date;
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no-show';

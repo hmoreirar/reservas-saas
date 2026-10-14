@@ -53,7 +53,7 @@ const safeSubject = (value: string): string => value.replace(/[\r\n]+/g, ' ');
 interface EmailBooking {
   start_time?: Date | string;
   client_name?: string;
-  client_email?: string;
+  client_email?: string | null;
   notes?: string | null;
   status?: string;
 }
@@ -67,10 +67,10 @@ interface EmailService {
 export const sendBookingConfirmation = async (
   booking: EmailBooking,
   service: EmailService,
-  clientEmail: string,
+  clientEmail: string | null,
   clientName: string
 ): Promise<void> => {
-  if (!transporter) return;
+  if (!transporter || !clientEmail) return;
 
   await transporter.sendMail({
     from: FROM,
@@ -99,10 +99,10 @@ export const sendBookingConfirmation = async (
 export const sendBookingCancellation = async (
   booking: EmailBooking,
   service: EmailService,
-  clientEmail: string,
+  clientEmail: string | null,
   clientName: string
 ): Promise<void> => {
-  if (!transporter) return;
+  if (!transporter || !clientEmail) return;
 
   await transporter.sendMail({
     from: FROM,
@@ -159,10 +159,10 @@ export const sendProviderNotification = async (
 export const sendBookingConfirmed = async (
   booking: EmailBooking,
   service: EmailService,
-  clientEmail: string,
+  clientEmail: string | null,
   clientName: string
 ): Promise<void> => {
-  if (!transporter) return;
+  if (!transporter || !clientEmail) return;
 
   await transporter.sendMail({
     from: FROM,
@@ -188,11 +188,11 @@ export const sendBookingConfirmed = async (
 export const sendBookingDeclined = async (
   booking: EmailBooking,
   service: EmailService,
-  clientEmail: string,
+  clientEmail: string | null,
   clientName: string,
   reason?: string
 ): Promise<void> => {
-  if (!transporter) return;
+  if (!transporter || !clientEmail) return;
 
   await transporter.sendMail({
     from: FROM,

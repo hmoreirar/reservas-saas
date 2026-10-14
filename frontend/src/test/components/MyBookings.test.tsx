@@ -8,6 +8,7 @@ const baseBooking: Booking = {
   id: 1,
   service_id: 1,
   client_name: "Ana Torres",
+  client_phone: '+56 9 1234 5678',
   client_email: "ana@example.com",
   start_time: "2030-01-01T12:00:00.000Z",
   end_time: "2030-01-01T12:30:00.000Z",

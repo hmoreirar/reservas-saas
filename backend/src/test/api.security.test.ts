@@ -115,6 +115,7 @@ describe('Reglas de reserva', () => {
     const res = await request(app).post('/api/bookings/public').send({
       service_id: service.id,
       client_name: 'Cliente',
+      client_phone: '+56912345678',
       client_email: 'cliente@example.com',
       start_time: slots[0].start,
       price: 1,
@@ -135,6 +136,7 @@ describe('Reglas de reserva', () => {
       .send({
         service_id: service.id,
         client_name: 'Cliente',
+        client_phone: '+56912345678',
         client_email: 'cli-rev@example.com',
         start_time: slot.start,
       });
@@ -153,6 +155,7 @@ describe('Reglas de reserva', () => {
     const res = await request(app).post('/api/bookings/public').send({
       service_id: service.id,
       client_name: 'Cliente',
+      client_phone: '+56912345678',
       client_email: 'cliente@example.com',
       start_time: daysFromNow(-2),
     });
@@ -166,6 +169,7 @@ describe('Reglas de reserva', () => {
     const res = await request(app).post('/api/bookings/public').send({
       service_id: service.id,
       client_name: 'Cliente',
+      client_phone: '+56912345678',
       client_email: 'cliente@example.com',
       start_time: outside,
     });
@@ -190,6 +194,7 @@ describe('Reglas de reserva', () => {
     const res = await request(app).post('/api/bookings/public').send({
       service_id: service.id,
       client_name: 'Cliente',
+      client_phone: '+56912345678',
       client_email: 'cliente@example.com',
       start_time: removed[0].start,
     });
@@ -204,12 +209,14 @@ describe('Reglas de reserva', () => {
       request(app).post('/api/bookings/public').send({
         service_id: service.id,
         client_name: 'Cliente A',
+        client_phone: '+56912345678',
         client_email: 'clientea@example.com',
         start_time: slot.start,
       }),
       request(app).post('/api/bookings/public').send({
         service_id: service.id,
         client_name: 'Cliente B',
+        client_phone: '+56912345678',
         client_email: 'clienteb@example.com',
         start_time: slot.start,
       }),
@@ -233,18 +240,21 @@ describe('Reglas de reserva', () => {
     const first = await request(app).post('/api/bookings/public').send({
       service_id: service.id,
       client_name: 'Cliente 1',
+      client_phone: '+56912345678',
       client_email: 'cliente1@example.com',
       start_time: slot.start,
     });
     const second = await request(app).post('/api/bookings/public').send({
       service_id: service.id,
       client_name: 'Cliente 2',
+      client_phone: '+56912345678',
       client_email: 'cliente2@example.com',
       start_time: slot.start,
     });
     const third = await request(app).post('/api/bookings/public').send({
       service_id: service.id,
       client_name: 'Cliente 3',
+      client_phone: '+56912345678',
       client_email: 'cliente3@example.com',
       start_time: slot.start,
     });
@@ -272,6 +282,7 @@ describe('Aislamiento de staff', () => {
       .send({
         service_id: attackerService.id,
         client_name: 'Cliente',
+        client_phone: '+56912345678',
         client_email: 'cli@example.com',
         start_time: slot.start,
       });
@@ -301,6 +312,7 @@ describe('Aislamiento de staff', () => {
       .send({
         service_id: attackerService.id,
         client_name: 'Cliente',
+        client_phone: '+56912345678',
         client_email: 'cli2@example.com',
         start_time: slot.start,
       });
@@ -438,6 +450,7 @@ describe('Transiciones de estado de reserva', () => {
       .send({
         service_id: service.id,
         client_name: 'Cliente Estado',
+        client_phone: '+56912345678',
         client_email: 'estado@example.com',
         start_time: slots[0].start,
       });
@@ -470,6 +483,7 @@ describe('Transiciones de estado de reserva', () => {
       .send({
         service_id: service.id,
         client_name: 'Cliente Activo',
+        client_phone: '+56912345678',
         client_email: 'activo@example.com',
         start_time: slots[0].start,
       });

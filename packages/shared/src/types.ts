@@ -49,7 +49,8 @@ export interface Booking {
   id: number;
   service_id: number;
   client_name: string;
-  client_email: string;
+  client_phone: string | null;
+  client_email: string | null;
   start_time: string;
   end_time: string;
   status: BookingStatus;

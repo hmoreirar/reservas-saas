@@ -83,6 +83,7 @@ describe('Booking Flow', () => {
     const booking = await bookingService.create(userId, {
       service_id: serviceId,
       client_name: 'Cliente Test',
+      client_phone: '+56912345678',
       client_email: 'cliente@test.com',
       start_time: availableSlot,
     });
@@ -96,6 +97,7 @@ describe('Booking Flow', () => {
       bookingService.create(userId, {
         service_id: serviceId,
         client_name: 'Otro Cliente',
+        client_phone: '+56912345678',
         client_email: 'otro@test.com',
         start_time: availableSlot,
       })
@@ -150,6 +152,7 @@ describe('Booking Flow', () => {
     const booking = await bookingService.create(userId, {
       service_id: serviceId,
       client_name: 'Cliente Reprogramar',
+      client_phone: '+56912345678',
       client_email: 'reprogramar@test.com',
       start_time: slots[0].start,
     });

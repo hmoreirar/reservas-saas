@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizeClPhone } from '../utils/phone.js';
 
 export const registerSchema = z.object({
   name: z.string().min(1, 'Nombre requerido').max(100),
@@ -53,7 +54,8 @@ export const updateServiceSchema = z.object({
 export const createBookingSchema = z.object({
   service_id: z.number().int().positive(),
   client_name: z.string().min(1, 'Nombre del cliente requerido').max(100),
-  client_email: z.string().email('Email del cliente invalido'),
+  client_phone: z.string().refine((v) => normalizeClPhone(v) !== null, 'Telefono invalido (ej: +56 9 1234 5678)'),
+  client_email: z.union([z.string().email('Email del cliente invalido'), z.literal('')]).optional(),
   start_time: z.string().datetime({ offset: true }),
   notes: z.string().max(1000).optional(),
 });
@@ -61,7 +63,8 @@ export const createBookingSchema = z.object({
 export const createPublicBookingSchema = z.object({
   service_id: z.union([z.number().int().positive(), z.string().min(1)]),
   client_name: z.string().min(1, 'Nombre requerido').max(100),
-  client_email: z.string().email('Email invalido'),
+  client_phone: z.string().refine((v) => normalizeClPhone(v) !== null, 'Telefono invalido (ej: +56 9 1234 5678)'),
+  client_email: z.union([z.string().email('Email invalido'), z.literal('')]).optional(),
   start_time: z.string().datetime({ offset: true }),
   notes: z.string().max(1000).optional(),
 });

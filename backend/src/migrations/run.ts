@@ -127,6 +127,7 @@ const migrations = [
      count INT NOT NULL DEFAULT 0,
      reset_at TIMESTAMPTZ NOT NULL
    )`,
+  `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS client_phone VARCHAR(30)`,
 ];
 
 export async function runMigrations(): Promise<void> {

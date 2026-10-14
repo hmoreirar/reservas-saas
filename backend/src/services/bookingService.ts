@@ -14,6 +14,7 @@ import {
   sendProviderNotification,
 } from '../utils/emailService.js';
 import { integrationService } from './integrationService.js';
+import { normalizeClPhone } from '../utils/phone.js';
 import { serviceTimeZone, dayStart, dayUtcRange, serviceDayOfWeek, timeParts, toUtcIso, instantToServiceDate } from '../utils/datetime.js';
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -37,7 +38,8 @@ async function findServiceByIdOrSlug(serviceId: number | string): Promise<Servic
 async function createBookingRecord(data: {
   service: Service;
   client_name: string;
-  client_email: string;
+  client_phone: string;
+  client_email?: string;
   start_time: string;
   notes?: string;
   status?: string;
@@ -60,7 +62,8 @@ async function createBookingRecord(data: {
   const booking = await bookingRepository.createIfAvailable({
     service_id: data.service.id,
     client_name: data.client_name,
-    client_email: data.client_email,
+    client_phone: normalizeClPhone(data.client_phone),
+    client_email: data.client_email?.trim() || null,
     start_time: start,
     end_time: end,
     notes: data.notes ?? null,
@@ -78,18 +81,21 @@ async function createBookingRecord(data: {
 async function sendBookingNotifications(
   booking: Booking,
   service: Service,
-  clientEmail: string,
+  clientEmail: string | null,
   clientName: string
 ) {
   const userResult = await userRepository.findById(service.user_id);
   if (userResult) {
     try {
-      await sendBookingConfirmation(
-        booking,
-        { name: service.name, duration: service.duration, price: service.price },
-        clientEmail,
-        clientName
-      );
+      // el email del cliente es opcional: sin email no hay confirmacion por correo
+      if (clientEmail) {
+        await sendBookingConfirmation(
+          booking,
+          { name: service.name, duration: service.duration, price: service.price },
+          clientEmail,
+          clientName
+        );
+      }
       await sendProviderNotification(
         userResult.email,
         userResult.name,
@@ -114,7 +120,8 @@ export const bookingService = {
     data: {
       service_id: number;
       client_name: string;
-      client_email: string;
+      client_phone: string;
+      client_email?: string;
       start_time: string;
       notes?: string;
     }
@@ -130,13 +137,14 @@ export const bookingService = {
     const { booking } = await createBookingRecord({
       service,
       client_name: data.client_name,
+      client_phone: data.client_phone,
       client_email: data.client_email,
       start_time: data.start_time,
       notes: data.notes,
       status: 'confirmed',
     });
 
-    await sendBookingNotifications(booking, service, data.client_email, data.client_name);
+    await sendBookingNotifications(booking, service, data.client_email ?? null, data.client_name);
 
     return booking;
   },
@@ -144,7 +152,8 @@ export const bookingService = {
   async createPublic(data: {
     service_id: number | string;
     client_name: string;
-    client_email: string;
+    client_phone: string;
+    client_email?: string;
     start_time: string;
     notes?: string;
   }) {
@@ -153,13 +162,14 @@ export const bookingService = {
     const { booking } = await createBookingRecord({
       service,
       client_name: data.client_name,
+      client_phone: data.client_phone,
       client_email: data.client_email,
       start_time: data.start_time,
       notes: data.notes,
       status: 'pending',
     });
 
-    await sendBookingNotifications(booking, service, data.client_email, data.client_name);
+    await sendBookingNotifications(booking, service, data.client_email ?? null, data.client_name);
 
     return { booking, service };
   },
