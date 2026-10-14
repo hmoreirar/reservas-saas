@@ -24,6 +24,8 @@ export default function BookingPage() {
   const [wizardActive, setWizardActive] = useState(false);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [bookedWhen, setBookedWhen] = useState("");
   const { weekOffset, prevWeek, nextWeek } = useWeekOffset();
 
   useEffect(() => {
@@ -59,19 +61,34 @@ export default function BookingPage() {
   }, [selectedDate, service]);
 
   const handleConfirmBooking = useCallback(
-    async (name: string, email: string, notes: string) => {
+    async (data: { name: string; phone: string; email: string; notes: string }) => {
       if (!service || !selectedSlot) return "Error inesperado";
       try {
-        await createPublicBooking(service.id, name, email, selectedSlot.start, notes);
+        await createPublicBooking(
+          service.id, data.name, data.phone, selectedSlot.start, data.email, data.notes
+        );
+        setBookedWhen(
+          `${new Date(selectedDate + "T12:00:00").toLocaleDateString("es-CL", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          })} a las ${new Date(selectedSlot.start).toLocaleTimeString("es-CL", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZone: service.timezone || undefined,
+          })}`
+        );
         setBookingSuccess(true);
         setWizardActive(false);
-        setClientEmail(email);
+        setClientPhone(data.phone);
+        setClientEmail(data.email);
         return null;
       } catch (e) {
-        return errorMessage(e, "Error al crear reserva");
+        return errorMessage(e, "Error al crear la reserva");
       }
     },
-    [service, selectedSlot]
+    [service, selectedSlot, selectedDate]
   );
 
   const isFutureOrToday = (dateStr: string) => {
@@ -94,7 +111,15 @@ export default function BookingPage() {
   }
 
   if (bookingSuccess && service) {
-    return <BookingSuccess service={service} clientEmail={clientEmail} isPending />;
+    return (
+      <BookingSuccess
+        service={service}
+        when={bookedWhen}
+        clientPhone={clientPhone}
+        clientEmail={clientEmail || undefined}
+        isPending
+      />
+    );
   }
 
   const formattedDate = new Date(selectedDate + "T12:00:00").toLocaleDateString("es-CL", {
@@ -171,7 +196,7 @@ export default function BookingPage() {
                 </div>
               ) : (
                 <>
-                  <div className="flex max-h-[400px] flex-col gap-2 overflow-y-auto pr-1">
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
                     {availableSlots.map((slot) => {
                       const key = typeof slot.start === "string" ? slot.start : new Date(slot.start).toISOString();
                       return (
@@ -179,7 +204,7 @@ export default function BookingPage() {
                           key={key}
                           onClick={() => setSelectedSlot(slot)}
                           disabled={!isFutureOrToday(selectedDate)}
-                          className={`cursor-pointer rounded-lg border px-4 py-2.5 text-left text-sm font-medium transition-all ${
+                          className={`cursor-pointer rounded-lg border px-4 py-3 text-center text-sm font-medium transition-all ${
                             selectedSlot?.start === slot.start
                               ? "border-accent bg-accent text-accent-text"
                               : "border-border text-text hover:border-accent hover:text-accent"
@@ -188,6 +213,7 @@ export default function BookingPage() {
                           {new Date(slot.start).toLocaleTimeString("es-CL", {
                             hour: "2-digit",
                             minute: "2-digit",
+                            hour12: false,
                             timeZone: service?.timezone || undefined,
                           })}
                         </button>

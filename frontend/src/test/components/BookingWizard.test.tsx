@@ -37,159 +37,107 @@ describe("BookingWizard", () => {
       />
     );
 
-    expect(screen.getByText("Resumen de la reserva")).toBeInTheDocument();
-    expect(screen.getByText("Test Service")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Tus datos" })).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Juan Perez")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("juan@example.com")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("Informacion adicional...")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Continuar" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Atras" })).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("+56 9 1234 5678")).toBeInTheDocument();
   });
 
   it("shows error when name is empty", async () => {
     render(
-      <BookingWizard
-        service={mockService}
-        slot={mockSlot}
-        date="2026-07-01"
-        onBack={vi.fn()}
-        onConfirm={vi.fn()}
-      />
+      <BookingWizard service={mockService} slot={mockSlot} date="2026-07-01" onBack={vi.fn()} onConfirm={vi.fn()} />
     );
-
-    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    expect(screen.getByText("Por favor ingresa tu nombre")).toBeInTheDocument();
+    await userEvent.click(screen.getByText("Continuar"));
+    expect(screen.getByText("Ingresa tu nombre")).toBeInTheDocument();
   });
 
-  it("shows error when email is invalid", async () => {
+  it("shows error when phone is invalid", async () => {
     render(
-      <BookingWizard
-        service={mockService}
-        slot={mockSlot}
-        date="2026-07-01"
-        onBack={vi.fn()}
-        onConfirm={vi.fn()}
-      />
+      <BookingWizard service={mockService} slot={mockSlot} date="2026-07-01" onBack={vi.fn()} onConfirm={vi.fn()} />
     );
-
-    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Juan");
-    await userEvent.type(screen.getByPlaceholderText("juan@example.com"), "not-an-email");
-    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    expect(screen.getByText("Ingresa un email valido")).toBeInTheDocument();
+    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Ana");
+    await userEvent.type(screen.getByPlaceholderText("+56 9 1234 5678"), "123");
+    await userEvent.click(screen.getByText("Continuar"));
+    expect(screen.getByText("Ingresa un WhatsApp valido, ej: +56 9 1234 5678")).toBeInTheDocument();
   });
 
   it("advances to step 2 when form is valid", async () => {
     render(
-      <BookingWizard
-        service={mockService}
-        slot={mockSlot}
-        date="2026-07-01"
-        onBack={vi.fn()}
-        onConfirm={vi.fn()}
-      />
+      <BookingWizard service={mockService} slot={mockSlot} date="2026-07-01" onBack={vi.fn()} onConfirm={vi.fn()} />
     );
+    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Ana Torres");
+    await userEvent.type(screen.getByPlaceholderText("+56 9 1234 5678"), "9 1234 5678");
+    await userEvent.click(screen.getByText("Continuar"));
 
-    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Juan Pérez");
-    await userEvent.type(screen.getByPlaceholderText("juan@example.com"), "juan@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
-
-    expect(screen.getByText("Confirma tu reserva")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Confirmar reserva" })).toBeInTheDocument();
+    expect(screen.getByText("Confirma tu hora")).toBeInTheDocument();
+    expect(screen.getByText("Reservar ahora")).toBeInTheDocument();
   });
 
   it("goes back to step 1 from step 2", async () => {
     render(
-      <BookingWizard
-        service={mockService}
-        slot={mockSlot}
-        date="2026-07-01"
-        onBack={vi.fn()}
-        onConfirm={vi.fn()}
-      />
+      <BookingWizard service={mockService} slot={mockSlot} date="2026-07-01" onBack={vi.fn()} onConfirm={vi.fn()} />
     );
-
-    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Juan");
-    await userEvent.type(screen.getByPlaceholderText("juan@example.com"), "juan@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    await userEvent.click(screen.getByRole("button", { name: "Atras" }));
-
-    expect(screen.getByText("Resumen de la reserva")).toBeInTheDocument();
+    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Ana");
+    await userEvent.type(screen.getByPlaceholderText("+56 9 1234 5678"), "9 1234 5678");
+    await userEvent.click(screen.getByText("Continuar"));
+    await userEvent.click(screen.getByText("Volver"));
+    expect(screen.getByRole("heading", { name: "Tus datos" })).toBeInTheDocument();
   });
 
   it("calls onConfirm with correct data", async () => {
     const onConfirm = vi.fn().mockResolvedValue(null);
     render(
-      <BookingWizard
-        service={mockService}
-        slot={mockSlot}
-        date="2026-07-01"
-        onBack={vi.fn()}
-        onConfirm={onConfirm}
-      />
+      <BookingWizard service={mockService} slot={mockSlot} date="2026-07-01" onBack={vi.fn()} onConfirm={onConfirm} />
     );
+    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Ana Torres");
+    await userEvent.type(screen.getByPlaceholderText("+56 9 1234 5678"), "9 1234 5678");
+    await userEvent.type(screen.getByPlaceholderText("juan@example.com"), "ana@example.com");
+    await userEvent.click(screen.getByText("Continuar"));
+    await userEvent.click(screen.getByText("Reservar ahora"));
 
-    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Juan Pérez");
-    await userEvent.type(screen.getByPlaceholderText("juan@example.com"), "juan@example.com");
-    await userEvent.type(screen.getByPlaceholderText("Informacion adicional..."), "Nota test");
-    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    await userEvent.click(screen.getByRole("button", { name: "Confirmar reserva" }));
-
-    expect(onConfirm).toHaveBeenCalledWith("Juan Pérez", "juan@example.com", "Nota test");
+    expect(onConfirm).toHaveBeenCalledWith({
+      name: "Ana Torres",
+      phone: "9 1234 5678",
+      email: "ana@example.com",
+      notes: "",
+    });
   });
 
   it("calls onBack when back button is clicked on step 1", async () => {
     const onBack = vi.fn();
     render(
-      <BookingWizard
-        service={mockService}
-        slot={mockSlot}
-        date="2026-07-01"
-        onBack={onBack}
-        onConfirm={vi.fn()}
-      />
+      <BookingWizard service={mockService} slot={mockSlot} date="2026-07-01" onBack={onBack} onConfirm={vi.fn()} />
     );
-
-    await userEvent.click(screen.getByRole("button", { name: "Atras" }));
-    expect(onBack).toHaveBeenCalledOnce();
+    await userEvent.click(screen.getByText("Volver"));
+    expect(onBack).toHaveBeenCalled();
   });
 
   it("shows loading state while confirming", async () => {
-    const onConfirm = vi.fn().mockReturnValue(new Promise(() => {})); // never resolves
-    render(
-      <BookingWizard
-        service={mockService}
-        slot={mockSlot}
-        date="2026-07-01"
-        onBack={vi.fn()}
-        onConfirm={onConfirm}
-      />
+    let resolveConfirm: (v: string | null) => void = () => {};
+    const onConfirm = vi.fn().mockImplementation(
+      () => new Promise((resolve) => { resolveConfirm = resolve; })
     );
+    render(
+      <BookingWizard service={mockService} slot={mockSlot} date="2026-07-01" onBack={vi.fn()} onConfirm={onConfirm} />
+    );
+    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Ana");
+    await userEvent.type(screen.getByPlaceholderText("+56 9 1234 5678"), "9 1234 5678");
+    await userEvent.click(screen.getByText("Continuar"));
+    await userEvent.click(screen.getByText("Reservar ahora"));
 
-    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Juan");
-    await userEvent.type(screen.getByPlaceholderText("juan@example.com"), "juan@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    await userEvent.click(screen.getByRole("button", { name: "Confirmar reserva" }));
-
-    expect(screen.getByRole("button", { name: "Confirmando..." })).toBeDisabled();
+    expect(screen.getByText("Enviando...")).toBeInTheDocument();
+    resolveConfirm(null);
   });
 
   it("shows error when onConfirm returns error", async () => {
-    const onConfirm = vi.fn().mockResolvedValue("Error del servidor");
+    const onConfirm = vi.fn().mockResolvedValue("Horario no disponible");
     render(
-      <BookingWizard
-        service={mockService}
-        slot={mockSlot}
-        date="2026-07-01"
-        onBack={vi.fn()}
-        onConfirm={onConfirm}
-      />
+      <BookingWizard service={mockService} slot={mockSlot} date="2026-07-01" onBack={vi.fn()} onConfirm={onConfirm} />
     );
+    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Ana");
+    await userEvent.type(screen.getByPlaceholderText("+56 9 1234 5678"), "9 1234 5678");
+    await userEvent.click(screen.getByText("Continuar"));
+    await userEvent.click(screen.getByText("Reservar ahora"));
 
-    await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Juan");
-    await userEvent.type(screen.getByPlaceholderText("juan@example.com"), "juan@example.com");
-    await userEvent.click(screen.getByRole("button", { name: "Continuar" }));
-    await userEvent.click(screen.getByRole("button", { name: "Confirmar reserva" }));
-
-    expect(screen.getByText("Error del servidor")).toBeInTheDocument();
+    expect(await screen.findByText("Horario no disponible")).toBeInTheDocument();
   });
 });

@@ -2,28 +2,59 @@ import type { Service } from "../types";
 
 interface BookingSuccessProps {
   service: Service;
-  clientEmail: string;
+  when: string;
+  clientPhone: string;
+  clientEmail?: string;
   isPending?: boolean;
 }
 
-export default function BookingSuccess({ service, clientEmail, isPending }: BookingSuccessProps) {
+// Pantalla final sin ambiguedad: que se reservo, para cuando, y que pasa ahora.
+export default function BookingSuccess({
+  service,
+  when,
+  clientPhone,
+  clientEmail,
+  isPending,
+}: BookingSuccessProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-bg font-sans">
-      <div className="max-w-md rounded-2xl border border-border bg-surface p-12 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-bg px-4 font-sans">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 text-center md:p-12">
         <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-accent-bg text-4xl text-accent">
-          {isPending ? "\u23F3" : "\u2713"}
+          <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
         </div>
+
         <h1 className="mb-2 text-2xl font-bold text-text">
-          {isPending ? "Reserva Solicitada" : "Reserva Confirmada"}
+          {isPending ? "Tu hora fue solicitada" : "Tu hora está reservada"}
         </h1>
-        <p className="mb-5 text-text-secondary">
-          {isPending
-            ? `Tu solicitud para ${service.name} ha sido enviada. El proveedor confirmara tu reserva pronto.`
-            : `Tu reserva para ${service.name} ha sido creada.`}
-        </p>
-        <p className="text-text-secondary">
-          Enviamos un correo a <strong>{clientEmail}</strong>
-          {isPending ? " con los detalles de tu solicitud." : " de confirmacion."}
+
+        <div className="mb-6 rounded-xl bg-accent-bg px-4 py-4">
+          <p className="text-base font-semibold text-text capitalize">{service.name}</p>
+          <p className="mt-1 text-lg font-semibold text-text capitalize">{when}</p>
+        </div>
+
+        <div className="mb-6 space-y-2 text-left text-sm text-text-secondary">
+          <p className="flex items-start gap-2">
+            <span className="mt-0.5 text-accent">1.</span>
+            {isPending
+              ? "El proveedor revisa tu solicitud."
+              : "Tu hora quedó registrada en la agenda."}
+          </p>
+          <p className="flex items-start gap-2">
+            <span className="mt-0.5 text-accent">2.</span>
+            Te avisamos por WhatsApp al <strong className="text-text">{clientPhone}</strong> para confirmar.
+          </p>
+          {clientEmail && (
+            <p className="flex items-start gap-2">
+              <span className="mt-0.5 text-accent">3.</span>
+              También enviamos los detalles a <strong className="text-text">{clientEmail}</strong>.
+            </p>
+          )}
+        </div>
+
+        <p className="text-xs text-text-muted">
+          Si necesitas cambiar la hora, avísanos por WhatsApp con anticipación.
         </p>
       </div>
     </div>

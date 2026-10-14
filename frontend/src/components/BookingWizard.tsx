@@ -2,12 +2,12 @@ import { useState } from "react";
 import WizardProgressBar from "./WizardProgressBar";
 import Input from "./ui/Input";
 import Button from "./ui/Button";
+import { normalizeClPhone } from "@reservas/shared";
 import type { TimeSlot, Service } from "../types";
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
+// El horario ya fue elegido: arranca en el paso 2 y lo marcamos como hecho.
 const STEPS = [
-  { label: "Horario" },
+  { label: "Elige tu hora" },
   { label: "Tus datos" },
   { label: "Confirmar" },
 ];
@@ -17,12 +17,18 @@ interface BookingWizardProps {
   slot: TimeSlot;
   date: string;
   onBack: () => void;
-  onConfirm: (name: string, email: string, notes: string) => Promise<string | null>;
+  onConfirm: (data: {
+    name: string;
+    phone: string;
+    email: string;
+    notes: string;
+  }) => Promise<string | null>;
 }
 
 export default function BookingWizard({ service, slot, date, onBack, onConfirm }: BookingWizardProps) {
   const [step, setStep] = useState(1);
   const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
@@ -32,22 +38,26 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
     weekday: "long",
     day: "numeric",
     month: "long",
-    year: "numeric",
   });
 
   const formattedTime = new Date(slot.start).toLocaleTimeString("es-CL", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
     timeZone: service.timezone || undefined,
   });
 
   const handleNext = () => {
     if (!clientName.trim()) {
-      setError("Por favor ingresa tu nombre");
+      setError("Ingresa tu nombre");
       return;
     }
-    if (!EMAIL_RE.test(clientEmail)) {
-      setError("Ingresa un email valido");
+    if (!normalizeClPhone(clientPhone)) {
+      setError("Ingresa un WhatsApp valido, ej: +56 9 1234 5678");
+      return;
+    }
+    if (clientEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) {
+      setError("El email no parece valido");
       return;
     }
     setError("");
@@ -58,7 +68,12 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
     setError("");
     setIsBooking(true);
     try {
-      const err = await onConfirm(clientName, clientEmail, notes);
+      const err = await onConfirm({
+        name: clientName.trim(),
+        phone: clientPhone.trim(),
+        email: clientEmail.trim(),
+        notes: notes.trim(),
+      });
       if (err) {
         setError(err);
       }
@@ -81,42 +96,35 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
 
       {step === 1 && (
         <div>
-          <div className="mb-6 rounded-xl border border-border bg-surface p-5">
-            <h3 className="mb-3 text-lg font-semibold text-text">Resumen de la reserva</h3>
-            <div className="space-y-2 text-sm text-text-secondary">
-              <p>
-                <span className="font-medium text-text">Servicio:</span> {service.name}
-              </p>
-              <p>
-                <span className="font-medium text-text">Fecha:</span> {formattedDate}
-              </p>
-              <p>
-                <span className="font-medium text-text">Hora:</span> {formattedTime}
-              </p>
-              <p>
-                <span className="font-medium text-text">Duracion:</span> {service.duration} min
-              </p>
-              {service.price != null && (
-                <p>
-                  <span className="font-medium text-text">Precio:</span> ${service.price}
-                </p>
-              )}
-            </div>
-          </div>
+          <h2 className="mb-6 text-lg font-semibold text-text">Tus datos</h2>
 
           <div className="mb-4">
             <Input
-              label="Nombre completo *"
+              label="Tu nombre *"
               type="text"
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Juan Perez"
+              autoFocus
             />
           </div>
 
           <div className="mb-4">
             <Input
-              label="Email *"
+              label="Tu WhatsApp *"
+              type="tel"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+              placeholder="+56 9 1234 5678"
+            />
+            <p className="mt-1 text-xs text-text-muted">
+              Te contactaremos por aquí para confirmar tu hora.
+            </p>
+          </div>
+
+          <div className="mb-4">
+            <Input
+              label="Email (opcional)"
               type="email"
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value)}
@@ -124,7 +132,7 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-8">
             <Input.Textarea
               label="Notas (opcional)"
               value={notes}
@@ -135,9 +143,9 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
 
           <div className="flex gap-3">
             <Button variant="secondary" onClick={onBack} className="flex-1">
-              Atras
+              Volver
             </Button>
-            <Button onClick={handleNext} className="flex-1">
+            <Button onClick={handleNext} className="flex-[2]">
               Continuar
             </Button>
           </div>
@@ -146,49 +154,30 @@ export default function BookingWizard({ service, slot, date, onBack, onConfirm }
 
       {step === 2 && (
         <div>
+          <h2 className="mb-6 text-lg font-semibold text-text">Confirma tu hora</h2>
+
           <div className="mb-6 rounded-xl border border-border bg-surface p-5">
-            <h3 className="mb-3 text-lg font-semibold text-text">Confirma tu reserva</h3>
-            <div className="space-y-2 text-sm text-text-secondary">
-              <p>
-                <span className="font-medium text-text">Servicio:</span> {service.name}
-              </p>
-              <p>
-                <span className="font-medium text-text">Fecha:</span> {formattedDate}
-              </p>
-              <p>
-                <span className="font-medium text-text">Hora:</span> {formattedTime}
-              </p>
-              <p>
-                <span className="font-medium text-text">Duracion:</span> {service.duration} min
-              </p>
-              {service.price != null && (
-                <p>
-                  <span className="font-medium text-text">Precio:</span> ${service.price}
-                </p>
-              )}
-            </div>
-            <hr className="my-4 border-border" />
-            <div className="space-y-2 text-sm text-text-secondary">
-              <p>
-                <span className="font-medium text-text">Nombre:</span> {clientName}
-              </p>
-              <p>
-                <span className="font-medium text-text">Email:</span> {clientEmail}
-              </p>
-              {notes && (
-                <p>
-                  <span className="font-medium text-text">Notas:</span> {notes}
-                </p>
-              )}
+            <p className="mb-1 text-base font-semibold text-text">{service.name}</p>
+            <p className="text-sm capitalize text-text-secondary">
+              {formattedDate} a las {formattedTime}
+            </p>
+            <div className="mt-4 space-y-1 border-t border-border pt-4 text-sm text-text-secondary">
+              <p>Nombre: <span className="text-text">{clientName}</span></p>
+              <p>WhatsApp: <span className="text-text">{clientPhone}</span></p>
+              {clientEmail && <p>Email: <span className="text-text">{clientEmail}</span></p>}
             </div>
           </div>
 
+          <p className="mb-6 text-xs text-text-muted">
+            Al confirmar, el proveedor revisa tu solicitud y te avisa por WhatsApp.
+          </p>
+
           <div className="flex gap-3">
             <Button variant="secondary" onClick={() => setStep(1)} className="flex-1">
-              Atras
+              Volver
             </Button>
-            <Button onClick={handleConfirm} disabled={isBooking} className="flex-1">
-              {isBooking ? "Confirmando..." : "Confirmar reserva"}
+            <Button onClick={handleConfirm} disabled={isBooking} className="flex-[2]">
+              {isBooking ? "Enviando..." : "Reservar ahora"}
             </Button>
           </div>
         </div>

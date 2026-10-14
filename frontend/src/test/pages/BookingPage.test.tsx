@@ -77,21 +77,23 @@ describe("BookingPage", () => {
 
     // paso 1: datos del cliente
     await userEvent.type(screen.getByPlaceholderText("Juan Perez"), "Ana Torres");
+    await userEvent.type(screen.getByPlaceholderText("+56 9 1234 5678"), "9 1234 5678");
     await userEvent.type(screen.getByPlaceholderText("juan@example.com"), "ana@example.com");
     await userEvent.click(screen.getByText("Continuar"));
 
     // paso 2: confirmar
-    await userEvent.click(screen.getByText("Confirmar reserva"));
+    await userEvent.click(screen.getByText("Reservar ahora"));
 
     await waitFor(() =>
       expect(api.createPublicBooking).toHaveBeenCalledWith(
         1,
         "Ana Torres",
-        "ana@example.com",
+        "9 1234 5678",
         futureSlot.start,
+        "ana@example.com",
         ""
       )
     );
-    expect(await screen.findByText("Reserva Solicitada")).toBeInTheDocument();
+    expect(await screen.findByText("Tu hora fue solicitada")).toBeInTheDocument();
   });
 });
