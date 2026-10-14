@@ -22,10 +22,6 @@ export const serviceService = {
     start_hour?: number;
     end_hour?: number;
     max_capacity?: number;
-    service_type?: string;
-    is_package?: boolean;
-    package_services?: { service_id: number; quantity?: number }[];
-    allow_multiple?: boolean;
   }) {
     const slug = generateSlug(data.name);
     const bookingSlug = `${slug}-book-${Math.random().toString(36).substring(2, 6)}`;
@@ -42,32 +38,13 @@ export const serviceService = {
       start_hour: data.start_hour ?? 9,
       end_hour: data.end_hour ?? 18,
       max_capacity: data.max_capacity ?? 1,
-      service_type: data.service_type ?? 'standard',
-      is_package: data.is_package ?? false,
-      allow_multiple: data.allow_multiple ?? false,
     });
-
-    if (data.is_package && data.package_services) {
-      for (const svc of data.package_services) {
-        await serviceRepository.addPackageService(
-          service.id,
-          svc.service_id,
-          svc.quantity ?? 1
-        );
-      }
-    }
 
     return service;
   },
 
   async getAll(userId: number) {
-    const services = await serviceRepository.findAllByUser(userId);
-    for (const service of services) {
-      if (service.is_package) {
-        (service as any).package_services = await serviceRepository.getPackageServices(service.id);
-      }
-    }
-    return services;
+    return serviceRepository.findAllByUser(userId);
   },
 
   async getBySlug(slug: string) {

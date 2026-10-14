@@ -93,9 +93,6 @@ async function ensureService(userId: number, seed: (typeof DEMO_SERVICES)[number
     start_hour: seed.start_hour,
     end_hour: seed.end_hour,
     max_capacity: seed.max_capacity,
-    service_type: 'standard',
-    is_package: false,
-    allow_multiple: false,
   });
 }
 

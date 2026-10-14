@@ -21,17 +21,6 @@ export const createServiceSchema = z.object({
   start_hour: z.number().int().min(0).max(23).default(9),
   end_hour: z.number().int().min(0).max(23).default(18),
   max_capacity: z.number().int().positive().default(1),
-  service_type: z.string().default('standard'),
-  is_package: z.boolean().default(false),
-  package_services: z
-    .array(
-      z.object({
-        service_id: z.number().int().positive(),
-        quantity: z.number().int().positive().default(1),
-      })
-    )
-    .optional(),
-  allow_multiple: z.boolean().default(false),
 }).refine((data) => data.end_hour > data.start_hour, {
   message: 'La hora de cierre debe ser posterior a la de inicio',
   path: ['end_hour'],
@@ -67,18 +56,6 @@ export const createPublicBookingSchema = z.object({
   client_email: z.union([z.string().email('Email invalido'), z.literal('')]).optional(),
   start_time: z.string().datetime({ offset: true }),
   notes: z.string().max(1000).optional(),
-});
-
-export const staffSchema = z.object({
-  name: z.string().min(1, 'Nombre requerido').max(100),
-  email: z.string().email('Email invalido'),
-  role: z.string().default('staff'),
-});
-
-export const updateStaffSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
-  email: z.string().email().optional(),
-  role: z.string().optional(),
 });
 
 export const serviceHoursSchema = z.object({

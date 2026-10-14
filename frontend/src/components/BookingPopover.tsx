@@ -1,5 +1,6 @@
 import Button from "./ui/Button";
 import StatusBadge from "./ui/StatusBadge";
+import OverflowMenu from "./ui/OverflowMenu";
 import type { Booking, BookingStatusAction } from "../types";
 
 interface BookingPopoverProps {
@@ -35,7 +36,12 @@ export default function BookingPopover({
       <div className="mb-3 flex items-start justify-between">
         <div>
           <p className="text-sm font-semibold text-text">{booking.client_name}</p>
-          <p className="text-xs text-text-secondary">{booking.client_email}</p>
+          {booking.client_phone && (
+            <p className="text-xs text-text-secondary">WhatsApp: {booking.client_phone}</p>
+          )}
+          {booking.client_email && (
+            <p className="text-xs text-text-muted">{booking.client_email}</p>
+          )}
         </div>
         <StatusBadge status={booking.status} />
       </div>
@@ -50,32 +56,35 @@ export default function BookingPopover({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {booking.status === "pending" && (
           <>
             <Button onClick={() => { onStatusChange(booking.id, "confirmed"); onClose(); }}>
               Confirmar
             </Button>
-            <Button variant="danger" onClick={() => { onStatusChange(booking.id, "declined"); onClose(); }}>
-              Rechazar
+            <Button variant="danger" onClick={() => { onCancel(booking.id); onClose(); }}>
+              Cancelar
             </Button>
+            <OverflowMenu
+              items={[
+                { label: "Rechazar solicitud", danger: true, onClick: () => { onStatusChange(booking.id, "declined"); onClose(); } },
+              ]}
+            />
           </>
         )}
 
         {booking.status === "confirmed" && (
           <>
-            <Button onClick={() => { onStatusChange(booking.id, "completed"); onClose(); }}>
-              Completar
-            </Button>
-            <Button variant="ghost" onClick={() => { onStatusChange(booking.id, "no-show"); onClose(); }}>
-              No show
-            </Button>
-            <Button variant="secondary" onClick={() => { onReschedule(booking.id); onClose(); }}>
-              Reprogramar
-            </Button>
             <Button variant="danger" onClick={() => { onCancel(booking.id); onClose(); }}>
               Cancelar
             </Button>
+            <OverflowMenu
+              items={[
+                { label: "Reprogramar", onClick: () => { onReschedule(booking.id); onClose(); } },
+                { label: "Marcar como completada", onClick: () => { onStatusChange(booking.id, "completed"); onClose(); } },
+                { label: "Cliente no asistio", onClick: () => { onStatusChange(booking.id, "no-show"); onClose(); } },
+              ]}
+            />
           </>
         )}
 

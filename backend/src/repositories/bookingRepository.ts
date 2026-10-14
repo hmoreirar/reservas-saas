@@ -189,10 +189,6 @@ export const bookingRepository = {
     }
   },
 
-  async assignStaff(bookingId: number, staffId: number): Promise<void> {
-    await pool.query('UPDATE bookings SET staff_id = $1 WHERE id = $2', [staffId, bookingId]);
-  },
-
   async getStatsByUser(userId: number, period?: string): Promise<{
     total: number;
     pending: number;

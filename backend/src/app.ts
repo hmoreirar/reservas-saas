@@ -8,7 +8,6 @@ import pool from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import bookingRoutes from './routes/bookingRoutes.js';
-import staffRoutes from './routes/staffRoutes.js';
 import agendaRoutes from './routes/agendaRoutes.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { logger } from './utils/logger.js';
@@ -50,7 +49,6 @@ app.use(cors({
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/staff', staffRoutes);
 app.use('/api/agenda', agendaRoutes);
 
 app.get('/api/health', async (_req, res) => {

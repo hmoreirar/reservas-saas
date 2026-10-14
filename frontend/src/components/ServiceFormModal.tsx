@@ -56,6 +56,7 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
   const [tab, setTab] = useState<Tab>("basico");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [justCreated, setJustCreated] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   // Pre-fill solo al abrir el modal: crear/editar cambia editingService
   // con el modal abierto y no debe pisar lo que el usuario ya escribio.
   const wasOpen = useRef(false);
@@ -103,7 +104,7 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
   const tabs: { id: Tab; label: string }[] = [
     { id: "basico", label: "Basico" },
     { id: "horarios", label: "Horarios" },
-    { id: "bloqueos", label: "Bloqueos" },
+    { id: "bloqueos", label: "No disponibles" },
   ];
 
   return (
@@ -118,6 +119,7 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
               type="text"
               value={form.name}
               onChange={(e) => update("name", e.target.value)}
+              placeholder="Ej: Consulta, Limpieza, Control"
               required
             />
           </div>
@@ -127,10 +129,11 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
               label="Descripcion"
               value={form.description}
               onChange={(e) => update("description", e.target.value)}
+              placeholder="Ej: Primera consulta con evaluacion"
             />
           </div>
 
-          <div className="mb-4 grid grid-cols-3 gap-4">
+          <div className="mb-4 grid grid-cols-2 gap-4">
             <Input
               label="Duracion (min) *"
               type="number"
@@ -146,47 +149,69 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
               value={form.price}
               onChange={(e) => update("price", e.target.value)}
             />
-            <Input
-              label="Capacidad *"
-              type="number"
-              required
-              min={1}
-              value={form.max_capacity}
-              onChange={(e) => update("max_capacity", parseInt(e.target.value) || 1)}
-            />
           </div>
 
-          <div className="mb-6 grid grid-cols-3 gap-4">
-            <Input.Select
-              label="Zona Horaria"
-              value={form.timezone}
-              onChange={(e) => update("timezone", e.target.value)}
-              options={[
-                { value: "America/Santiago", label: "Santiago (CL)" },
-                { value: "America/Buenos_Aires", label: "Buenos Aires (AR)" },
-                { value: "America/Mexico_City", label: "CDMX (MX)" },
-                { value: "America/New_York", label: "New York (US)" },
-                { value: "Europe/Madrid", label: "Madrid (ES)" },
-              ]}
-            />
-            <Input
-              label="Hora inicio *"
-              type="number"
-              required
-              min={0}
-              max={23}
-              value={form.start_hour}
-              onChange={(e) => update("start_hour", parseInt(e.target.value) || 9)}
-            />
-            <Input
-              label="Hora fin *"
-              type="number"
-              required
-              min={0}
-              max={23}
-              value={form.end_hour}
-              onChange={(e) => update("end_hour", parseInt(e.target.value) || 18)}
-            />
+          <div className="mb-6">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((v) => !v)}
+              className="flex cursor-pointer items-center gap-1.5 text-sm font-medium text-text-secondary hover:text-text"
+            >
+              <svg
+                className={`h-3.5 w-3.5 transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+              Ajustes avanzados
+            </button>
+
+            {showAdvanced && (
+              <div className="mt-3 space-y-4 rounded-lg border border-border p-4">
+                <p className="text-xs text-text-muted">
+                  La mayoria de los casos no necesita tocar nada de esto.
+                </p>
+                <div className="grid grid-cols-3 gap-4">
+                  <Input
+                    label="Capacidad por hora"
+                    type="number"
+                    min={1}
+                    value={form.max_capacity}
+                    onChange={(e) => update("max_capacity", parseInt(e.target.value) || 1)}
+                  />
+                  <Input
+                    label="Hora inicio *"
+                    type="number"
+                    required
+                    min={0}
+                    max={23}
+                    value={form.start_hour}
+                    onChange={(e) => update("start_hour", parseInt(e.target.value) || 9)}
+                  />
+                  <Input
+                    label="Hora fin *"
+                    type="number"
+                    required
+                    min={0}
+                    max={23}
+                    value={form.end_hour}
+                    onChange={(e) => update("end_hour", parseInt(e.target.value) || 18)}
+                  />
+                </div>
+                <Input.Select
+                  label="Zona Horaria"
+                  value={form.timezone}
+                  onChange={(e) => update("timezone", e.target.value)}
+                  options={[
+                    { value: "America/Santiago", label: "Santiago (CL)" },
+                    { value: "America/Buenos_Aires", label: "Buenos Aires (AR)" },
+                    { value: "America/Mexico_City", label: "CDMX (MX)" },
+                    { value: "America/New_York", label: "New York (US)" },
+                    { value: "Europe/Madrid", label: "Madrid (ES)" },
+                  ]}
+                />
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3">
@@ -230,7 +255,7 @@ export default function ServiceFormModal({ open, onClose, onSubmit, editingServi
             <ServiceBreaksManager serviceId={editingService.id} />
           ) : (
             <div className="py-6 text-center text-sm text-text-muted">
-              Crea el servicio primero para gestionar bloqueos.
+              Crea el servicio primero para marcar horarios no disponibles.
             </div>
           )}
           <Button variant="secondary" type="button" onClick={handleClose} className="mt-4 w-full">

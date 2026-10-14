@@ -64,7 +64,8 @@ describe("MyBookings", () => {
       bookings: [{ ...baseBooking, status: "pending" }],
       total: 1,
     });
-    await userEvent.click(screen.getByText("Rechazar"));
+    await userEvent.click(screen.getByRole("button", { name: "Mas acciones" }));
+    await userEvent.click(screen.getByText("Rechazar solicitud"));
     const textarea = screen.getByPlaceholderText("Motivo del rechazo...");
     await userEvent.type(textarea, "Ocupado");
     expect(textarea).toHaveValue("Ocupado");

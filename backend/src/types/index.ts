@@ -18,9 +18,6 @@ export interface Service {
   timezone: string;
   start_hour: number;
   end_hour: number;
-  service_type: string;
-  is_package: boolean;
-  allow_multiple: boolean;
   max_capacity: number;
   created_at: Date;
   provider_name?: string;
@@ -129,10 +126,6 @@ export interface CreateServiceInput {
   timezone?: string;
   start_hour?: number;
   end_hour?: number;
-  service_type?: string;
-  is_package?: boolean;
-  package_services?: { service_id: number; quantity?: number }[];
-  allow_multiple?: boolean;
 }
 
 export interface CreateBookingInput {

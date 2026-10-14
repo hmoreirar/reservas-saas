@@ -14,9 +14,6 @@ export interface Service {
   timezone: string;
   start_hour: number;
   end_hour: number;
-  service_type: string;
-  is_package: boolean;
-  allow_multiple: boolean;
   max_capacity: number;
   created_at: string;
   provider_name?: string;

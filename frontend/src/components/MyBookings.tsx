@@ -6,6 +6,7 @@ import Modal from "./ui/Modal";
 import Pagination from "./ui/Pagination";
 import StatusBadge from "./ui/StatusBadge";
 import Button from "./ui/Button";
+import OverflowMenu from "./ui/OverflowMenu";
 
 interface MyBookingsProps {
   bookings: Booking[];
@@ -115,7 +116,10 @@ export default function MyBookings({
                     <StatusBadge status={booking.status} />
                   </div>
                   <p className="m-0 text-sm text-text-secondary">
-                    {booking.client_name} ({booking.client_email})
+                    {booking.client_name}
+                    {booking.client_phone && (
+                      <span className="ml-1.5 text-text-muted">· {booking.client_phone}</span>
+                    )}
                   </p>
                   <p className="m-0 mt-1 text-sm text-text-secondary">
                     {new Date(booking.start_time).toLocaleString("es-CL", {
@@ -133,35 +137,39 @@ export default function MyBookings({
                   )}
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {booking.status === "pending" && (
                     <>
                       <Button onClick={() => onStatusChange(booking.id, "confirmed")}>
                         Confirmar
                       </Button>
-                      <Button
-                        variant="danger"
-                        onClick={() => setDeclineModal({ open: true, bookingId: booking.id })}
-                      >
-                        Rechazar
+                      <Button variant="danger" onClick={() => onCancel(booking.id)}>
+                        Cancelar
                       </Button>
+                      <OverflowMenu
+                        items={[
+                          {
+                            label: "Rechazar solicitud",
+                            danger: true,
+                            onClick: () => setDeclineModal({ open: true, bookingId: booking.id }),
+                          },
+                        ]}
+                      />
                     </>
                   )}
 
                   {booking.status === "confirmed" && (
                     <>
-                      <Button onClick={() => onStatusChange(booking.id, "completed")}>
-                        Completar
-                      </Button>
-                      <Button variant="ghost" onClick={() => onStatusChange(booking.id, "no-show")}>
-                        No show
-                      </Button>
-                      <Button variant="secondary" onClick={() => onReschedule(booking.id)}>
-                        Reprogramar
-                      </Button>
                       <Button variant="danger" onClick={() => onCancel(booking.id)}>
                         Cancelar
                       </Button>
+                      <OverflowMenu
+                        items={[
+                          { label: "Reprogramar", onClick: () => onReschedule(booking.id) },
+                          { label: "Marcar como completada", onClick: () => onStatusChange(booking.id, "completed") },
+                          { label: "Cliente no asistio", onClick: () => onStatusChange(booking.id, "no-show") },
+                        ]}
+                      />
                     </>
                   )}
 

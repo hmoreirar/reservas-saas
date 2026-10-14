@@ -20,7 +20,7 @@ export default function ServiceBreaksManager({ serviceId }: ServiceBreaksManager
     try {
       setBreaks(await getServiceBreaks(serviceId));
     } catch (e) {
-      showToast(errorMessage(e, "Error al cargar bloqueos"), "error");
+      showToast(errorMessage(e, "Error al cargar horarios no disponibles"), "error");
     } finally {
       setLoading(false);
     }
@@ -37,17 +37,17 @@ export default function ServiceBreaksManager({ serviceId }: ServiceBreaksManager
       setForm({ name: "", date: "", start_time: "", end_time: "", is_recurring: false });
       load();
     } catch (err) {
-      showToast(errorMessage(err, "Error al crear bloqueo"), "error");
+      showToast(errorMessage(err, "Error al marcar horario no disponible"), "error");
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Eliminar este bloque?")) return;
+    if (!confirm("Eliminar este horario no disponible?")) return;
     try {
       await deleteServiceBreak(serviceId, id);
       load();
     } catch (e) {
-      showToast(errorMessage(e, "Error al eliminar bloqueo"), "error");
+      showToast(errorMessage(e, "Error al eliminar horario no disponible"), "error");
     }
   };
 
@@ -67,19 +67,19 @@ export default function ServiceBreaksManager({ serviceId }: ServiceBreaksManager
     <div>
       <div className="mb-3 flex items-center justify-between">
         <h4 className="text-sm font-semibold text-text">
-          Bloques no disponibles
+          Horarios no disponibles
         </h4>
         <button
           onClick={() => setShowModal(true)}
           className="cursor-pointer rounded bg-accent px-3 py-1.5 text-xs font-medium text-accent-text transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
         >
-          + Agregar
+          + Marcar no disponible
         </button>
       </div>
 
       {breaks.length === 0 && (
         <p className="text-xs text-text-muted">
-          Sin bloqueos configurados.
+          Sin horarios marcados como no disponibles.
         </p>
       )}
 
