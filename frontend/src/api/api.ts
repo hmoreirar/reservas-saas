@@ -122,9 +122,10 @@ export const getAvailability = async (serviceId: number, date: string): Promise<
   );
 };
 
-export const getPublicAvailability = async (serviceId: number, date: string): Promise<TimeSlot[]> => {
+export const getPublicAvailability = async (serviceId: number, date: string, signal?: AbortSignal): Promise<TimeSlot[]> => {
   return apiFetch(
-    `${API_URL}/api/bookings/public/availability?service_id=${serviceId}&date=${date}`
+    `${API_URL}/api/bookings/public/availability?service_id=${serviceId}&date=${date}`,
+    { signal }
   );
 };
 
@@ -251,11 +252,12 @@ export const deleteServiceBreak = async (serviceId: number, breakId: number): Pr
   });
 };
 
-export const getDayAgenda = async (date: string, serviceId?: number): Promise<DayAgenda[]> => {
+export const getDayAgenda = async (date: string, serviceId?: number, signal?: AbortSignal): Promise<DayAgenda[]> => {
   const params = new URLSearchParams({ date });
   if (serviceId) params.set("service_id", String(serviceId));
   return apiFetch(`${API_URL}/api/agenda/day?${params}`, {
     headers: authHeaders(),
+    signal,
   });
 };
 

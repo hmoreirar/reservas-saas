@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router";
 import { getServiceBySlug, getPublicAvailability, createPublicBooking, errorMessage } from "./api/api";
 import { useWeekOffset } from "./hooks/useWeekOffset";
@@ -18,6 +18,7 @@ export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState(() => {
     return todayDateOnly();
   });
+  const slotsAbortRef = useRef<AbortController | null>(null);
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
@@ -47,14 +48,21 @@ export default function BookingPage() {
     setSelectedSlot(null);
     setSlotsLoading(true);
     setError("");
+    // respuesta vieja no debe pisar los slots del dia nuevo
+    slotsAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    slotsAbortRef.current = ctrl;
     const load = async () => {
       try {
-        setAvailableSlots(await getPublicAvailability(service.id, selectedDate));
+        const slots = await getPublicAvailability(service.id, selectedDate, ctrl.signal);
+        if (!ctrl.signal.aborted) setAvailableSlots(slots);
       } catch (e) {
-        setAvailableSlots([]);
-        setError(errorMessage(e, "Error al cargar horarios"));
+        if (!ctrl.signal.aborted) {
+          setAvailableSlots([]);
+          setError(errorMessage(e, "Error al cargar horarios"));
+        }
       } finally {
-        setSlotsLoading(false);
+        if (!ctrl.signal.aborted) setSlotsLoading(false);
       }
     };
     load();

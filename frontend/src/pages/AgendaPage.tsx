@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import StatsCards from "../components/StatsCards";
 import WeekBar from "../components/WeekBar";
 import DayTimeline from "../components/DayTimeline";
@@ -44,6 +44,7 @@ export default function AgendaPage() {
   } | null>(null);
   const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
   const [services, setServices] = useState<Service[]>([]);
+  const agendaAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     getServices()
@@ -78,14 +79,22 @@ export default function AgendaPage() {
   } | null>(null);
 
   const loadAgenda = useCallback(async (date: string) => {
+    // respuesta vieja no debe pisar la del dia nuevo: bajo cold start la
+    // primera request llega tarde y mostraria el dia equivocado
+    agendaAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    agendaAbortRef.current = ctrl;
     setAgendaLoading(true);
     try {
-      setAgendas(await getDayAgenda(date));
+      const data = await getDayAgenda(date, undefined, ctrl.signal);
+      if (!ctrl.signal.aborted) setAgendas(data);
     } catch (e) {
-      setAgendas([]);
-      showToast(errorMessage(e, "Error al cargar agenda"), "error");
+      if (!ctrl.signal.aborted) {
+        setAgendas([]);
+        showToast(errorMessage(e, "Error al cargar agenda"), "error");
+      }
     } finally {
-      setAgendaLoading(false);
+      if (!ctrl.signal.aborted) setAgendaLoading(false);
     }
   }, []);
 
