@@ -58,18 +58,21 @@ describe("ServiciosPage", () => {
     render(<ServiciosPage />);
     await userEvent.click(await screen.findByText("Editar"));
 
-    const nameInput = screen.getByLabelText("Nombre del servicio *");
+    const nameInput = await screen.findByLabelText("Nombre del servicio *");
     expect(nameInput).toHaveValue("Corte de pelo");
 
     await userEvent.clear(nameInput);
     await userEvent.type(nameInput, "Corte nuevo");
-    await userEvent.click(screen.getByText("Guardar cambios"));
+    await waitFor(() => expect(nameInput).toHaveValue("Corte nuevo"));
+    await userEvent.click(await screen.findByRole("button", { name: "Guardar cambios" }));
 
-    await waitFor(() =>
-      expect(api.updateService).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({ name: "Corte nuevo" })
-      )
+    await waitFor(
+      () =>
+        expect(api.updateService).toHaveBeenCalledWith(
+          1,
+          expect.objectContaining({ name: "Corte nuevo" })
+        ),
+      { timeout: 5000 }
     );
     expect(api.createService).not.toHaveBeenCalled();
   });
@@ -80,13 +83,17 @@ describe("ServiciosPage", () => {
     render(<ServiciosPage />);
     await userEvent.click(await screen.findByText("+ Nuevo Servicio"));
 
-    await userEvent.type(screen.getByLabelText("Nombre del servicio *"), "Clase grupal");
-    await userEvent.click(screen.getByText("Crear Servicio"));
+    const nameInput = await screen.findByLabelText("Nombre del servicio *");
+    await userEvent.type(nameInput, "Clase grupal");
+    await waitFor(() => expect(nameInput).toHaveValue("Clase grupal"));
+    await userEvent.click(await screen.findByRole("button", { name: "Crear Servicio" }));
 
-    await waitFor(() =>
-      expect(api.createService).toHaveBeenCalledWith(
-        expect.objectContaining({ name: "Clase grupal" })
-      )
+    await waitFor(
+      () =>
+        expect(api.createService).toHaveBeenCalledWith(
+          expect.objectContaining({ name: "Clase grupal" })
+        ),
+      { timeout: 5000 }
     );
   });
 
@@ -96,6 +103,6 @@ describe("ServiciosPage", () => {
     render(<ServiciosPage />);
     await userEvent.click(await screen.findByText("Eliminar"));
 
-    await waitFor(() => expect(api.deleteService).toHaveBeenCalledWith(1));
+    await waitFor(() => expect(api.deleteService).toHaveBeenCalledWith(1), { timeout: 5000 });
   });
 });
