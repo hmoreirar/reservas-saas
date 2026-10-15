@@ -280,8 +280,14 @@ export default function AgendaPage() {
         </Modal>
       )}
 
+      {/* Detalle de la cita como sheet: junto al tap, no al final del dia */}
       {showPopover && selectedBooking && (
-        <div className="mt-4 animate-slide-up">
+        <Modal
+          sheet
+          open
+          title="Cita"
+          onClose={() => { setShowPopover(false); setSelectedBooking(null); }}
+        >
           <BookingPopover
             booking={selectedBooking.booking}
             serviceName={selectedBooking.serviceName}
@@ -290,7 +296,7 @@ export default function AgendaPage() {
             onCancel={handleCancelBooking}
             onClose={() => { setShowPopover(false); setSelectedBooking(null); }}
           />
-        </div>
+        </Modal>
       )}
 
       {rescheduleTarget && (

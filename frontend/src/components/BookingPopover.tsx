@@ -25,6 +25,7 @@ export default function BookingPopover({
   const timeLabel = new Date(booking.start_time).toLocaleTimeString("es-CL", {
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   });
 
   const dateLabel = new Date(booking.start_time).toLocaleDateString("es-CL", {
@@ -34,7 +35,7 @@ export default function BookingPopover({
   });
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-4 shadow-sm md:p-5">
+    <div>
       <div className="mb-3 flex items-start justify-between">
         <div>
           <p className="text-sm font-semibold text-text">{booking.client_name}</p>
