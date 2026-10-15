@@ -23,7 +23,7 @@ interface QuickBookingFormProps {
 }
 
 // Formulario de agendamiento rapido: lo minimo que un recepcionista
-// necesita cuando el paciente esta al telefono.
+// necesita cuando el cliente esta al telefono.
 export default function QuickBookingForm({
   serviceName,
   timeLabel,
@@ -42,11 +42,11 @@ export default function QuickBookingForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError("Ingresa el nombre del paciente");
+      setError("Ingresa el nombre del cliente");
       return;
     }
     if (!phone.trim()) {
-      setError("Ingresa el WhatsApp del paciente");
+      setError("Ingresa el WhatsApp del cliente");
       return;
     }
     if (slots && !slotValue) {
@@ -98,7 +98,7 @@ export default function QuickBookingForm({
 
       <div className="mb-4">
         <Input
-          label="Nombre del paciente *"
+          label="Nombre del cliente *"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -125,7 +125,7 @@ export default function QuickBookingForm({
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="paciente@ejemplo.com"
+          placeholder="cliente@ejemplo.com"
         />
         <p className="mt-1 text-xs text-text-muted">Solo para enviar la confirmación por correo.</p>
       </div>
@@ -135,7 +135,7 @@ export default function QuickBookingForm({
           label="Notas (opcional)"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="Ej: primera consulta"
+          placeholder="Ej: primera visita"
         />
       </div>
 

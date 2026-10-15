@@ -6,7 +6,7 @@ interface CopyLinkButtonProps {
   variant?: "primary" | "secondary";
 }
 
-// El momento clave del producto: compartir el link con los pacientes.
+// El momento clave del producto: compartir el link con los clientes.
 // Por eso el boton es grande, explicito y confirma con feedback.
 export default function CopyLinkButton({
   url,

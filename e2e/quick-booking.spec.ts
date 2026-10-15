@@ -3,7 +3,7 @@ import { test, expect, request as apiRequest, type APIRequestContext } from "@pl
 async function seedProvider(api: APIRequestContext, suffix: string) {
   const email = `e2e-${suffix}@example.com`;
   await api.post("/api/auth/register", {
-    data: { name: "Clinica Dental", email, password: "password123" },
+    data: { name: "Estudio Central", email, password: "password123" },
   });
   const login = await api.post("/api/auth/login", {
     data: { email, password: "password123" },
@@ -12,7 +12,7 @@ async function seedProvider(api: APIRequestContext, suffix: string) {
   await api.post("/api/services", {
     headers: { Authorization: `Bearer ${token}` },
     data: {
-      name: "Consulta dental",
+      name: "Consulta inicial",
       duration: 30,
       price: 20000,
       timezone: "America/Santiago",
@@ -46,11 +46,11 @@ test("el proveedor agenda una hora por telefono en dos toques", async ({ page })
   await dayBtn.click();
   await page.waitForTimeout(1000);
 
-  // accion principal: agendar la hora del paciente que llama
+  // accion principal: agendar la hora del cliente que llama
   await page.getByRole("button", { name: "Agendar hora" }).click();
 
   // sheet: hora (selector del dia) + nombre + whatsapp
-  await page.getByLabel("Nombre del paciente *").fill("Ana Torres");
+  await page.getByLabel("Nombre del cliente *").fill("Ana Torres");
   await page.getByLabel("WhatsApp *").fill("9 1234 5678");
   await page.locator("form").getByRole("button", { name: "Agendar hora" }).click();
 

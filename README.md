@@ -26,7 +26,7 @@
 ## Features
 
 - **Agenda tipo calendario** — bloques de citas reales, toca un hueco y agendás en dos pasos
-- **Agendar en dos toques** — botón flotante "+ Agendar hora" con nombre y WhatsApp del paciente
+- **Agendar en dos toques** — botón flotante "+ Agendar hora" con nombre y WhatsApp del cliente
 - **WhatsApp primero** — confirmaciones y recordatorios con un click (links `wa.me` con mensaje listo)
 - **Primeros pasos** — guía de 3 pasos para configurar el servicio y compartir el link de reservas
 - **Booking público** — los clientes reservan sin registrarse via `/book/:slug`, con WhatsApp como contacto principal

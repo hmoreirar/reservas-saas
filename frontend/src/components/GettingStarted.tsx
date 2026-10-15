@@ -26,7 +26,7 @@ export default function GettingStarted({ hasService, bookingUrl }: GettingStarte
     {
       done: hasService && !!bookingUrl,
       title: "Comparte tu link de reservas",
-      description: "Mandalo por WhatsApp a tus pacientes para que agenden solos.",
+      description: "Mandalo por WhatsApp a tus clientes para que agenden solos.",
       action: bookingUrl ? (
         <div className="max-w-xs">
           <CopyLinkButton url={bookingUrl} />
@@ -47,7 +47,7 @@ export default function GettingStarted({ hasService, bookingUrl }: GettingStarte
     <div className="mb-8 rounded-xl border border-border bg-surface p-6">
       <h2 className="mb-1 text-lg font-semibold text-text">Primeros pasos</h2>
       <p className="mb-5 text-sm text-text-secondary">
-        Tres pasos y tus pacientes pueden agendar solos.
+        Tres pasos y tus clientes pueden agendar solos.
       </p>
 
       <ol className="space-y-4">

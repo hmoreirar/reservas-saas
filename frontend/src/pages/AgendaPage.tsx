@@ -311,7 +311,7 @@ export default function AgendaPage() {
         variant="danger"
       />
 
-      {/* Accion principal siempre visible: agendar la hora del paciente que llama */}
+      {/* Accion principal siempre visible: agendar la hora del cliente que llama */}
       <button
         onClick={() => { setSelectedSlot(null); setShowBookingForm(true); }}
         disabled={freeSlots.length === 0}

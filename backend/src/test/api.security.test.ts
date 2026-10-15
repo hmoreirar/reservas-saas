@@ -114,7 +114,7 @@ describe('Autorizacion entre usuarios', () => {
       .post('/api/bookings/public')
       .send({
         service_id: service.id,
-        client_name: 'Paciente Visible',
+        client_name: 'Cliente Visible',
         client_phone: '+56 9 1111 2222',
         client_email: 'visible@example.com',
         start_time: slots[0].start,
@@ -127,7 +127,7 @@ describe('Autorizacion entre usuarios', () => {
     const agenda = (res.body as { service_id: number; slots: { type: string; booking?: { client_name: string } }[] }[])
       .find((a) => a.service_id === service.id);
     const slot = agenda?.slots.find((s) => s.type === 'booked');
-    expect(slot?.booking?.client_name).toBe('Paciente Visible');
+    expect(slot?.booking?.client_name).toBe('Cliente Visible');
   });
 });
 
