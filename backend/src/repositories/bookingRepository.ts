@@ -59,9 +59,9 @@ export const bookingRepository = {
     return result.rows;
   },
 
-  async findBookingsInRange(serviceId: number, startUtc: Date, endUtc: Date): Promise<{ id: number; start_time: Date; end_time: Date }[]> {
+  async findBookingsInRange(serviceId: number, startUtc: Date, endUtc: Date): Promise<Booking[]> {
     const result = await pool.query(
-      `SELECT id, start_time, end_time FROM bookings
+      `SELECT * FROM bookings
        WHERE service_id = $1
        AND start_time >= $2 AND start_time < $3
        AND status IN ('confirmed', 'pending')

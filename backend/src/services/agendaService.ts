@@ -15,7 +15,7 @@ function generateSlots(
   duration: number,
   maxCapacity: number,
   breaks: { start_time: string; end_time: string; name: string }[],
-  bookings: { id: number; start_time: Date; end_time: Date; status?: string }[]
+  bookings: Booking[]
 ): TimelineSlot[] {
   const slots: TimelineSlot[] = [];
   const now = DateTime.now();
@@ -91,7 +91,7 @@ function generateSlots(
               start: startIso,
               end: endIso,
               type: 'booked',
-              booking: b as unknown as Booking,
+              booking: b,
               capacity_used: overlappingBookings.length,
               capacity_max: maxCapacity,
             });
