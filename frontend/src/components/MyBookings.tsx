@@ -17,6 +17,8 @@ interface MyBookingsProps {
   totalPages: number;
   search: string;
   statusFilter: string;
+  range: "upcoming" | "past";
+  onRangeChange: (r: "upcoming" | "past") => void;
   onSearchChange: (q: string) => void;
   onFilterChange: (f: string) => void;
   onPageChange: (p: number) => void;
@@ -34,6 +36,11 @@ const FILTERS = [
   { key: "no-show", label: "No asistio" },
 ];
 
+const RANGES = [
+  { key: "upcoming", label: "Proximas" },
+  { key: "past", label: "Anteriores" },
+] as const;
+
 export default function MyBookings({
   bookings,
   total,
@@ -41,6 +48,8 @@ export default function MyBookings({
   totalPages,
   search,
   statusFilter,
+  range,
+  onRangeChange,
   onSearchChange,
   onFilterChange,
   onPageChange,
@@ -73,6 +82,22 @@ export default function MyBookings({
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex w-fit rounded-lg border border-border bg-surface p-1">
+        {RANGES.map((r) => (
+          <button
+            key={r.key}
+            onClick={() => onRangeChange(r.key)}
+            className={`cursor-pointer rounded-md px-4 py-1.5 text-sm font-medium transition-colors ${
+              range === r.key
+                ? "bg-elevated text-text shadow-sm"
+                : "text-text-secondary hover:text-text"
+            }`}
+          >
+            {r.label}
+          </button>
+        ))}
+      </div>
+
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <Input
           type="text"

@@ -62,7 +62,15 @@ describe("ReservasPage", () => {
     expect(vi.mocked(api.getMyBookings).mock.calls.length).toBe(callsBefore);
 
     await waitFor(
-      () => expect(vi.mocked(api.getMyBookings)).toHaveBeenCalledWith(1, 20, "an", undefined, expect.anything()),
+      () =>
+        expect(vi.mocked(api.getMyBookings)).toHaveBeenCalledWith(
+          1,
+          20,
+          "an",
+          undefined,
+          "upcoming",
+          expect.anything()
+        ),
       { timeout: 1500 }
     );
   });

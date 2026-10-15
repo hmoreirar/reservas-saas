@@ -20,6 +20,7 @@ export default function ReservasPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [range, setRange] = useState<"upcoming" | "past">("upcoming");
   const [loading, setLoading] = useState(true);
   const [fetching, setFetching] = useState(false);
   const [cancelConfirm, setCancelConfirm] = useState<number | null>(null);
@@ -27,13 +28,13 @@ export default function ReservasPage() {
 
   const abortRef = useRef<AbortController | null>(null);
 
-  const loadMyBookings = useCallback(async (p: number, s: string, f: string) => {
+  const loadMyBookings = useCallback(async (p: number, s: string, f: string, r: "upcoming" | "past") => {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     setFetching(true);
     try {
-      const data = await getMyBookings(p, 20, s || undefined, f || undefined, ctrl.signal);
+      const data = await getMyBookings(p, 20, s || undefined, f || undefined, r, ctrl.signal);
       setMyBookings(data.data);
       setTotal(data.total);
       setPage(data.page);
@@ -53,12 +54,12 @@ export default function ReservasPage() {
   // Debounce: una busqueda por tipeo sin debounce dispara requests de mas,
   // y la respuesta lenta vieja puede pisar a la nueva (race).
   useEffect(() => {
-    const t = setTimeout(() => loadMyBookings(1, search, statusFilter), 300);
+    const t = setTimeout(() => loadMyBookings(1, search, statusFilter, range), 300);
     return () => clearTimeout(t);
-  }, [search, statusFilter, loadMyBookings]);
+  }, [search, statusFilter, range, loadMyBookings]);
 
   const handlePageChange = (p: number) => {
-    loadMyBookings(p, search, statusFilter);
+    loadMyBookings(p, search, statusFilter, range);
   };
 
   const handleCancelClick = (id: number) => {
@@ -75,7 +76,7 @@ export default function ReservasPage() {
     try {
       await rescheduleBooking(rescheduleTarget.id, newStartTime);
       setRescheduleTarget(null);
-      loadMyBookings(page, search, statusFilter);
+      loadMyBookings(page, search, statusFilter, range);
       showToast("Reserva reprogramada", "success");
       return null;
     } catch (e) {
@@ -87,7 +88,7 @@ export default function ReservasPage() {
     if (cancelConfirm === null) return;
     try {
       await cancelBooking(cancelConfirm);
-      loadMyBookings(page, search, statusFilter);
+      loadMyBookings(page, search, statusFilter, range);
       showToast("Reserva cancelada", "success");
     } catch (e) {
       showToast(errorMessage(e, "Error al cancelar reserva"), "error");
@@ -98,7 +99,7 @@ export default function ReservasPage() {
   const handleUpdateStatus = async (id: number, status: BookingStatusAction, reason?: string) => {
     try {
       await updateBookingStatus(id, status, reason);
-      loadMyBookings(page, search, statusFilter);
+      loadMyBookings(page, search, statusFilter, range);
       const labels: Record<string, string> = {
         confirmed: "Reserva confirmada",
         declined: "Reserva rechazada",
@@ -131,6 +132,11 @@ export default function ReservasPage() {
         totalPages={totalPages}
         search={search}
         statusFilter={statusFilter}
+        range={range}
+        onRangeChange={(r) => {
+          setRange(r);
+          setPage(1);
+        }}
         onSearchChange={setSearch}
         onFilterChange={setStatusFilter}
         onPageChange={handlePageChange}

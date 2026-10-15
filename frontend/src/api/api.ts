@@ -178,9 +178,10 @@ export const getMyBookings = async (
   limit = 20,
   search?: string,
   status?: string,
+  range: "upcoming" | "past" | "all" = "upcoming",
   signal?: AbortSignal
 ): Promise<PaginatedBookings> => {
-  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  const params = new URLSearchParams({ page: String(page), limit: String(limit), range });
   if (search) params.set("search", search);
   if (status) params.set("status", status);
   return apiFetch(`${API_URL}/api/bookings/my?${params}`, {

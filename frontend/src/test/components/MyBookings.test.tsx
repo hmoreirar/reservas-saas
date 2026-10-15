@@ -26,6 +26,8 @@ function renderPage(overrides: Partial<React.ComponentProps<typeof MyBookings>> 
     totalPages: 1,
     search: "",
     statusFilter: "",
+    range: "upcoming",
+    onRangeChange: vi.fn(),
     onSearchChange: vi.fn(),
     onFilterChange: vi.fn(),
     onPageChange: vi.fn(),

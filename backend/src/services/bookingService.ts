@@ -324,17 +324,24 @@ export const bookingService = {
 
   async getMyBookings(
     userId: number,
-    options: { page?: number; limit?: number; search?: string; status?: string } = {}
+    options: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+      range?: 'upcoming' | 'past' | 'all';
+    } = {}
   ) {
     const page = options.page ?? 1;
     const limit = options.limit ?? 20;
     const offset = (page - 1) * limit;
 
-    const { rows, total } = await bookingRepository.findUpcomingByUser(userId, {
+    const { rows, total } = await bookingRepository.findByUser(userId, {
       limit,
       offset,
       search: options.search,
       status: options.status,
+      range: options.range,
     });
 
     return {

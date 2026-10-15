@@ -36,19 +36,19 @@
 
 ## Screenshots
 
-| Login | Agenda |
+| Agenda | Cita con WhatsApp |
 |---|---|
-| ![Login](screenshots/design-2026-10/01-login-light.png) | ![Agenda](screenshots/design-2026-10/02-agenda-light.png) |
+| ![Agenda](screenshots/design-2026-10/02-agenda-light.png) | ![Cita](screenshots/design-2026-10/15-popover-whatsapp.png) |
 
-| Servicios | Reserva pública |
+| Agendar hora | Reserva pública |
 |---|---|
-| ![Servicios](screenshots/design-2026-10/03-servicios-light.png) | ![Reserva publica](screenshots/design-2026-10/04-booking-publico.png) |
+| ![Agendar](screenshots/design-2026-10/10-sheet-calendario.png) | ![Reserva publica](screenshots/design-2026-10/04-booking-publico.png) |
 
-| Modo oscuro | Mobile |
+| Primeros pasos | Modo oscuro |
 |---|---|
-| ![Agenda dark](screenshots/design-2026-10/06-agenda-dark.png) | ![Agenda mobile](screenshots/design-2026-10/09-agenda-mobile.png) |
+| ![Primeros pasos](screenshots/design-2026-10/13-primeros-pasos.png) | ![Agenda dark](screenshots/design-2026-10/06-agenda-dark.png) |
 
-> 💡 Diseño minimalista monocromo (estilo Linear/Vercel) con modo oscuro. La vista pública de booking se genera automáticamente al crear un servicio (`/book/:slug`).
+> 💡 Diseño minimalista monocromo con modo oscuro y enfoque mobile-first. La vista pública de booking se genera automáticamente al crear un servicio (`/book/:slug`).
 
 ## Inicio rápido
 

@@ -66,7 +66,16 @@ export const getMyBookings = async (req: Request, res: Response, next: NextFunct
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
     const search = req.query.search as string | undefined;
     const status = req.query.status as string | undefined;
-    const result = await bookingService.getMyBookings(req.user!.id, { page, limit, search, status });
+    const rangeQuery = req.query.range as string | undefined;
+    const range =
+      rangeQuery === 'past' || rangeQuery === 'all' ? rangeQuery : 'upcoming';
+    const result = await bookingService.getMyBookings(req.user!.id, {
+      page,
+      limit,
+      search,
+      status,
+      range,
+    });
     res.json(result);
   } catch (error) {
     next(error);

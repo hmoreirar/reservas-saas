@@ -84,17 +84,25 @@ export const bookingRepository = {
     return result.rows[0];
   },
 
-  async findUpcomingByUser(
+  async findByUser(
     userId: number,
     options: {
       limit: number;
       offset: number;
       search?: string;
       status?: string;
+      range?: 'upcoming' | 'past' | 'all';
     }
   ): Promise<{ rows: Booking[]; total: number }> {
-    const conditions: string[] = ['s.user_id = $1', 'b.start_time >= NOW()'];
+    const range = options.range ?? 'upcoming';
+    const conditions: string[] = ['s.user_id = $1'];
     const values: unknown[] = [userId];
+
+    if (range === 'upcoming') {
+      conditions.push('b.start_time >= NOW()');
+    } else if (range === 'past') {
+      conditions.push('b.start_time < NOW()');
+    }
 
     if (options.status) {
       conditions.push(`b.status = $${values.length + 1}`);
@@ -121,7 +129,7 @@ export const bookingRepository = {
        FROM bookings b
        JOIN services s ON b.service_id = s.id
        WHERE ${where}
-       ORDER BY b.start_time DESC
+       ORDER BY b.start_time ${range === 'upcoming' ? 'ASC' : 'DESC'}
        LIMIT $${values.length + 1} OFFSET $${values.length + 2}`,
       [...values, options.limit, options.offset]
     );
